@@ -85,6 +85,18 @@ def train(args):
             duplicate_actors=args.ring_attn_size * args.ds_tensor_parallel_size,
         )
 
+    # Teacher model for target-side distribution (uses same actor type for generation)
+    if args.teacher_pretrain:
+        teacher_model = RayActorGroup(
+            args.actor_num_nodes,
+            args.actor_num_gpus_per_node,
+            EBFTPolicyModelActor,
+            num_gpus_per_actor=1,
+            duplicate_actors=args.ring_attn_size * args.ds_tensor_parallel_size,
+        )
+    else:
+        teacher_model = None
+
     if not args.colocate_all_models:
         pg = None
 
@@ -197,6 +209,7 @@ def train(args):
         critic_model,
         reward_models,
         ref_model,
+        teacher_model_group=teacher_model,
         prompt_split=args.prompt_split,
         eval_split=args.eval_split,
         temperature=args.temperature,
@@ -211,6 +224,8 @@ def train(args):
     if ref_model is not None:
         refs.extend(ref_model.async_init_model_from_pretrained(strategy, args.pretrain))
     refs.extend(actor_model.async_init_model_from_pretrained(strategy, args.pretrain, max_steps))
+    if teacher_model is not None:
+        refs.extend(teacher_model.async_init_model_from_pretrained(strategy, args.teacher_pretrain))
     if reward_models is not None:
         for i, r_model in enumerate(reward_models):
             refs.extend(r_model.async_init_model_from_pretrained(strategy, reward_pretrains[i]))
@@ -505,7 +520,7 @@ if __name__ == "__main__":
         "--cf_target_mode",
         type=str,
         default="single",
-        choices=["single", "vicinal"],
+        choices=["single", "vicinal", "teacher"],
         help="How to build the target empirical measure for CF matching",
     )
     parser.add_argument(
@@ -525,6 +540,21 @@ if __name__ == "__main__":
         type=int,
         default=43,
         help="Random seed used for vicinal target perturbations",
+    )
+
+    # Teacher-augmented target measure
+    parser.add_argument("--teacher_pretrain", type=str, default=None, help="Teacher model HF name or path for target-side distribution (None = disabled)")
+    parser.add_argument(
+        "--cf_teacher_lambda",
+        type=float,
+        default=0.0,
+        help="Mixing weight lambda in [0,1] for teacher target: nu = (1-lambda)*GT + lambda*teacher. 0 = GT only",
+    )
+    parser.add_argument(
+        "--cf_teacher_n_samples",
+        type=int,
+        default=4,
+        help="Number of teacher samples per prompt (M) for the teacher target measure",
     )
 
     # Reward composition
