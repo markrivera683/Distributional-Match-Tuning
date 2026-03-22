@@ -216,6 +216,8 @@ def _build_cf_target_embedding(
     cf_target_num_refs: int,
     cf_target_std: float,
     cf_target_seed: int,
+    teacher_embedding: torch.Tensor = None,
+    cf_teacher_lambda: float = 0.0,
 ) -> torch.Tensor:
     """Build the target empirical measure used by the CF discrepancy.
 
@@ -223,9 +225,55 @@ def _build_cf_target_embedding(
     - single: keep the original EBFT-style single-reference target.
     - vicinal: create a small local target distribution around the GT feature
       by adding deterministic Gaussian perturbations in feature space.
+    - teacher: build a mixed empirical target from GT + teacher embeddings.
+      nu_c = (1-λ)*δ(GT) + λ*(1/m)*Σ_i δ(teacher_i)
+      Implemented by repeating GT r times and concatenating m teacher samples
+      so that r/(r+m) ≈ (1-λ).
+
+    Args:
+        gt_embedding:      (B, G, N, K, D) — only [:,:,:1,:,:] used as GT point.
+        teacher_embedding: (B, G, M, K, D) — optional pre-computed teacher features.
+        cf_teacher_lambda: mixing weight λ ∈ [0,1].  0 → GT only, 1 → teacher only.
     """
+    # Canonical single GT point: (B, G, 1, K, D)
     target_embedding = gt_embedding[:, :, :1, :, :].float()
 
+    # ── teacher mode ──────────────────────────────────────────────────
+    if cf_target_mode == "teacher":
+        if teacher_embedding is None:
+            return target_embedding
+
+        assert teacher_embedding.shape[-1] == gt_embedding.shape[-1], (
+            f"teacher feature dim {teacher_embedding.shape[-1]} "
+            f"!= gt feature dim {gt_embedding.shape[-1]}"
+        )
+
+        lam = float(cf_teacher_lambda)
+
+        if lam <= 0.0:
+            return target_embedding                       # λ=0 → GT only
+
+        teacher_float = teacher_embedding.float()         # (B, G, M, K, D)
+        m = teacher_float.shape[2]
+
+        if lam >= 1.0:
+            return teacher_float                          # λ=1 → teacher only
+
+        # r GT copies so that r/(r+m) ≈ (1-λ)
+        r = round(m * (1.0 - lam) / lam)
+        max_r = m * 4
+        r = min(r, max_r)
+
+        if r <= 0:
+            return teacher_float
+
+        gt_repeated = target_embedding.expand(             # (B, G, r, K, D)
+            -1, -1, r, -1, -1
+        )
+        return torch.cat([gt_repeated, teacher_float],     # (B, G, r+M, K, D)
+                         dim=2)
+
+    # ── single / vicinal (unchanged) ──────────────────────────────────
     if cf_target_mode == "single" or int(cf_target_num_refs) <= 1:
         return target_embedding
     if cf_target_mode != "vicinal":
@@ -389,6 +437,8 @@ def get_cf_l1oo_rewards(
     cf_target_num_refs: int = 1,
     cf_target_std: float = 0.05,
     cf_target_seed: int = 43,
+    teacher_embedding: torch.Tensor = None,
+    cf_teacher_lambda: float = 0.0,
 ) -> torch.Tensor:
     """NCFM-style empirical CF reward with leave-one-out sample attribution.
 
@@ -419,6 +469,8 @@ def get_cf_l1oo_rewards(
         cf_target_num_refs=cf_target_num_refs,
         cf_target_std=cf_target_std,
         cf_target_seed=cf_target_seed,
+        teacher_embedding=teacher_embedding,
+        cf_teacher_lambda=cf_teacher_lambda,
     )
 
     gen_flat = gen_embedding.permute(0, 1, 3, 2, 4).reshape(-1, n_samples, feat_dim).float()
@@ -477,6 +529,8 @@ def compute_cf_discrepancy_loss(
     cf_target_num_refs: int = 1,
     cf_target_std: float = 0.05,
     cf_target_seed: int = 43,
+    teacher_embedding: torch.Tensor = None,
+    cf_teacher_lambda: float = 0.0,
 ) -> torch.Tensor:
     """Differentiable group-level CF discrepancy for direct geometry learning.
 
@@ -501,6 +555,8 @@ def compute_cf_discrepancy_loss(
         cf_target_num_refs=cf_target_num_refs,
         cf_target_std=cf_target_std,
         cf_target_seed=cf_target_seed,
+        teacher_embedding=teacher_embedding,
+        cf_teacher_lambda=cf_teacher_lambda,
     )
 
     gen_flat = gen_embedding.permute(0, 1, 3, 2, 4).reshape(-1, n_samples, feat_dim).float()

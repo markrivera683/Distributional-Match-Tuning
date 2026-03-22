@@ -43,6 +43,7 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
         critic_model_group: RayActorGroup,
         reward_model_groups: List[RayActorGroup],
         reference_model_group: RayActorGroup,
+        teacher_model_group: RayActorGroup = None,
         dataloader_pin_memory: bool = True,
         prompt_split: str = "train",
         eval_split: str = "test",
@@ -58,6 +59,7 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
         self.critic_model_group = critic_model_group
         self.reward_model_groups = reward_model_groups or []
         self.reference_model_group = reference_model_group
+        self.teacher_model_group = teacher_model_group
         self.dataloader_pin_memory = dataloader_pin_memory
 
         self.primary_reward_model_group = self._get_primary_reward_model_group()
@@ -652,6 +654,7 @@ class EBFTTrainer(BaseEBFTTrainer):
         critic_model_group: RayActorGroup,
         reward_model_groups: List[RayActorGroup],
         reference_model_group: RayActorGroup,
+        teacher_model_group: RayActorGroup = None,
         dataloader_pin_memory: bool = True,
         prompt_split: str = "train",
         eval_split: str = "test",
@@ -664,9 +667,10 @@ class EBFTTrainer(BaseEBFTTrainer):
             critic_model_group,
             reward_model_groups,
             reference_model_group,
-            dataloader_pin_memory,
-            prompt_split,
-            eval_split,
+            teacher_model_group=teacher_model_group,
+            dataloader_pin_memory=dataloader_pin_memory,
+            prompt_split=prompt_split,
+            eval_split=eval_split,
             **generate_kwargs,
         )
 
@@ -697,6 +701,12 @@ class EBFTTrainer(BaseEBFTTrainer):
             self.tokenizer,
         )
 
+        self.teacher_generator = (
+            self.generator_cls(self.teacher_model_group, self.strategy, self.tokenizer)
+            if self.teacher_model_group is not None
+            else None
+        )
+
         primary_reward_group = self._ensure_primary_reward_model_group()
 
         self.experience_maker = RemoteExperienceMaker(
@@ -707,6 +717,7 @@ class EBFTTrainer(BaseEBFTTrainer):
             self.kl_ctl,
             self.strategy,
             self.tokenizer,
+            teacher_samples_generator=self.teacher_generator,
         )
 
         self.prepare_datasets()

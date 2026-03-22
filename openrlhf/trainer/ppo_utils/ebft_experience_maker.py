@@ -573,6 +573,7 @@ class RemoteExperienceMaker(ABC):
         kl_controller,
         strategy=None,
         tokenizer=None,
+        teacher_samples_generator=None,
         **kwargs,
     ):
         super().__init__()
@@ -589,6 +590,7 @@ class RemoteExperienceMaker(ABC):
         # remote_rm_url indicates that the remote reward model is agent enviroment, remote http server or custom reward func
         self.remote_rm_url = self.args.remote_rm_url
         self.tokenizer = tokenizer
+        self.teacher_samples_generator = teacher_samples_generator
 
 
     def assign_sample_indices(self, rollout_samples):
@@ -645,7 +647,173 @@ class RemoteExperienceMaker(ABC):
         out = out.masked_fill(no_ans, 0.0)
 
         return out
-    
+
+    @torch.no_grad()
+    def _build_teacher_embedding(
+        self,
+        samples_list,
+        n_actor_samples,
+        prompt_length,
+        context_length,
+        generate_length,
+        stride,
+        num_blocks,
+    ):
+        """Generate teacher samples and extract gen-side embeddings through critic.
+
+        Runs the same critic → embed_method → feature_map pipeline used for actor
+        samples, but only for teacher-generated tokens.  The returned tensor is
+        aligned to the actor's micro-batch / group structure so it can be passed
+        directly to ``_build_cf_target_embedding`` as ``teacher_embedding``.
+
+        Args:
+            samples_list:     actor Experience list (used to extract unique prompts)
+            n_actor_samples:  N (actor samples per prompt, for de-duplication)
+            prompt_length:    prompt token count
+            context_length:   context window size
+            generate_length:  tokens per generation block
+            stride:           stride between blocks
+            num_blocks:       number of generation blocks
+
+        Returns:
+            (num_actor_mb, num_groups_per_mb, M, num_blocks, D)  or  None
+        """
+        args = self.strategy.args
+        M = int(getattr(self.args, "cf_teacher_n_samples", 4))
+
+        # ── 1. Extract unique prompts from actor samples ──────────────
+        unique_prompts = []     # List[Tensor(prompt_max_len,)]
+        unique_doc_ids = []
+        unique_qa_masks = []
+        for s in samples_list:
+            for i in range(0, s.prompts.shape[0], n_actor_samples):
+                unique_prompts.append(s.prompts[i])
+                doc = s.doc_ids[i] if s.doc_ids.dim() == 1 else s.doc_ids[i]
+                unique_doc_ids.append(doc[:prompt_length])
+                unique_qa_masks.append(s.qa_masks[i, :prompt_length])
+
+        if not unique_prompts:
+            return None
+
+        # ── 2. Teacher rollout: M samples per prompt ──────────────────
+        teacher_samples = self.teacher_samples_generator.generate_samples(
+            unique_prompts, unique_doc_ids, unique_qa_masks,
+            n_samples_per_prompt=M,
+        )
+        if not teacher_samples:
+            return None
+
+        # ── 3. Critic forward on teacher sequences ────────────────────
+        t_full_seqs = [s.full_sequences for s in teacher_samples]
+        t_doc_ids = [
+            s.doc_ids[:, :prompt_length] if s.doc_ids.dim() > 1
+            else s.doc_ids[:prompt_length]
+            for s in teacher_samples
+        ]
+        t_qa_masks = [s.qa_masks for s in teacher_samples]
+
+        hidden_state_method = self.args.hidden_state_method
+        critic_ref = self.critic_model_group.async_run_method_batch(
+            method_name="forward",
+            sequences=t_full_seqs,
+            prompt_length=[prompt_length] * len(t_full_seqs),
+            context_length=[context_length] * len(t_full_seqs),
+            generate_max_len=[generate_length] * len(t_full_seqs),
+            stride=[stride] * len(t_full_seqs),
+            num_blocks=[num_blocks] * len(t_full_seqs),
+            hidden_state_method=[hidden_state_method] * len(t_full_seqs),
+            doc_ids=t_doc_ids,
+            document_masking=[self.args.document_masking] * len(t_full_seqs),
+            qa_masks=t_qa_masks,
+            qa_masking=[self.args.qa_masking] * len(t_full_seqs),
+        )
+
+        ray.get(critic_ref)
+        dup = args.ring_attn_size * args.ds_tensor_parallel_size
+        hs_list = sum(ray.get(critic_ref)[::dup], [])
+        hs_tensor = torch.stack([e[0] for e in hs_list])
+        # hs_tensor: (P, M, full_seq_len, NF, H)  where P = len(unique_prompts)
+
+        # ── 4. Extract gen region → embedding pipeline ────────────────
+        # (P, M, gen_len*num_blocks, NF, H)
+        gen_emb = hs_tensor[:, :, prompt_length:, :, :]
+        qa_t = torch.stack(t_qa_masks)
+        gen_qa = (
+            qa_t[:, :, prompt_length:]
+            .view(gen_emb.shape[0], gen_emb.shape[1], gen_emb.shape[2], 1, 1)
+            .repeat(1, 1, 1, gen_emb.shape[3], 1)
+        )
+
+        # Reshape into blocks: (P, M, num_blocks, gen_len, NF, H)
+        gen_emb = gen_emb.reshape(
+            gen_emb.shape[0], gen_emb.shape[1],
+            generate_length, num_blocks, gen_emb.shape[-2], gen_emb.shape[-1],
+        ).transpose(-3, -4)
+        gen_qa = gen_qa.reshape(
+            gen_emb.shape[0], gen_emb.shape[1],
+            generate_length, num_blocks, gen_emb.shape[-2], 1,
+        ).transpose(-3, -4)
+
+        # Group: 1 prompt per teacher batch → (P, 1, M, NB, GL, NF, H)
+        num_feat = gen_emb.shape[-2]
+        gen_emb = gen_emb.reshape(
+            gen_emb.shape[0], 1, M, num_blocks, generate_length, num_feat,
+            gen_emb.shape[-1],
+        )
+        gen_qa = gen_qa.reshape(
+            gen_emb.shape[0], 1, M, num_blocks, generate_length, num_feat, 1,
+        )
+
+        # embed_method (same logic as actor pipeline)
+        if self.args.embed_method == "mean_pooling":
+            gen_emb = torch.mean(gen_emb, dim=-3, keepdim=True)
+        elif self.args.embed_method == "last_token":
+            gen_emb = self.groom(gen_emb, gen_qa, qa_masking=self.args.qa_masking)
+        elif self.args.embed_method == "concat":
+            gen_emb = gen_emb.transpose(-2, -3).reshape(
+                gen_emb.shape[0], 1, M, num_blocks, 1, num_feat,
+                generate_length * gen_emb.shape[-1],
+            )
+        elif self.args.embed_method == "token":
+            pass
+        else:
+            raise ValueError(f"Unknown embed_method: {self.args.embed_method}")
+
+        # Fuse NF * H → D
+        gen_emb = gen_emb.reshape(
+            gen_emb.shape[0], gen_emb.shape[1], gen_emb.shape[2],
+            gen_emb.shape[3], gen_emb.shape[4],
+            gen_emb.shape[5] * gen_emb.shape[6],
+        )
+        if self.args.embed_method != "token":
+            gen_emb = gen_emb.squeeze(-2)
+        # gen_emb: (P, 1, M, num_blocks, D)
+
+        gen_emb = apply_feature_map(
+            gen_emb,
+            feature_map_type=getattr(self.args, "feature_map_type", "identity"),
+            rff_num_features=getattr(self.args, "rff_num_features", 128),
+            rff_sigma=getattr(self.args, "rff_sigma", 1.0),
+            rff_seed=getattr(self.args, "rff_seed", 43),
+        )
+
+        # ── 5. Align to actor micro-batch structure ───────────────────
+        P = gen_emb.shape[0]
+        D = gen_emb.shape[-1]
+        K = gen_emb.shape[-2]
+        gen_emb = gen_emb.squeeze(1)                 # (P, M, K, D)
+        num_actor_mb = len(samples_list)
+        num_groups_per_mb = P // num_actor_mb
+        gen_emb = gen_emb.reshape(                   # (num_actor_mb, NG, M, K, D)
+            num_actor_mb, num_groups_per_mb, M, K, D,
+        )
+
+        logger.info(
+            f"[Teacher] built teacher_embedding {gen_emb.shape} "
+            f"from {P} prompts x {M} teacher samples"
+        )
+        return gen_emb
+
     @torch.no_grad()
     def make_experience(self, samples_list):
         """
@@ -802,6 +970,18 @@ class RemoteExperienceMaker(ABC):
         else:
             per_token = False
 
+        # ── Teacher target embedding (cf_l1oo teacher mode only) ──────
+        teacher_embedding = None
+        if (
+            getattr(self.args, "distribution_reward_type", "pointwise") == "cf_l1oo"
+            and getattr(self.args, "cf_target_mode", "single") == "teacher"
+            and self.teacher_samples_generator is not None
+        ):
+            teacher_embedding = self._build_teacher_embedding(
+                samples_list, n_samples, prompt_length, context_length,
+                generate_length, stride, num_blocks,
+            )
+
         reward_type = getattr(self.args, "distribution_reward_type", "pointwise")
         if reward_type == "pointwise":
             gt_rewards_tensor = get_alignment_rewards(gen_embedding, gt_embedding)
@@ -834,6 +1014,8 @@ class RemoteExperienceMaker(ABC):
                 cf_target_num_refs=getattr(self.args, "cf_target_num_refs", 1),
                 cf_target_std=getattr(self.args, "cf_target_std", 0.05),
                 cf_target_seed=getattr(self.args, "cf_target_seed", 43),
+                teacher_embedding=teacher_embedding,
+                cf_teacher_lambda=getattr(self.args, "cf_teacher_lambda", 0.0),
             )
             gt_rewards_tensor = gt_rewards_tensor.reshape(gt_rewards_tensor.shape[0], -1, gt_rewards_tensor.shape[-1])
             diversity_rewards_tensor = torch.zeros_like(gt_rewards_tensor)
