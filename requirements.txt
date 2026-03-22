@@ -7,7 +7,7 @@ datasets
 deepspeed
 einops
 # flash-attn==2.8.2
-flash-attn
+# flash-attn
 # grpcio>=1.74.0
 grpcio
 isort

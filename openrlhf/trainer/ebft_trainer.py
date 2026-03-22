@@ -29,7 +29,10 @@ from openrlhf.utils.embedding_utils import (
 )
 from datasets import load_dataset
 from datasets import concatenate_datasets
-from datatrove.utils.dataset import DatatroveFolderDataset
+try:
+    from datatrove.utils.dataset import DatatroveFolderDataset
+except ImportError:
+    DatatroveFolderDataset = None
 
 logger = init_logger(__name__)
 
@@ -707,6 +710,11 @@ class EBFTTrainer(BaseEBFTTrainer):
             else None
         )
 
+        logger.info(
+            f"[TEACHER-VERIFY] teacher_model_group={'PRESENT' if self.teacher_model_group else 'None'}, "
+            f"teacher_generator={'PRESENT' if self.teacher_generator else 'None'}"
+        )
+
         primary_reward_group = self._ensure_primary_reward_model_group()
 
         self.experience_maker = RemoteExperienceMaker(
@@ -718,6 +726,10 @@ class EBFTTrainer(BaseEBFTTrainer):
             self.strategy,
             self.tokenizer,
             teacher_samples_generator=self.teacher_generator,
+        )
+        logger.info(
+            f"[TEACHER-VERIFY] RemoteExperienceMaker.teacher_samples_generator="
+            f"{'PRESENT' if self.experience_maker.teacher_samples_generator else 'None'}"
         )
 
         self.prepare_datasets()
