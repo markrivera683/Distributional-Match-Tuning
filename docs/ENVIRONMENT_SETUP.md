@@ -138,6 +138,15 @@ The run script expects:
 - `MODEL_PATH` to point to a complete local checkpoint
 - weight files such as `*.safetensors` to actually exist
 
+```bash
+pip install modelscope
+
+python - << 'EOF'
+from modelscope import snapshot_download
+snapshot_download('Qwen/Qwen3.5-2B', local_dir='Qwen3.5-2B')
+EOF
+```
+
 ### Datasets
 
 The verified runs used:
@@ -153,6 +162,18 @@ The script defaults to offline mode, so on a new machine you either need:
   - `HF_DATASETS_OFFLINE=0`
 
 to let datasets download once.
+
+```bash
+pip install datasets
+export HF_ENDPOINT=https://hf-mirror.com
+
+python - << 'EOF'
+from datasets import load_dataset
+
+train_ds = load_dataset("DeepStudentLlama/AoPS-Instruct")["train"]
+train_ds.to_json("/root/data/aops/train.json")
+EOF
+```
 
 ## 8. Single-GPU Compatibility Notes
 
@@ -191,3 +212,4 @@ If your goal is to reproduce our current results on another machine, the safest 
 3. warm local model and dataset caches
 4. run the paper-aligned vanilla smoke or short run first
 5. only then run `cf_l1oo` / `cf_tokencloud_l1oo`
+

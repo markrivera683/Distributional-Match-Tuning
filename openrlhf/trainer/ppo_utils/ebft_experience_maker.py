@@ -972,15 +972,31 @@ class RemoteExperienceMaker(ABC):
 
         # ── Teacher target embedding (cf_l1oo teacher mode only) ──────
         teacher_embedding = None
+        _dr_type = getattr(self.args, "distribution_reward_type", "pointwise")
+        _ct_mode = getattr(self.args, "cf_target_mode", "single")
+        _has_tsg = self.teacher_samples_generator is not None
+        logger.info(
+            f"[TEACHER-VERIFY] Teacher branch gate: "
+            f"distribution_reward_type={_dr_type}, cf_target_mode={_ct_mode}, "
+            f"teacher_samples_generator={'PRESENT' if _has_tsg else 'None'} "
+            f"=> {'ENTER teacher branch' if (_dr_type == 'cf_l1oo' and _ct_mode == 'teacher' and _has_tsg) else 'SKIP teacher branch'}"
+        )
         if (
-            getattr(self.args, "distribution_reward_type", "pointwise") == "cf_l1oo"
-            and getattr(self.args, "cf_target_mode", "single") == "teacher"
-            and self.teacher_samples_generator is not None
+            _dr_type == "cf_l1oo"
+            and _ct_mode == "teacher"
+            and _has_tsg
         ):
             teacher_embedding = self._build_teacher_embedding(
                 samples_list, n_samples, prompt_length, context_length,
                 generate_length, stride, num_blocks,
             )
+            if teacher_embedding is not None:
+                logger.info(
+                    f"[TEACHER-VERIFY] teacher_embedding built: shape={teacher_embedding.shape}, "
+                    f"dtype={teacher_embedding.dtype}, mean={teacher_embedding.float().mean().item():.6f}"
+                )
+            else:
+                logger.warning("[TEACHER-VERIFY] _build_teacher_embedding returned None!")
 
         reward_type = getattr(self.args, "distribution_reward_type", "pointwise")
         if reward_type == "pointwise":

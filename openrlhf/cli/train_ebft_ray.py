@@ -85,16 +85,24 @@ def train(args):
             duplicate_actors=args.ring_attn_size * args.ds_tensor_parallel_size,
         )
 
-    # Teacher model for target-side distribution (uses same actor type for generation)
+    # Teacher model for target-side distribution (uses same actor type for generation).
+    # Must share the actor/ref placement group so it can colocate on the same GPUs.
     if args.teacher_pretrain:
+        print(f"[TEACHER-VERIFY] Creating teacher RayActorGroup from: {args.teacher_pretrain}")
+        print(f"[TEACHER-VERIFY] cf_target_mode={getattr(args, 'cf_target_mode', 'N/A')}, "
+              f"distribution_reward_type={getattr(args, 'distribution_reward_type', 'N/A')}, "
+              f"cf_teacher_lambda={getattr(args, 'cf_teacher_lambda', 'N/A')}, "
+              f"cf_teacher_n_samples={getattr(args, 'cf_teacher_n_samples', 'N/A')}")
         teacher_model = RayActorGroup(
             args.actor_num_nodes,
             args.actor_num_gpus_per_node,
             EBFTPolicyModelActor,
-            num_gpus_per_actor=1,
+            pg=pg,
+            num_gpus_per_actor=0.2 if pg else 1,
             duplicate_actors=args.ring_attn_size * args.ds_tensor_parallel_size,
         )
     else:
+        print("[TEACHER-VERIFY] teacher_pretrain not set -- teacher model DISABLED")
         teacher_model = None
 
     if not args.colocate_all_models:
@@ -224,12 +232,16 @@ def train(args):
     if ref_model is not None:
         refs.extend(ref_model.async_init_model_from_pretrained(strategy, args.pretrain))
     refs.extend(actor_model.async_init_model_from_pretrained(strategy, args.pretrain, max_steps))
-    if teacher_model is not None:
-        refs.extend(teacher_model.async_init_model_from_pretrained(strategy, args.teacher_pretrain))
     if reward_models is not None:
         for i, r_model in enumerate(reward_models):
             refs.extend(r_model.async_init_model_from_pretrained(strategy, reward_pretrains[i]))
     ray.get(refs)
+
+    # Teacher must init AFTER actor to avoid NCCL port collision (same actor type).
+    if teacher_model is not None:
+        print(f"[TEACHER-VERIFY] Initializing teacher weights from: {args.teacher_pretrain}")
+        teacher_refs = teacher_model.async_init_model_from_pretrained(strategy, args.teacher_pretrain, max_steps)
+        ray.get(teacher_refs)
 
     if args.critic_pretrain:
         # critic scheduler initialization depends on max_step, so we have to init critic after actor

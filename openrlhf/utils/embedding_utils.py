@@ -241,6 +241,7 @@ def _build_cf_target_embedding(
     # ── teacher mode ──────────────────────────────────────────────────
     if cf_target_mode == "teacher":
         if teacher_embedding is None:
+            print("[TEACHER-VERIFY] _build_cf_target_embedding: teacher mode but teacher_embedding=None => GT only fallback")
             return target_embedding
 
         assert teacher_embedding.shape[-1] == gt_embedding.shape[-1], (
@@ -251,12 +252,14 @@ def _build_cf_target_embedding(
         lam = float(cf_teacher_lambda)
 
         if lam <= 0.0:
+            print(f"[TEACHER-VERIFY] _build_cf_target_embedding: lambda={lam} <= 0 => GT only")
             return target_embedding                       # λ=0 → GT only
 
         teacher_float = teacher_embedding.float()         # (B, G, M, K, D)
         m = teacher_float.shape[2]
 
         if lam >= 1.0:
+            print(f"[TEACHER-VERIFY] _build_cf_target_embedding: lambda={lam} >= 1 => teacher only, M={m}")
             return teacher_float                          # λ=1 → teacher only
 
         # r GT copies so that r/(r+m) ≈ (1-λ)
@@ -265,13 +268,20 @@ def _build_cf_target_embedding(
         r = min(r, max_r)
 
         if r <= 0:
+            print(f"[TEACHER-VERIFY] _build_cf_target_embedding: r=0 => teacher only, M={m}")
             return teacher_float
 
         gt_repeated = target_embedding.expand(             # (B, G, r, K, D)
             -1, -1, r, -1, -1
         )
-        return torch.cat([gt_repeated, teacher_float],     # (B, G, r+M, K, D)
+        mixed = torch.cat([gt_repeated, teacher_float],     # (B, G, r+M, K, D)
                          dim=2)
+        print(
+            f"[TEACHER-VERIFY] _build_cf_target_embedding: MIXED target built! "
+            f"lambda={lam}, r_gt={r}, m_teacher={m}, "
+            f"target_shape={mixed.shape} (vs GT-only would be {target_embedding.shape})"
+        )
+        return mixed
 
     # ── single / vicinal (unchanged) ──────────────────────────────────
     if cf_target_mode == "single" or int(cf_target_num_refs) <= 1:

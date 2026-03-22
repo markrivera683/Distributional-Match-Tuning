@@ -29,7 +29,7 @@ class BaseDistributedActor:
         self._world_size = world_size
         self._rank = rank
         self._master_addr = master_addr if master_addr else self._get_current_node_ip()
-        self._master_port = master_port if master_port else self._get_free_port(self._get_preferred_port())
+        self._master_port = master_port if master_port else self._get_free_port()
         os.environ["MASTER_ADDR"] = self._master_addr
         os.environ["MASTER_PORT"] = str(self._master_port)
         os.environ["WORLD_SIZE"] = str(self._world_size)
@@ -72,15 +72,6 @@ class BaseDistributedActor:
 
     @staticmethod
     def _get_free_port(preferred_port=None):
-        if preferred_port is not None:
-            with socket.socket() as sock:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                try:
-                    sock.bind(("", preferred_port))
-                    return preferred_port
-                except OSError:
-                    pass
-
         with socket.socket() as sock:
             sock.bind(("", 0))
             return sock.getsockname()[1]
