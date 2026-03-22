@@ -834,6 +834,8 @@ class RemoteExperienceMaker(ABC):
                 cf_target_num_refs=getattr(self.args, "cf_target_num_refs", 1),
                 cf_target_std=getattr(self.args, "cf_target_std", 0.05),
                 cf_target_seed=getattr(self.args, "cf_target_seed", 43),
+                teacher_embedding=None,
+                cf_teacher_lambda=getattr(self.args, "cf_teacher_lambda", 0.0),
             )
             gt_rewards_tensor = gt_rewards_tensor.reshape(gt_rewards_tensor.shape[0], -1, gt_rewards_tensor.shape[-1])
             diversity_rewards_tensor = torch.zeros_like(gt_rewards_tensor)

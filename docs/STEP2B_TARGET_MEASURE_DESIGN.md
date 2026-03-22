@@ -169,7 +169,7 @@ Status:
 Definition:
 
 - generate multiple target variants from the same GT by safe semantics-preserving
-  transformations
+transformations
 
 Examples:
 
@@ -229,7 +229,7 @@ Based on current evidence, literature, and engineering practicality:
 2. Keep `vicinal-target cf_l1oo` only as a smoothing baseline.
 3. Do not over-invest in better noise schedules for vicinal targets.
 4. If target-side upgrade is pursued seriously, move to a **structured**
-   empirical target measure rather than more sophisticated feature noise.
+  empirical target measure rather than more sophisticated feature noise.
 
 In other words:
 
@@ -241,24 +241,24 @@ In other words:
 The relevant lesson from top distillation and post-training papers is:
 
 - richer targets help when they reflect genuine output uncertainty or
-  multi-modality
+multi-modality
 - richer targets help much less when they are just synthetic noise around a
-  single point
+single point
 
 This pattern is consistent with:
 
 - MiniLLM: on-policy generative distillation benefits from matching the teacher
-  on student trajectories rather than reducing to a single reference
+on student trajectories rather than reducing to a single reference
 - OPCD / related on-policy distillation work: conditional target distributions
-  matter more than offline one-shot imitation
+matter more than offline one-shot imitation
 - Entropy-aware on-policy distillation: uncertainty-aware targets are important
 - Step-by-step / reasoning distillation work: multiple valid trajectories often
-  matter, not just one final answer string
+matter, not just one final answer string
 
 This strongly supports the view that:
 
 - the target-side upgrade should eventually become a better empirical
-  conditional measure
+conditional measure
 - not just a better local smoothing kernel
 
 ## 7. Engineering recommendation
@@ -285,7 +285,7 @@ For the next stage of experiments:
 - **mainline**: `single-target cf_l1oo`
 - **auxiliary baseline**: `vicinal-target cf_l1oo`
 - **future target-side upgrade to design seriously**:
-  `teacher-augmented or multi-reference empirical target measure`
+`teacher-augmented or multi-reference empirical target measure`
 
 This keeps the project aligned with both:
 
