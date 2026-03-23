@@ -1,0 +1,142 @@
+# ==========================================
+# Local single-machine debug config (Qwen3.5-2B)
+# ==========================================
+# This file follows existing configs/*.yaml style in this repo.
+# Primary launch path is still CLI script:
+#   scripts/run_train_local_qwen35_2b.sh
+#
+# If you use scripts/ebft_sweep.py, keep in mind it forwards keys as CLI args.
+# For strict "no wandb", either:
+# - keep use_wandb: false and verify your launcher behavior, or
+# - remove use_wandb key entirely from the final merged command.
+
+# ==========================================
+# Infrastructure
+# ==========================================
+ref_num_nodes: 1
+ref_num_gpus_per_node: 1
+critic_num_nodes: 1
+critic_num_gpus_per_node: 1
+actor_num_nodes: 1
+actor_num_gpus_per_node: 1
+reward_num_nodes: 1
+reward_num_gpus_per_node: 1
+
+# ==========================================
+# Batch sizes (small, single-GPU safe)
+# ==========================================
+micro_train_batch_size: 4
+micro_rollout_batch_size: 4
+micro_reward_batch_size: 2
+train_batch_size: 4
+rollout_batch_size: 1
+n_samples_per_prompt: 4
+
+# ==========================================
+# Data
+# ==========================================
+prompt_data: openai/gsm8k
+eval_dataset: openai/gsm8k
+input_key: question
+label_key: answer
+output_key: answer
+prompt_split: train
+eval_split: test
+prompt_max_len: 128
+context_max_len: 8
+generate_max_len: 8
+stride: 8
+
+# ==========================================
+# Runtime budget
+# ==========================================
+max_samples: 64
+eval_max_samples: 16
+eval_down_max_samples: 16
+max_epochs: 1
+num_episodes: 1
+
+# ==========================================
+# Logging / output
+# ==========================================
+save_path: /mnt/data/outputs/ebft_local_qwen35_2b/model
+ckpt_path: /mnt/data/outputs/ebft_local_qwen35_2b/model/ckpt
+use_tensorboard: /mnt/data/outputs/ebft_local_qwen35_2b/tensorboard
+logging_steps: 1
+save_steps: -1
+save_log_scale_count: -1
+save_even_count: 0
+use_wandb: false
+wandb_project: local_ebft_debug
+wandb_run_name: local_qwen35_2b_cf_l1oo
+
+# ==========================================
+# Core training switches
+# ==========================================
+no_chat_template: true
+colocate_all_models: true
+disable_ds_ckpt: true
+pretrain_mode: true
+use_kl_loss: true
+use_whitening: true
+enable_ema: true
+ema_beta: 0.9
+
+# ==========================================
+# Local model (no HF model download)
+# ==========================================
+pretrain: /mnt/data/Qwen3.5-2B
+critic_pretrain: /mnt/data/Qwen3.5-2B
+
+# ==========================================
+# Distribution matching mainline
+# ==========================================
+distribution_reward_type: cf_l1oo
+cf_target_mode: single
+cf_num_freqs: 128
+cf_sigma: 1.0
+cf_seed: 43
+cf_alpha: 0.5
+cf_beta: 0.5
+cf_reward_scale: 1.0
+
+# ==========================================
+# RL / optimization
+# ==========================================
+advantage_estimator: rloo
+init_kl_coef: 0.0
+kl_estimator: k2
+temperature: 0.6
+top_p: 1.0
+seed: 43
+
+ce_loss_coef: 0.03
+rl_loss_coef: 1.0
+diversity_rew_coef: 0.0
+alignment_rew_coef: 1.0
+
+critic_learning_rate: 0.0
+critic_lr_head: 0.0
+critic_classifier_loss_coef: 0.0
+actor_learning_rate: 1e-6
+zero_stage: 2
+lr_warmup_ratio: 0.03
+lr_scheduler: constant_with_warmup
+critic_lr_scheduler: constant_with_warmup
+
+hidden_state_method: concat
+embed_method: last_token
+critic_sequence_level: last_token
+classifier_sequence_selection: closest
+
+eval_steps: -1
+eval_down_steps: -1
+
+# ==========================================
+# Optional single-point sweep entry
+# ==========================================
+sweep:
+  - pretrain: ["/mnt/data/Qwen3.5-2B"]
+    critic_pretrain: ["/mnt/data/Qwen3.5-2B"]
+    actor_learning_rate: [1e-6]
+    num_episodes: [1]
