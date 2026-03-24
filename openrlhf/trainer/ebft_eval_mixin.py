@@ -212,7 +212,7 @@ class EBFTEvalMixin:
     def evaluate_downstream_gsm8k_math(self, eval_downstream_dataloader, global_step, generate_max_len, temperature, n_samples_per_prompt):
         """Evaluate model performance on GSM8K / MATH."""
         from openrlhf.utils.math_verifier import get_llm_answer
-        from math_verify import verify
+        from math_verify import parse, verify
 
         start_time = time.time()
         logger.info(f"⏰ Evaluation start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -247,14 +247,16 @@ class EBFTEvalMixin:
             for samples in eval_samples_list:
                 gen_seq_list = [gen.split(self.tokenizer.eos_token)[0] if self.tokenizer.eos_token in gen else gen for gen in samples.generated_sequences]
                 for (pr, lbl, gen) in zip(samples.prompt_strings, samples.label_strings, gen_seq_list):
-                    lbl, _ = get_llm_answer(lbl)
+                    lbl_boxed = parse(f"\\boxed{{{lbl}}}")
+                    if not lbl_boxed:
+                        lbl_boxed, _ = get_llm_answer(lbl)
                     try:
                         prediction, response_type = get_llm_answer(gen)
-                        acc = verify(lbl, prediction) * 1.0
+                        acc = verify(lbl_boxed, prediction) * 1.0
                     except:
                         acc = 0.0
                         response_type = "text"
-                    logger.info(f"Step-{global_step}: PROMPT: {[pr]}; GEN: {[gen]} PRED: {prediction}; LBL: {lbl}; ACC: {acc}")
+                    logger.info(f"Step-{global_step}: PROMPT: {[pr]}; GEN: {[gen]} PRED: {prediction}; LBL: {lbl_boxed}; ACC: {acc}")
                     rewards_list.append(acc)
                     response_type_list.append(response_type)
 

@@ -682,7 +682,7 @@ class SFTTrainer(ABC):
                             f"🔍 Running MATH eval on {len(self.math_dataloader)} batches"
                         )
                         self.evaluate_gsm8k_math(self.math_dataloader, 0)
-                elif "gsm8k" in self.args.eval_dataset or "math" in self.args.eval_dataset:
+                elif "gsm8k" in self.args.eval_dataset or "math" in self.args.eval_dataset or "aops" in self.args.eval_dataset.lower():
                     self.evaluate_gsm8k_math(self.eval_dataloader, 0)
                 elif "fineweb" in self.args.eval_dataset or "finepdf" in self.args.eval_dataset:
                     # if self.mmlu_dataloader is not None:
@@ -826,7 +826,7 @@ class SFTTrainer(ABC):
                             f"🔍 Running MATH eval on {len(self.math_dataloader)} batches"
                         )
                         self.evaluate_gsm8k_math(self.math_dataloader, global_step)
-                elif "gsm8k" in self.args.eval_dataset or "math" in self.args.eval_dataset:
+                elif "gsm8k" in self.args.eval_dataset or "math" in self.args.eval_dataset or "aops" in self.args.eval_dataset.lower():
                     self.evaluate_gsm8k_math(self.eval_dataloader, global_step)
                 elif "fineweb" in self.args.eval_dataset or "finepdf" in self.args.eval_dataset:
                     # if self.mmlu_dataloader is not None:

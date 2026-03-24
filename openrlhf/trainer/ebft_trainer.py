@@ -259,7 +259,7 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
                     args.eval_temperature_down,
                     args.eval_n_samples_per_prompt_down,
                 )
-            elif "gsm8k" in eval_ds or "math" in eval_ds:
+            elif "gsm8k" in eval_ds or "math" in eval_ds or "aops" in eval_ds:
                 self.evaluate_downstream_gsm8k_math(self.eval_downstream_dataloader, global_step, args.eval_generate_max_len, args.eval_temperature_down, args.eval_n_samples_per_prompt_down)
             elif "opencode-instruct_100k_200tok" in eval_ds:
                 self.evaluate_downstream_opencode(self.eval_downstream_dataloader, global_step, args.eval_generate_max_len, args.eval_temperature_down, args.eval_n_samples_per_prompt_down)
@@ -802,7 +802,7 @@ class EBFTTrainer(BaseEBFTTrainer):
                         args.eval_temperature_down,
                         args.eval_n_samples_per_prompt_down,
                     )
-                elif "gsm8k" in eval_ds or "math" in eval_ds:
+                elif "gsm8k" in eval_ds or "math" in eval_ds or "aops" in eval_ds:
                     self.evaluate_downstream_gsm8k_math(self.eval_downstream_dataloader, 0, args.eval_generate_max_len, args.eval_temperature_down, args.eval_n_samples_per_prompt_down)
                 elif "opencode-instruct_100k_200tok" in eval_ds:
                     self.evaluate_downstream_opencode(self.eval_downstream_dataloader, 0, args.eval_generate_max_len, args.eval_temperature_down, args.eval_n_samples_per_prompt_down)
