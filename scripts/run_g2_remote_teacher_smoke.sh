@@ -160,6 +160,7 @@ python -m openrlhf.cli.train_ebft_ray \
   --teacher_remote_batch_size "${TEACHER_REMOTE_BATCH_SIZE}" \
   --teacher_temperature "${TEACHER_TEMPERATURE}" \
   --teacher_top_p "${TEACHER_TOP_P}" \
+  --teacher_max_new_tokens 512 \
   --teacher_cache_enable \
   --teacher_cache_dir "${CACHE_DIR}" \
   --prompt_max_len 128 \

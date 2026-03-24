@@ -600,8 +600,8 @@ if __name__ == "__main__":
                         help="Sampling temperature for remote teacher generation")
     parser.add_argument("--teacher_top_p", type=float, default=0.95,
                         help="Top-p sampling for remote teacher generation")
-    parser.add_argument("--teacher_max_new_tokens", type=int, default=None,
-                        help="Max new tokens for remote teacher (defaults to generate_max_len)")
+    parser.add_argument("--teacher_max_new_tokens", type=int, default=512,
+                        help="Max new tokens for remote teacher completions")
     parser.add_argument("--teacher_cache_enable", action="store_true", default=False,
                         help="Enable SQLite disk cache for remote teacher completions")
     parser.add_argument("--teacher_cache_dir", type=str, default=None,

@@ -598,6 +598,13 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
                 seq_len=args.prompt_max_len,
                 )
 
+        self.raw_question_texts = getattr(prompts_dataset, "prompts", None)
+        if self.raw_question_texts:
+            logger.info(
+                "[DATA] Stored %d raw question texts (indexed by doc_id) for teacher queries",
+                len(self.raw_question_texts),
+            )
+
         prompts_dataloader = strategy.setup_dataloader(
             prompts_dataset,
             args.rollout_batch_size,
@@ -795,6 +802,7 @@ class EBFTTrainer(BaseEBFTTrainer):
             self.tokenizer,
             teacher_samples_generator=self.teacher_generator,
             teacher_provider=self.teacher_provider,
+            raw_question_texts=getattr(self, "raw_question_texts", None),
         )
         logger.info(
             f"[TEACHER-VERIFY] RemoteExperienceMaker: "
