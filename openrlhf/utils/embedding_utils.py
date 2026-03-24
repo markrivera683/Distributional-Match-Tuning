@@ -1,3 +1,4 @@
+import logging
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -5,6 +6,7 @@ import ray
 import math
 from collections import Counter
 
+_embedding_logger = logging.getLogger(__name__)
 
 _RFF_CACHE = {}
 _CF_FREQ_CACHE = {}
@@ -241,7 +243,7 @@ def _build_cf_target_embedding(
     # ── teacher mode ──────────────────────────────────────────────────
     if cf_target_mode == "teacher":
         if teacher_embedding is None:
-            print("[TEACHER-VERIFY] _build_cf_target_embedding: teacher mode but teacher_embedding=None => GT only fallback")
+            _embedding_logger.warning("[TEACHER-TARGET] teacher mode but teacher_embedding=None => GT only fallback")
             return target_embedding
 
         assert teacher_embedding.shape[-1] == gt_embedding.shape[-1], (
@@ -252,34 +254,31 @@ def _build_cf_target_embedding(
         lam = float(cf_teacher_lambda)
 
         if lam <= 0.0:
-            print(f"[TEACHER-VERIFY] _build_cf_target_embedding: lambda={lam} <= 0 => GT only")
-            return target_embedding                       # λ=0 → GT only
+            _embedding_logger.info(f"[TEACHER-TARGET] lambda={lam} <= 0 => GT only")
+            return target_embedding
 
-        teacher_float = teacher_embedding.float()         # (B, G, M, K, D)
+        teacher_float = teacher_embedding.float()
         m = teacher_float.shape[2]
 
         if lam >= 1.0:
-            print(f"[TEACHER-VERIFY] _build_cf_target_embedding: lambda={lam} >= 1 => teacher only, M={m}")
-            return teacher_float                          # λ=1 → teacher only
+            _embedding_logger.info(f"[TEACHER-TARGET] lambda={lam} >= 1 => teacher only, M={m}")
+            return teacher_float
 
         # r GT copies so that r/(r+m) ≈ (1-λ)
         r = round(m * (1.0 - lam) / lam)
         max_r = m * 4
-        r = min(r, max_r)
+        r = max(min(r, max_r), 1)
 
-        if r <= 0:
-            print(f"[TEACHER-VERIFY] _build_cf_target_embedding: r=0 => teacher only, M={m}")
-            return teacher_float
-
-        gt_repeated = target_embedding.expand(             # (B, G, r, K, D)
-            -1, -1, r, -1, -1
-        )
-        mixed = torch.cat([gt_repeated, teacher_float],     # (B, G, r+M, K, D)
-                         dim=2)
-        print(
-            f"[TEACHER-VERIFY] _build_cf_target_embedding: MIXED target built! "
+        gt_repeated = target_embedding.expand(-1, -1, r, -1, -1)
+        mixed = torch.cat([gt_repeated, teacher_float], dim=2)
+        effective_lambda = float(m) / float(r + m)
+        _embedding_logger.info(
+            f"[TEACHER-TARGET] MIXED target built: "
             f"lambda={lam}, r_gt={r}, m_teacher={m}, "
-            f"target_shape={mixed.shape} (vs GT-only would be {target_embedding.shape})"
+            f"effective_lambda={effective_lambda:.4f}, "
+            f"target_shape={mixed.shape}, "
+            f"teacher_mean={teacher_float.mean().item():.6f}, "
+            f"gt_mean={target_embedding.mean().item():.6f}"
         )
         return mixed
 

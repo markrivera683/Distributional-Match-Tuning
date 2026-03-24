@@ -500,20 +500,72 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
         strategy = self.strategy
         
         
-        # Check if it's a local HF Dataset directory (contains dataset_dict.json)
-        if os.path.isdir(args.prompt_data) and os.path.exists(os.path.join(args.prompt_data, "dataset_dict.json")):
-            # Local HF Dataset saved with save_to_disk
-            from datasets import load_from_disk
-            train_data = load_from_disk(args.prompt_data)[self.prompt_split]
-            prompts_dataset = QADataset(
-                train_data, 
-                self.tokenizer,
-                strategy,
-                max_samples=args.max_samples,
-                separate_prompt_label=False,
-                seq_len=args.prompt_max_len,
-            )
+        # Local directory: first try HuggingFace load_from_disk (supports both DatasetDict and Dataset).
+        # If that fails, fall back to Datatrove tokenized folder format.
+        if os.path.isdir(args.prompt_data):
+            from datasets import load_from_disk, DatasetDict
+
+            hf_local_data = None
+            hf_load_error = None
+            try:
+                hf_local_data = load_from_disk(args.prompt_data)
+            except Exception as e:
+                hf_load_error = e
+
+            if hf_local_data is not None:
+                if isinstance(hf_local_data, DatasetDict):
+                    if self.prompt_split in hf_local_data:
+                        train_data = hf_local_data[self.prompt_split]
+                    elif "train" in hf_local_data:
+                        logger.warning(
+                            "prompt_split '%s' not found in local DatasetDict at %s; falling back to 'train' split.",
+                            self.prompt_split,
+                            args.prompt_data,
+                        )
+                        train_data = hf_local_data["train"]
+                    else:
+                        raise ValueError(
+                            f"Local DatasetDict at {args.prompt_data} does not contain split "
+                            f"'{self.prompt_split}' or 'train'. Available splits: {list(hf_local_data.keys())}"
+                        )
+                else:
+                    # Single-split Dataset saved via Dataset.save_to_disk
+                    train_data = hf_local_data
+
+                prompts_dataset = QADataset(
+                    train_data,
+                    self.tokenizer,
+                    strategy,
+                    max_samples=args.max_samples,
+                    separate_prompt_label=False,
+                    seq_len=args.prompt_max_len,
+                )
+            else:
+                if DatatroveFolderDataset is None:
+                    raise RuntimeError(
+                        f"prompt_data directory '{args.prompt_data}' is not a HuggingFace dataset loadable via "
+                        f"load_from_disk, and Datatrove is not installed. Original load_from_disk error: {hf_load_error}"
+                    )
+
+                train_data = DatatroveFolderDataset(
+                    folder_path=args.prompt_data,
+                    seq_len=args.prompt_max_len,
+                    token_size=(2 if self.tokenizer.vocab_size < 65535 else 4),
+                    shuffle=True,
+                    seed=args.seed,
+                    # return_positions=False,      # we don’t need them
+                )
+                prompts_dataset = SequenceDataset(
+                    train_data,
+                    self.tokenizer,
+                    max_samples=args.max_samples,
+                )
         elif len(args.prompt_data.split("/")) > 2 and not args.prompt_data.endswith('.json'):
+            if DatatroveFolderDataset is None:
+                raise RuntimeError(
+                    "DatatroveFolderDataset is unavailable because datatrove is not installed, "
+                    f"but prompt_data='{args.prompt_data}' was inferred as a Datatrove folder path."
+                )
 
             train_data = DatatroveFolderDataset(
                 folder_path=args.prompt_data,
@@ -710,9 +762,25 @@ class EBFTTrainer(BaseEBFTTrainer):
             else None
         )
 
+        from openrlhf.utils.teacher_provider import build_teacher_provider
+        self.teacher_provider = build_teacher_provider(self.args)
+
+        teacher_backend = getattr(self.args, "teacher_backend", "local")
+
+        if teacher_backend == "remote":
+            assert self.teacher_provider is not None, (
+                "teacher_backend=remote but build_teacher_provider returned None"
+            )
+            assert self.teacher_model_group is None, (
+                "teacher_backend=remote but teacher_model_group is not None — "
+                "local teacher model must not be loaded when using remote backend"
+            )
+
         logger.info(
-            f"[TEACHER-VERIFY] teacher_model_group={'PRESENT' if self.teacher_model_group else 'None'}, "
-            f"teacher_generator={'PRESENT' if self.teacher_generator else 'None'}"
+            f"[TEACHER-VERIFY] teacher_backend={teacher_backend}, "
+            f"teacher_model_group={'PRESENT' if self.teacher_model_group else 'None'}, "
+            f"teacher_generator={'PRESENT' if self.teacher_generator else 'None'}, "
+            f"teacher_provider={'PRESENT' if self.teacher_provider else 'None'}"
         )
 
         primary_reward_group = self._ensure_primary_reward_model_group()
@@ -726,10 +794,12 @@ class EBFTTrainer(BaseEBFTTrainer):
             self.strategy,
             self.tokenizer,
             teacher_samples_generator=self.teacher_generator,
+            teacher_provider=self.teacher_provider,
         )
         logger.info(
-            f"[TEACHER-VERIFY] RemoteExperienceMaker.teacher_samples_generator="
-            f"{'PRESENT' if self.experience_maker.teacher_samples_generator else 'None'}"
+            f"[TEACHER-VERIFY] RemoteExperienceMaker: "
+            f"teacher_samples_generator={'PRESENT' if self.experience_maker.teacher_samples_generator else 'None'}, "
+            f"teacher_provider={'PRESENT' if self.experience_maker.teacher_provider else 'None'}"
         )
 
         self.prepare_datasets()
