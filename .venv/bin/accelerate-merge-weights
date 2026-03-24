@@ -1,4 +1,4 @@
-#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python
+#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python3
 import sys
 from accelerate.commands.merge import main
 if __name__ == '__main__':

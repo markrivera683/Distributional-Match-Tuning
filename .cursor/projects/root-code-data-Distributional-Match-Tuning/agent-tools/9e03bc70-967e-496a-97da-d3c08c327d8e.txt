@@ -1,516 +1,0 @@
-=================================================================
- G2 SMOKE TEST — cf_l1oo + Remote Teacher
- 2026-03-24 13:37:58 UTC
-=================================================================
-TEACHER_API_BASE = http://172.17.0.26:8000/v1
-TEACHER_MODEL    = qwen-122b
-CF_TEACHER_LAMBDA= 0.5
-CF_TEACHER_N_SAMPLES= 2
-TEACHER_TEMPERATURE= 0.7
-TEACHER_TOP_P= 0.95
-CUDA_VISIBLE_DEVICES= 0
-ACTOR_NUM_GPUS_PER_NODE  = 1
-CRITIC_NUM_GPUS_PER_NODE = 1
-REF_NUM_GPUS_PER_NODE    = 1
-REWARD_NUM_GPUS_PER_NODE = 1
-[Teacher Check] API reachable
-/root/code/data/Distributional-Match-Tuning/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
-  import pynvml  # type: ignore[import]
-/root/code/data/Distributional-Match-Tuning/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
-  import pynvml  # type: ignore[import]
-2026-03-24 21:38:08,682	INFO worker.py:1918 -- Started a local Ray instance. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
-Namespace(actor_num_nodes=1, actor_num_gpus_per_node=1, critic_num_nodes=1, critic_num_gpus_per_node=1, ref_num_nodes=1, ref_num_gpus_per_node=1, reward_num_nodes=1, reward_num_gpus_per_node=1, colocate_actor_ref=False, colocate_critic_reward=False, colocate_reward_models=False, colocate_all_models=True, async_train=False, ring_attn_size=1, ring_head_stride=1, vllm_num_engines=None, vllm_tensor_parallel_size=1, vllm_sync_backend='nccl', vllm_sync_with_ray=False, vllm_gpu_memory_utilization=0.95, vllm_enable_sleep=False, enable_prefix_caching=False, enforce_eager=False, local_rank=-1, zero_stage=2, bf16=True, zpg=1, adam_offload=True, overlap_comm=False, gradient_checkpointing=False, gradient_checkpointing_use_reentrant=False, grad_accum_dtype=None, deepcompile=False, deepspeed_enable_sleep=False, ds_tensor_parallel_size=1, packing_samples=False, use_dynamic_batch=False, rollout_max_tokens_per_gpu=None, train_max_tokens_per_gpu=16192, pretrain='/mnt/data/Qwen3.5-2B', critic_pretrain='/mnt/data/Qwen3.5-2B', reward_pretrain=None, remote_rm_url=None, agent_func_path=None, value_head_prefix='score', ref_reward_offload=False, flash_attn=False, use_liger_kernel=False, disable_fast_tokenizer=False, pretrain_mode=True, load_in_4bit=False, lora_rank=0, lora_alpha=16, lora_dropout=0, target_modules='all-linear', enable_ema=True, ema_beta=0.9, actor_learning_rate=1e-06, critic_learning_rate=0.0, critic_lr_head=0.0, lr_scheduler='constant_with_warmup', critic_lr_scheduler='constant_with_warmup', lr_warmup_ratio=0.03, actor_lr_warmup_ratio=None, critic_lr_warmup_ratio=None, adam_betas=(0.9, 0.95), max_norm=1.0, l2=0.0, save_value_network=False, num_episodes=1, max_epochs=1, rollout_batch_size=1, train_batch_size=4, micro_train_batch_size=4, micro_rollout_batch_size=4, micro_reward_batch_size=2, eval_batch_size=128, eval_down_batch_size=128, vllm_generate_batch_size=1, prompt_max_len=128, context_max_len=8, generate_max_len=8, stride=8, n_samples_per_prompt=4, top_p=1.0, temperature=0.6, seed=43, full_determinism=False, policy_loss_type='ppo', advantage_estimator='rloo', eps_clip=0.2, eps_clip_low_high=(0.2, 0.2), dual_clip=None, value_clip=0.5, lambd=1, gamma=1, normalize_reward=False, reward_clip_range=(-10, 10), init_kl_coef=0.0, use_kl_loss=True, kl_estimator='k2', kl_loss_coef=None, kl_loss_decay_steps=None, rl_loss_coef=1.0, rl_loss_warmup_start=None, rl_loss_warmup_steps=None, ce_loss_coef=0.03, ce_loss_decay_steps=None, entropy_loss_coef=None, no_advantage_std_norm=False, overlong_buffer_len=None, overlong_penalty_factor=1, aux_loss_coef=0, use_whitening=True, dynamic_filtering=False, dynamic_filtering_reward_range=(0, 1), feature_map_type='identity', rff_num_features=128, rff_sigma=1.0, rff_seed=43, feature_adapter_enable=False, feature_adapter_type='residual_bottleneck', feature_adapter_rank=64, feature_adapter_dropout=0.0, critic_direct_discrepancy_coef=0.0, critic_direct_discrepancy_target='ema_gt', distribution_reward_type='cf_l1oo', cf_num_freqs=64, cf_sigma=1.0, cf_seed=43, cf_alpha=0.5, cf_beta=0.5, cf_reward_scale=1.0, cf_target_mode='teacher', cf_target_num_refs=1, cf_target_std=0.05, cf_target_seed=43, teacher_pretrain=None, cf_teacher_lambda=0.5, cf_teacher_n_samples=2, teacher_backend='remote', teacher_api_base='http://172.17.0.26:8000/v1', teacher_api_key='teacher-local', teacher_api_style='chat_completions', teacher_model_name='qwen-122b', teacher_timeout=180, teacher_max_retries=3, teacher_remote_batch_size=4, teacher_temperature=0.7, teacher_top_p=0.95, teacher_max_new_tokens=512, teacher_cache_enable=True, teacher_cache_dir='/root/outputs/g2_smoke_fullq_0324_133758/teacher_cache', alignment_rew_coef=1.0, diversity_rew_coef=0.0, critic_sequence_level='last_token', hidden_state_method='concat', embed_method='last_token', classifier_sequence_selection='closest', document_masking=False, qa_masking=False, critic_classifier_loss_coef=0.0, prompt_data='/mnt/data/data/aops/aops_qa_hf', prompt_data_probs=None, prompt_split='train', eval_dataset='/mnt/data/data/aops/test_qa.jsonl', eval_split='test', input_key='question', output_key='answer', label_key='answer', input_template=None, apply_chat_template=False, no_chat_template=True, max_samples=4, eval_steps=-1, eval_down_steps=-1, eval_generate_max_len=1024, eval_temperature=0.6, eval_temperature_down=0.6, eval_n_samples_per_prompt=4, eval_n_samples_per_prompt_down=16, eval_max_samples=4, eval_down_max_samples=100000000.0, save_path='/root/outputs/g2_smoke_fullq_0324_133758/model', save_steps=-1, save_log_scale_count=-1, save_even_count=10, ckpt_path='/root/outputs/g2_smoke_fullq_0324_133758/model/ckpt', save_hf_ckpt=False, disable_ds_ckpt=True, max_ckpt_num=3, max_ckpt_mem=100000000.0, load_actor_checkpoint=False, load_critic_checkpoint=False, use_ds_universal_ckpt=False, use_wandb=None, wandb_org=None, wandb_group=None, wandb_project='openrlhf_train_debug', wandb_run_name='g2_smoke_0324_133758', slurm_job=None, use_tensorboard='/root/outputs/g2_smoke_fullq_0324_133758/tensorboard', logging_steps=1, log_gradients=False, debug=False, use_ms=False)
-[TEACHER-VERIFY] teacher_backend=remote — skipping local teacher model creation
-[TEACHER-VERIFY] remote API: http://172.17.0.26:8000/v1, model=qwen-122b
-[36m(pid=304709)[0m /root/code/data/Distributional-Match-Tuning/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
-[36m(pid=304709)[0m   import pynvml  # type: ignore[import]
-[36m(EBFTTrainer pid=304709)[0m Preprocessing data:   0%|          | 0/4 [00:00<?, ?it/s]Preprocessing data: 100%|██████████| 4/4 [00:00<00:00, 16336.14it/s]
-[36m(pid=304709)[0m /root/code/data/Distributional-Match-Tuning/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.[32m [repeated 5x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/user-guides/configure-logging.html#log-deduplication for more options.)[0m
-[36m(pid=304709)[0m   import pynvml  # type: ignore[import][32m [repeated 5x across cluster][0m
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:18 teacher_provider.py:367] [RemoteTeacher] Cache dir: /root/outputs/g2_smoke_fullq_0324_133758/teacher_cache
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:18 teacher_provider.py:184] [RemoteTeacher] Init: api_base=http://172.17.0.26:8000/v1, model=qwen-122b, style=chat_completions, timeout=180s, retries=3, concurrency=4, cache=ON
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:18 ebft_trainer.py:786] [TEACHER-VERIFY] teacher_backend=remote, teacher_model_group=None, teacher_generator=None, teacher_provider=PRESENT
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:18 ebft_trainer.py:807] [TEACHER-VERIFY] RemoteExperienceMaker: teacher_samples_generator=None, teacher_provider=PRESENT
-[36m(EBFTTrainer pid=304709)[0m [QADataset] Truncated dataset to 4 samples before preprocessing
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:19 ebft_trainer.py:603] [DATA] Stored 4 raw question texts (indexed by doc_id) for teacher queries
-[36m(EBFTTrainer pid=304709)[0m dataset: /mnt/data/data/aops/test_qa.jsonl
-[36m(EBFTTrainer pid=304709)[0m Preprocessing data:   0%|          | 0/4 [00:00<?, ?it/s]Preprocessing data: 100%|██████████| 4/4 [00:00<00:00, 14614.30it/s]
-[36m(EBFTTrainer pid=304709)[0m Preprocessing data:   0%|          | 0/5328 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m loaded /mnt/data/data/aops/test_qa.jsonl with data_files=/mnt/data/data/aops/test_qa.jsonl
-[36m(EBFTTrainer pid=304709)[0m [Dataset({
-[36m(EBFTTrainer pid=304709)[0m     features: ['question', 'answer', 'solution', 'idx'],
-[36m(EBFTTrainer pid=304709)[0m     num_rows: 5328
-[36m(EBFTTrainer pid=304709)[0m })]
-[36m(EBFTTrainer pid=304709)[0m [QADataset] Truncated dataset to 4 samples before preprocessing
-[36m(EBFTTrainer pid=304709)[0m Preprocessing data:  59%|█████▉    | 3132/5328 [00:00<00:00, 31312.49it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m [W324 21:38:22.252784014 CUDAAllocatorConfig.h:28] Warning: expandable_segments not supported on this platform (function operator())
-[36m(EBFTTrainer pid=304709)[0m Preprocessing data: 100%|██████████| 5328/5328 [00:00<00:00, 31272.35it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:22 ebft_trainer.py:698] max_steps=4
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:22 ebft_trainer.py:835] max steps: 4
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:38:22 ebft_trainer.py:836] save steps: [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
-[36m(EBFTPolicyModelActor pid=304707)[0m NCCL version 2.21.5+cuda12.4
-[36m(EBFTPolicyModelActor pid=304707)[0m `torch_dtype` is deprecated! Use `dtype` instead!
-[36m(EBFTPolicyModelActor pid=304707)[0m 2026-03-24 21:38:25 WARNING  `torch_dtype` is deprecated! Use `dtype` instead!
-[36m(EBFTPolicyModelActor pid=304707)[0m The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-[36m(EBFTPolicyModelActor pid=304707)[0m 2026-03-24 21:38:25 WARNING  The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-[36m(EBFTPolicyModelActor pid=304707)[0m Actor(
-[36m(EBFTPolicyModelActor pid=304707)[0m   (model): Qwen3_5ForCausalLM(
-[36m(EBFTPolicyModelActor pid=304707)[0m     (model): Qwen3_5TextModel(
-[36m(EBFTPolicyModelActor pid=304707)[0m       (embed_tokens): Embedding(248320, 2048)
-[36m(EBFTPolicyModelActor pid=304707)[0m       (layers): ModuleList(
-[36m(EBFTPolicyModelActor pid=304707)[0m         (0-2): 3 x Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (linear_attn): Qwen3_5GatedDeltaNet(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (conv1d): Conv1d(6144, 6144, kernel_size=(4,), stride=(1,), padding=(3,), groups=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (norm): Qwen3_5RMSNormGated()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (out_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_qkv): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_z): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_b): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_a): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (3): Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (self_attn): Qwen3_5Attention(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_proj): Linear(in_features=2048, out_features=4096, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (v_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (o_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (4-6): 3 x Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (linear_attn): Qwen3_5GatedDeltaNet(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (conv1d): Conv1d(6144, 6144, kernel_size=(4,), stride=(1,), padding=(3,), groups=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (norm): Qwen3_5RMSNormGated()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (out_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_qkv): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_z): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_b): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_a): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (7): Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (self_attn): Qwen3_5Attention(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_proj): Linear(in_features=2048, out_features=4096, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (v_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (o_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (8-10): 3 x Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (linear_attn): Qwen3_5GatedDeltaNet(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (conv1d): Conv1d(6144, 6144, kernel_size=(4,), stride=(1,), padding=(3,), groups=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (norm): Qwen3_5RMSNormGated()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (out_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_qkv): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_z): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_b): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_a): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (11): Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (self_attn): Qwen3_5Attention(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_proj): Linear(in_features=2048, out_features=4096, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (v_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (o_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (12-14): 3 x Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (linear_attn): Qwen3_5GatedDeltaNet(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (conv1d): Conv1d(6144, 6144, kernel_size=(4,), stride=(1,), padding=(3,), groups=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (norm): Qwen3_5RMSNormGated()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (out_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_qkv): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_z): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_b): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_a): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (15): Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (self_attn): Qwen3_5Attention(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_proj): Linear(in_features=2048, out_features=4096, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (v_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (o_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (16-18): 3 x Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (linear_attn): Qwen3_5GatedDeltaNet(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (conv1d): Conv1d(6144, 6144, kernel_size=(4,), stride=(1,), padding=(3,), groups=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (norm): Qwen3_5RMSNormGated()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (out_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_qkv): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_z): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_b): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_a): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (19): Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (self_attn): Qwen3_5Attention(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_proj): Linear(in_features=2048, out_features=4096, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (v_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (o_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (20-22): 3 x Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (linear_attn): Qwen3_5GatedDeltaNet(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (conv1d): Conv1d(6144, 6144, kernel_size=(4,), stride=(1,), padding=(3,), groups=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (norm): Qwen3_5RMSNormGated()
-[36m(EBFTPolicyModelActor pid=304707)[0m             (out_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_qkv): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_z): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_b): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (in_proj_a): Linear(in_features=2048, out_features=16, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m         (23): Qwen3_5DecoderLayer(
-[36m(EBFTPolicyModelActor pid=304707)[0m           (self_attn): Qwen3_5Attention(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_proj): Linear(in_features=2048, out_features=4096, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (v_proj): Linear(in_features=2048, out_features=512, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (o_proj): Linear(in_features=2048, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (q_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (k_norm): Qwen3_5RMSNorm((256,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (mlp): Qwen3_5MLP(
-[36m(EBFTPolicyModelActor pid=304707)[0m             (gate_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (up_proj): Linear(in_features=2048, out_features=6144, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (down_proj): Linear(in_features=6144, out_features=2048, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m             (act_fn): SiLUActivation()
-[36m(EBFTPolicyModelActor pid=304707)[0m           )
-[36m(EBFTPolicyModelActor pid=304707)[0m           (input_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m           (post_attention_layernorm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m         )
-[36m(EBFTPolicyModelActor pid=304707)[0m       )
-[36m(EBFTPolicyModelActor pid=304707)[0m       (norm): Qwen3_5RMSNorm((2048,), eps=1e-06)
-[36m(EBFTPolicyModelActor pid=304707)[0m       (rotary_emb): Qwen3_5TextRotaryEmbedding()
-[36m(EBFTPolicyModelActor pid=304707)[0m     )
-[36m(EBFTPolicyModelActor pid=304707)[0m     (lm_head): Linear(in_features=2048, out_features=248320, bias=False)
-[36m(EBFTPolicyModelActor pid=304707)[0m   )
-[36m(EBFTPolicyModelActor pid=304707)[0m )
-[36m(EBFTPolicyModelActor pid=304707)[0m Loading weights:   0%|          | 0/320 [00:00<?, ?it/s]Loading weights: 100%|██████████| 320/320 [00:00<00:00, 12326.67it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m Installed CUDA version 12.8 does not match the version torch was compiled with 12.4 but since the APIs are compatible, accepting this combination
-[36m(EBFTPolicyModelActor pid=304707)[0m /root/code/data/Distributional-Match-Tuning/.venv/lib/python3.12/site-packages/torch/utils/cpp_extension.py:1964: UserWarning: TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. 
-[36m(EBFTPolicyModelActor pid=304707)[0m If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'].
-[36m(EBFTPolicyModelActor pid=304707)[0m   warnings.warn(
-[36m(EBFTCriticModelActor pid=304708)[0m [W324 21:38:51.428463684 CUDAAllocatorConfig.h:28] Warning: expandable_segments not supported on this platform (function operator())
-[36m(EBFTCriticModelActor pid=304708)[0m NCCL version 2.21.5+cuda12.4
-[36m(EBFTCriticModelActor pid=304708)[0m `torch_dtype` is deprecated! Use `dtype` instead!
-[36m(EBFTCriticModelActor pid=304708)[0m 2026-03-24 21:38:55 WARNING  `torch_dtype` is deprecated! Use `dtype` instead!
-[36m(EBFTCriticModelActor pid=304708)[0m The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-[36m(EBFTCriticModelActor pid=304708)[0m 2026-03-24 21:38:55 WARNING  The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-[36m(EBFTCriticModelActor pid=304708)[0m Loading weights:   0%|          | 0/320 [00:00<?, ?it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Loading weights: 100%|██████████| 320/320 [00:00<00:00, 12228.85it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Loading weights:   0%|          | 0/320 [00:00<?, ?it/s]Loading weights: 100%|██████████| 320/320 [00:00<00:00, 13031.48it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m begin bf16_optimizer
-[36m(EBFTCriticModelActor pid=304708)[0m MA 7.96 GB         Max_MA 7.96 GB         CA 7.97 GB         Max_CA 8 GB 
-[36m(EBFTCriticModelActor pid=304708)[0m CPU Virtual Memory:  used = 92.21 GB, percent = 4.6%
-[36m(EBFTCriticModelActor pid=304708)[0m end bf16_ optimizer
-[36m(EBFTCriticModelActor pid=304708)[0m MA 7.96 GB         Max_MA 7.96 GB         CA 7.97 GB         Max_CA 8 GB 
-[36m(EBFTCriticModelActor pid=304708)[0m CPU Virtual Memory:  used = 92.21 GB, percent = 4.6%
-[36m(EBFTTrainer pid=304709)[0m Episode [1/1]:   0%|          | 0/4 [00:00<?, ?it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 3048.19it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m Episode [1/1]:  25%|██▌       | 1/4 [00:02<00:06,  2.33s/it]
-[36m(EBFTCriticModelActor pid=304708)[0m /root/code/data/Distributional-Match-Tuning/openrlhf/models/critic.py:48: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
-[36m(EBFTCriticModelActor pid=304708)[0m   with torch.cuda.amp.autocast(enabled=False):
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.475, critic_classifier_accuracy_after=0.525, critic_classifier_precision_before=0.487, critic_classifier_precision_after=0.8, critic_classifier_recall_before=0.933, critic_classifier_recall_after=0.0667, critic_classifier_f1_score_before=0.64, critic_classifier_f1_score_after=0.123, critic_classifier_pr_auc_before=0.339, critic_classifier_pr_auc_after=0.526, critic_classifier_roc_auc_before=0.161, critic_classifier_roc_auc_after=0.41, critic_classifier_mean_prob_gap_before=-0.00101, critic_classifier_mean_prob_gap_after=-0.000212, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.958, critic_classifier_pred_pos_frac_after=0.0417, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  1.29it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.475, critic_classifier_accuracy_after=0.525, critic_classifier_precision_before=0.487, critic_classifier_precision_after=0.8, critic_classifier_recall_before=0.933, critic_classifier_recall_after=0.0667, critic_classifier_f1_score_before=0.64, critic_classifier_f1_score_after=0.123, critic_classifier_pr_auc_before=0.339, critic_classifier_pr_auc_after=0.526, critic_classifier_roc_auc_before=0.161, critic_classifier_roc_auc_after=0.41, critic_classifier_mean_prob_gap_before=-0.00101, critic_classifier_mean_prob_gap_after=-0.000212, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.958, critic_classifier_pred_pos_frac_after=0.0417, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  1.29it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.475, critic_classifier_accuracy_after=0.525, critic_classifier_precision_before=0.487, critic_classifier_precision_after=0.8, critic_classifier_recall_before=0.933, critic_classifier_recall_after=0.0667, critic_classifier_f1_score_before=0.64, critic_classifier_f1_score_after=0.123, critic_classifier_pr_auc_before=0.339, critic_classifier_pr_auc_after=0.526, critic_classifier_roc_auc_before=0.161, critic_classifier_roc_auc_after=0.41, critic_classifier_mean_prob_gap_before=-0.00101, critic_classifier_mean_prob_gap_after=-0.000212, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.958, critic_classifier_pred_pos_frac_after=0.0417, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:20 ebft_experience_maker.py:1113] 🚀 Starting experience making with 4 samples
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:00<00:00,  5.17it/s]forward: 100%|██████████| 1/1 [00:00<00:00,  5.16it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:20 ebft_experience_maker.py:1270] [TEACHER-VERIFY] Teacher branch gate: distribution_reward_type=cf_l1oo, cf_target_mode=teacher, teacher_samples_generator=None, teacher_provider=PRESENT => ENTER teacher branch
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:20 ebft_experience_maker.py:731] [Teacher-FullQ] Requesting 1 unique questions x M=2 samples from remote teacher (model=qwen-122b).
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:20 ebft_experience_maker.py:731]   example question = 'Let the integers from $1$ to $2n$ be partitioned into two groups $A$ and $B$, each containing $n$ numbers. Prove that the pairwise sums of the numbers...'
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:20 teacher_provider.py:298] [RemoteTeacher] Requesting 1 prompts x 2 samples (temp=0.70, top_p=0.95, max_tokens=512)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:24 teacher_provider.py:328] [RemoteTeacher] Done: 1 prompts in 4.3s, cache_hits=1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:24 ebft_experience_maker.py:756] [Teacher-FullQ] ✓ Full-question completions received.
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:24 ebft_experience_maker.py:756]   unique_questions = 1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:24 ebft_experience_maker.py:756]   samples_per_q    = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:24 ebft_experience_maker.py:756]   example_answer   = "Here's a thinking process that leads to the solution:\n\n1.  **Understand the Problem:**\n    *   We have the set of integers $S = \\{1, 2, \\dots, 2n\\}$.\n    *   $S$ is partitioned into two sets $A$ and $..."
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:24 ebft_experience_maker.py:825] [Teacher-FullQ] Built 1 teacher sample batches, each full_sequences shape torch.Size([2, 248])  (full-question teacher answers, block-aligned)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:24 ebft_experience_maker.py:991] [Teacher] Got 1 teacher sample batches, each with torch.Size([2, 248])
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:01<00:00,  1.57s/it]forward: 100%|██████████| 1/1 [00:01<00:00,  1.57s/it]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1101] [Teacher] built teacher_embedding torch.Size([1, 1, 2, 15, 6144]) from 1 prompts x 2 teacher samples
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1291] [TEACHER-VERIFY] teacher_embedding built: backend=remote, shape=torch.Size([1, 1, 2, 15, 6144]), dtype=torch.float32, mean=-0.000064  (completions sourced from REMOTE DLC teacher API)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304] [TEACHER-DIAG] === Reward construction summary ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   cf_target_mode       = teacher
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   teacher enabled      = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   teacher sample count = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   teacher lambda       = 0.5
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   gen_embedding.shape  = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   gt_embedding.shape   = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   teacher_emb.shape    = torch.Size([1, 1, 2, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1304]   reward_type          = cf_l1oo
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 embedding_utils.py:275] [TEACHER-TARGET] MIXED target built: lambda=0.5, r_gt=2, m_teacher=2, effective_lambda=0.5000, target_shape=torch.Size([1, 1, 4, 15, 6144]), teacher_mean=-0.000064, gt_mean=-0.000066
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1367] [TEACHER-DIAG] === Final reward stats ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1367]   gt_rewards   shape=torch.Size([1, 4, 15])  mean=0.028084  std=0.017464
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1367]   div_rewards  shape=torch.Size([1, 4, 15])  mean=0.000000
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1367]   teacher_backend   = remote
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1367]   teacher_in_reward = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1492] ✨ Experience making completed in 0:00:06
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1561] [RLOO Diagnostic] raw_rewards: mean=0.028084, std=0.017464, min=-0.025410, max=0.072320, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1566] [RLOO Diagnostic] baseline: mean=0.028084, std=0.006972, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1570] [RLOO Diagnostic] shaped_rewards (after baseline): mean=0.000000, std=0.022644, min=-0.059227, max=0.055515
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:26 ebft_experience_maker.py:1633] [Advantage Diagnostic] advantages: mean=0.000000, std=0.015659, min=-0.059227, max=0.055515, shape=torch.Size([4, 247])
-[36m(EBFTPolicyModelActor pid=304707)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 2888.64it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:08<?, ?it/s, act_loss=0, reward=0.0281, return=-1.49e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:08<00:00,  8.30s/it, act_loss=0, reward=0.0281, return=-1.49e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:08<00:00,  8.30s/it, act_loss=0, reward=0.0281, return=-1.49e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:34 ebft_trainer.py:983] ✨ Global step 1: {'critic_loss': 0.0, 'critic_classifier_loss': 0.0, 'critic_direct_discrepancy_loss': 0.0, 'critic_classifier_accuracy_before': 0.4750000238418579, 'critic_classifier_accuracy_after': 0.5250000357627869, 'critic_classifier_precision_before': 0.48695650696754456, 'critic_classifier_precision_after': 0.800000011920929, 'critic_classifier_recall_before': 0.9333333373069763, 'critic_classifier_recall_after': 0.06666667014360428, 'critic_classifier_f1_score_before': 0.6399999856948853, 'critic_classifier_f1_score_after': 0.12307693064212799, 'critic_classifier_pr_auc_before': 0.33863556385040283, 'critic_classifier_pr_auc_after': 0.5258929133415222, 'critic_classifier_roc_auc_before': 0.16111111640930176, 'critic_classifier_roc_auc_after': 0.4099999964237213, 'critic_classifier_mean_prob_gap_before': -0.0010108351707458496, 'critic_classifier_mean_prob_gap_after': -0.00021201372146606445, 'critic_classifier_prob_gen_before': 0.5018876194953918, 'critic_classifier_prob_gen_after': 0.49840158224105835, 'critic_classifier_pred_pos_frac_before': 0.9583333730697632, 'critic_classifier_pred_pos_frac_after': 0.0416666679084301, 'critic_classifier_acc_thresh0p5_before': 0.0, 'critic_classifier_acc_thresh0p5_after': 0.0, 'critic_logit_exact_match': 0.0, 'critic_lr_backbone': 0.0, 'critic_lr_head': 0.0, 'critic_opt_lr_group0': 0.0, 'critic_opt_lr_group1': 0.0, 'feature_adapter_drift_abs_mean': 0.0, 'feature_adapter_drift_rel_l2': 0.0, 'feature_adapter_up_drift_abs_mean': 0.0, 'feature_adapter_up_drift_rel_l2': 0.0, 'feature_adapter_down_drift_abs_mean': 0.0, 'feature_adapter_down_drift_rel_l2': 0.0, 'feature_adapter_ema_gap_abs_mean': 0.0, 'feature_adapter_ema_gap_rel_l2': 0.0, 'critic_grad_norm': 0.0, 'policy_loss': 0.0, 'ce_loss': 1.447428822517395, 'actor_lr': 9.999999974752427e-07, 'exp_log_probs': 0.5132139325141907, 'ce_ctl': 0.029999999329447746, 'rl_ctl': 1.0, 'actor_loss': 0.04342286288738251, 'kl_ctl_loss': 0.0, 'kl': 0.0, 'response_length': 120.0, 'total_length': 248.0, 'reward': 0.02808372862637043, 'effective_reward': 0.02808372862637043, 'diversity_reward': 0.0, 'gt_reward': 0.02808372862637043, 'feature_map_reward': 0.02808372862637043, 'distribution_reward': 0.02808372862637043, 'std_reward': 0.01765667460858822, 'zero_std_reward': 0.0, 'num_zeros_rewards': 0.0, 'gt_reward_top1': 0.04665488004684448, 'gt_reward_gap_top1_top2': 0.012061266228556633, 'return': -1.4901161193847656e-08, 'actor_grad_norm': 0.0}
-[36m(EBFTTrainer pid=304709)[0m Episode [1/1]:  50%|█████     | 2/4 [00:20<00:23, 11.55s/it]
-[36m(EBFTCriticModelActor pid=304708)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 4228.13it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:38 ebft_experience_maker.py:1113] 🚀 Starting experience making with 4 samples
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:00<00:00,  4.07it/s]forward: 100%|██████████| 1/1 [00:00<00:00,  4.07it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:38 ebft_experience_maker.py:1270] [TEACHER-VERIFY] Teacher branch gate: distribution_reward_type=cf_l1oo, cf_target_mode=teacher, teacher_samples_generator=None, teacher_provider=PRESENT => ENTER teacher branch
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:38 ebft_experience_maker.py:731] [Teacher-FullQ] Requesting 1 unique questions x M=2 samples from remote teacher (model=qwen-122b).
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:38 ebft_experience_maker.py:731]   example question = 'mathbb{Z}/(2n\\mathbb{Z})$ such that the first $n$ columns correspond to the elements of $C$, and the last $n$ columns correspond to the elements of $D...'
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:38 teacher_provider.py:298] [RemoteTeacher] Requesting 1 prompts x 2 samples (temp=0.70, top_p=0.95, max_tokens=512)
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.433, critic_classifier_accuracy_after=0.492, critic_classifier_precision_before=0.464, critic_classifier_precision_after=0, critic_classifier_recall_before=0.867, critic_classifier_recall_after=0, critic_classifier_f1_score_before=0.605, critic_classifier_f1_score_after=0, critic_classifier_pr_auc_before=0.362, critic_classifier_pr_auc_after=0.559, critic_classifier_roc_auc_before=0.187, critic_classifier_roc_auc_after=0.467, critic_classifier_mean_prob_gap_before=-0.000874, critic_classifier_mean_prob_gap_after=-0.000187, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.499, critic_classifier_pred_pos_frac_before=0.933, critic_classifier_pred_pos_frac_after=0.00833, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  2.30it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.433, critic_classifier_accuracy_after=0.492, critic_classifier_precision_before=0.464, critic_classifier_precision_after=0, critic_classifier_recall_before=0.867, critic_classifier_recall_after=0, critic_classifier_f1_score_before=0.605, critic_classifier_f1_score_after=0, critic_classifier_pr_auc_before=0.362, critic_classifier_pr_auc_after=0.559, critic_classifier_roc_auc_before=0.187, critic_classifier_roc_auc_after=0.467, critic_classifier_mean_prob_gap_before=-0.000874, critic_classifier_mean_prob_gap_after=-0.000187, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.499, critic_classifier_pred_pos_frac_before=0.933, critic_classifier_pred_pos_frac_after=0.00833, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  2.30it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.433, critic_classifier_accuracy_after=0.492, critic_classifier_precision_before=0.464, critic_classifier_precision_after=0, critic_classifier_recall_before=0.867, critic_classifier_recall_after=0, critic_classifier_f1_score_before=0.605, critic_classifier_f1_score_after=0, critic_classifier_pr_auc_before=0.362, critic_classifier_pr_auc_after=0.559, critic_classifier_roc_auc_before=0.187, critic_classifier_roc_auc_after=0.467, critic_classifier_mean_prob_gap_before=-0.000874, critic_classifier_mean_prob_gap_after=-0.000187, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.499, critic_classifier_pred_pos_frac_before=0.933, critic_classifier_pred_pos_frac_after=0.00833, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 teacher_provider.py:328] [RemoteTeacher] Done: 1 prompts in 4.4s, cache_hits=1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:756] [Teacher-FullQ] ✓ Full-question completions received.
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:756]   unique_questions = 1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:756]   samples_per_q    = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:756]   example_answer   = "Here's a thinking process that leads to the suggested completion of the text:\n\n1.  **Analyze the Request:**\n    *   The user provides a snippet of mathematical text, specifically numbered points 5 (pa..."
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:825] [Teacher-FullQ] Built 1 teacher sample batches, each full_sequences shape torch.Size([2, 248])  (full-question teacher answers, block-aligned)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:991] [Teacher] Got 1 teacher sample batches, each with torch.Size([2, 248])
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:00<00:00,  5.61it/s]forward: 100%|██████████| 1/1 [00:00<00:00,  5.61it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 3492.34it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1101] [Teacher] built teacher_embedding torch.Size([1, 1, 2, 15, 6144]) from 1 prompts x 2 teacher samples
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1291] [TEACHER-VERIFY] teacher_embedding built: backend=remote, shape=torch.Size([1, 1, 2, 15, 6144]), dtype=torch.float32, mean=-0.000142  (completions sourced from REMOTE DLC teacher API)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304] [TEACHER-DIAG] === Reward construction summary ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   cf_target_mode       = teacher
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   teacher enabled      = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   teacher sample count = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   teacher lambda       = 0.5
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   gen_embedding.shape  = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   gt_embedding.shape   = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   teacher_emb.shape    = torch.Size([1, 1, 2, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1304]   reward_type          = cf_l1oo
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 embedding_utils.py:275] [TEACHER-TARGET] MIXED target built: lambda=0.5, r_gt=2, m_teacher=2, effective_lambda=0.5000, target_shape=torch.Size([1, 1, 4, 15, 6144]), teacher_mean=-0.000142, gt_mean=-0.000051
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1367] [TEACHER-DIAG] === Final reward stats ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1367]   gt_rewards   shape=torch.Size([1, 4, 15])  mean=0.031509  std=0.018539
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1367]   div_rewards  shape=torch.Size([1, 4, 15])  mean=0.000000
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1367]   teacher_backend   = remote
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1367]   teacher_in_reward = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1492] ✨ Experience making completed in 0:00:04
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1561] [RLOO Diagnostic] raw_rewards: mean=0.031509, std=0.018539, min=-0.014233, max=0.069950, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1566] [RLOO Diagnostic] baseline: mean=0.031509, std=0.007565, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1570] [RLOO Diagnostic] shaped_rewards (after baseline): mean=-0.000000, std=0.023936, min=-0.061401, max=0.045277
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:43 ebft_experience_maker.py:1633] [Advantage Diagnostic] advantages: mean=-0.000000, std=0.016552, min=-0.061401, max=0.045277, shape=torch.Size([4, 247])
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:05<?, ?it/s, act_loss=2.33e-10, reward=0.0315, return=-4.28e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:05<00:00,  5.02s/it, act_loss=2.33e-10, reward=0.0315, return=-4.28e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:05<00:00,  5.02s/it, act_loss=2.33e-10, reward=0.0315, return=-4.28e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:48 ebft_trainer.py:983] ✨ Global step 2: {'critic_loss': 0.0, 'critic_classifier_loss': 0.0, 'critic_direct_discrepancy_loss': 0.0, 'critic_classifier_accuracy_before': 0.4333333671092987, 'critic_classifier_accuracy_after': 0.491666704416275, 'critic_classifier_precision_before': 0.4642857015132904, 'critic_classifier_precision_after': 0.0, 'critic_classifier_recall_before': 0.8666666746139526, 'critic_classifier_recall_after': 0.0, 'critic_classifier_f1_score_before': 0.604651153087616, 'critic_classifier_f1_score_after': 0.0, 'critic_classifier_pr_auc_before': 0.36229991912841797, 'critic_classifier_pr_auc_after': 0.5592960119247437, 'critic_classifier_roc_auc_before': 0.18666666746139526, 'critic_classifier_roc_auc_after': 0.46666666865348816, 'critic_classifier_mean_prob_gap_before': -0.000873863697052002, 'critic_classifier_mean_prob_gap_after': -0.00018742680549621582, 'critic_classifier_prob_gen_before': 0.5018107295036316, 'critic_classifier_prob_gen_after': 0.4986271858215332, 'critic_classifier_pred_pos_frac_before': 0.9333333969116211, 'critic_classifier_pred_pos_frac_after': 0.008333333767950535, 'critic_classifier_acc_thresh0p5_before': 0.0, 'critic_classifier_acc_thresh0p5_after': 0.0, 'critic_logit_exact_match': 0.0, 'critic_lr_backbone': 0.0, 'critic_lr_head': 0.0, 'critic_opt_lr_group0': 0.0, 'critic_opt_lr_group1': 0.0, 'feature_adapter_drift_abs_mean': 0.0, 'feature_adapter_drift_rel_l2': 0.0, 'feature_adapter_up_drift_abs_mean': 0.0, 'feature_adapter_up_drift_rel_l2': 0.0, 'feature_adapter_down_drift_abs_mean': 0.0, 'feature_adapter_down_drift_rel_l2': 0.0, 'feature_adapter_ema_gap_abs_mean': 0.0, 'feature_adapter_ema_gap_rel_l2': 0.0, 'critic_grad_norm': 0.0, 'policy_loss': 2.3283064365386963e-10, 'ce_loss': 1.3911097049713135, 'actor_lr': 9.999999974752427e-07, 'exp_log_probs': 0.5090222954750061, 'ce_ctl': 0.029999999329447746, 'rl_ctl': 1.0, 'actor_loss': 0.04173329100012779, 'kl_ctl_loss': 0.0, 'kl': 0.0, 'response_length': 120.0, 'total_length': 248.0, 'reward': 0.031509362161159515, 'effective_reward': 0.031509362161159515, 'diversity_reward': 0.0, 'gt_reward': 0.031509362161159515, 'feature_map_reward': 0.031509362161159515, 'distribution_reward': 0.031509362161159515, 'std_reward': 0.01905331015586853, 'zero_std_reward': 0.0, 'num_zeros_rewards': 0.0, 'gt_reward_top1': 0.05108744278550148, 'gt_reward_gap_top1_top2': 0.012001021765172482, 'return': -4.284083843231201e-08, 'actor_grad_norm': 0.0}
-[36m(EBFTCriticModelActor pid=304708)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 4928.68it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m Episode [1/1]:  75%|███████▌  | 3/4 [00:32<00:11, 11.93s/it]
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:50 ebft_experience_maker.py:1113] 🚀 Starting experience making with 4 samples
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:00<00:00,  5.17it/s]forward: 100%|██████████| 1/1 [00:00<00:00,  5.16it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:50 ebft_experience_maker.py:1270] [TEACHER-VERIFY] Teacher branch gate: distribution_reward_type=cf_l1oo, cf_target_mode=teacher, teacher_samples_generator=None, teacher_provider=PRESENT => ENTER teacher branch
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:50 ebft_experience_maker.py:731] [Teacher-FullQ] Requesting 1 unique questions x M=2 samples from remote teacher (model=qwen-122b).
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:50 ebft_experience_maker.py:731]   example question = 'Z})$, which is a Latin square. This means that each of the numbers $0, 1, \\ldots, 2n-1$ occurs exactly once in each row and each column.\n2. Let $A$ an...'
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:50 teacher_provider.py:298] [RemoteTeacher] Requesting 1 prompts x 2 samples (temp=0.70, top_p=0.95, max_tokens=512)
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.508, critic_classifier_accuracy_after=0.6, critic_classifier_precision_before=0.504, critic_classifier_precision_after=1, critic_classifier_recall_before=1, critic_classifier_recall_after=0.2, critic_classifier_f1_score_before=0.67, critic_classifier_f1_score_after=0.333, critic_classifier_pr_auc_before=0.466, critic_classifier_pr_auc_after=0.757, critic_classifier_roc_auc_before=0.486, critic_classifier_roc_auc_after=0.726, critic_classifier_mean_prob_gap_before=-6.62e-6, critic_classifier_mean_prob_gap_after=0.000745, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.992, critic_classifier_pred_pos_frac_after=0.1, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  2.49it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.508, critic_classifier_accuracy_after=0.6, critic_classifier_precision_before=0.504, critic_classifier_precision_after=1, critic_classifier_recall_before=1, critic_classifier_recall_after=0.2, critic_classifier_f1_score_before=0.67, critic_classifier_f1_score_after=0.333, critic_classifier_pr_auc_before=0.466, critic_classifier_pr_auc_after=0.757, critic_classifier_roc_auc_before=0.486, critic_classifier_roc_auc_after=0.726, critic_classifier_mean_prob_gap_before=-6.62e-6, critic_classifier_mean_prob_gap_after=0.000745, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.992, critic_classifier_pred_pos_frac_after=0.1, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  2.49it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.508, critic_classifier_accuracy_after=0.6, critic_classifier_precision_before=0.504, critic_classifier_precision_after=1, critic_classifier_recall_before=1, critic_classifier_recall_after=0.2, critic_classifier_f1_score_before=0.67, critic_classifier_f1_score_after=0.333, critic_classifier_pr_auc_before=0.466, critic_classifier_pr_auc_after=0.757, critic_classifier_roc_auc_before=0.486, critic_classifier_roc_auc_after=0.726, critic_classifier_mean_prob_gap_before=-6.62e-6, critic_classifier_mean_prob_gap_after=0.000745, critic_classifier_prob_gen_before=0.502, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.992, critic_classifier_pred_pos_frac_after=0.1, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:54 teacher_provider.py:328] [RemoteTeacher] Done: 1 prompts in 4.4s, cache_hits=1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:54 ebft_experience_maker.py:756] [Teacher-FullQ] ✓ Full-question completions received.
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:54 ebft_experience_maker.py:756]   unique_questions = 1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:54 ebft_experience_maker.py:756]   samples_per_q    = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:54 ebft_experience_maker.py:756]   example_answer   = "Here's a thinking process that leads to the suggested completion and analysis of the problem statement:\n\n1.  **Analyze the Request:**\n    *   The user provides a snippet of a mathematical problem or p..."
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:54 ebft_experience_maker.py:825] [Teacher-FullQ] Built 1 teacher sample batches, each full_sequences shape torch.Size([2, 248])  (full-question teacher answers, block-aligned)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:54 ebft_experience_maker.py:991] [Teacher] Got 1 teacher sample batches, each with torch.Size([2, 248])
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:00<00:00,  4.43it/s]forward: 100%|██████████| 1/1 [00:00<00:00,  4.42it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 3342.07it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1101] [Teacher] built teacher_embedding torch.Size([1, 1, 2, 15, 6144]) from 1 prompts x 2 teacher samples
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1291] [TEACHER-VERIFY] teacher_embedding built: backend=remote, shape=torch.Size([1, 1, 2, 15, 6144]), dtype=torch.float32, mean=-0.000055  (completions sourced from REMOTE DLC teacher API)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304] [TEACHER-DIAG] === Reward construction summary ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   cf_target_mode       = teacher
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   teacher enabled      = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   teacher sample count = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   teacher lambda       = 0.5
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   gen_embedding.shape  = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   gt_embedding.shape   = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   teacher_emb.shape    = torch.Size([1, 1, 2, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1304]   reward_type          = cf_l1oo
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 embedding_utils.py:275] [TEACHER-TARGET] MIXED target built: lambda=0.5, r_gt=2, m_teacher=2, effective_lambda=0.5000, target_shape=torch.Size([1, 1, 4, 15, 6144]), teacher_mean=-0.000055, gt_mean=-0.000104
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1367] [TEACHER-DIAG] === Final reward stats ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1367]   gt_rewards   shape=torch.Size([1, 4, 15])  mean=0.032039  std=0.014423
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1367]   div_rewards  shape=torch.Size([1, 4, 15])  mean=0.000000
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1367]   teacher_backend   = remote
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1367]   teacher_in_reward = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1492] ✨ Experience making completed in 0:00:04
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1561] [RLOO Diagnostic] raw_rewards: mean=0.032039, std=0.014423, min=-0.000103, max=0.069210, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1566] [RLOO Diagnostic] baseline: mean=0.032039, std=0.006079, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1570] [RLOO Diagnostic] shaped_rewards (after baseline): mean=0.000000, std=0.018497, min=-0.042517, max=0.048698
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:39:55 ebft_experience_maker.py:1633] [Advantage Diagnostic] advantages: mean=0.000000, std=0.012791, min=-0.042517, max=0.048698, shape=torch.Size([4, 247])
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:05<?, ?it/s, act_loss=-1.16e-10, reward=0.032, return=2.98e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:05<00:00,  5.08s/it, act_loss=-1.16e-10, reward=0.032, return=2.98e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:05<00:00,  5.08s/it, act_loss=-1.16e-10, reward=0.032, return=2.98e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:01 ebft_trainer.py:983] ✨ Global step 3: {'critic_loss': 0.0, 'critic_classifier_loss': 0.0, 'critic_direct_discrepancy_loss': 0.0, 'critic_classifier_accuracy_before': 0.5083333849906921, 'critic_classifier_accuracy_after': 0.6000000238418579, 'critic_classifier_precision_before': 0.5042017102241516, 'critic_classifier_precision_after': 1.0, 'critic_classifier_recall_before': 1.0, 'critic_classifier_recall_after': 0.20000000298023224, 'critic_classifier_f1_score_before': 0.6703911423683167, 'critic_classifier_f1_score_after': 0.3333333134651184, 'critic_classifier_pr_auc_before': 0.46571046113967896, 'critic_classifier_pr_auc_after': 0.756635308265686, 'critic_classifier_roc_auc_before': 0.4855555593967438, 'critic_classifier_roc_auc_after': 0.7255555987358093, 'critic_classifier_mean_prob_gap_before': -6.616115570068359e-06, 'critic_classifier_mean_prob_gap_after': 0.0007447898387908936, 'critic_classifier_prob_gen_before': 0.5016449093818665, 'critic_classifier_prob_gen_after': 0.49809733033180237, 'critic_classifier_pred_pos_frac_before': 0.9916667342185974, 'critic_classifier_pred_pos_frac_after': 0.10000000894069672, 'critic_classifier_acc_thresh0p5_before': 0.0, 'critic_classifier_acc_thresh0p5_after': 0.0, 'critic_logit_exact_match': 0.0, 'critic_lr_backbone': 0.0, 'critic_lr_head': 0.0, 'critic_opt_lr_group0': 0.0, 'critic_opt_lr_group1': 0.0, 'feature_adapter_drift_abs_mean': 0.0, 'feature_adapter_drift_rel_l2': 0.0, 'feature_adapter_up_drift_abs_mean': 0.0, 'feature_adapter_up_drift_rel_l2': 0.0, 'feature_adapter_down_drift_abs_mean': 0.0, 'feature_adapter_down_drift_rel_l2': 0.0, 'feature_adapter_ema_gap_abs_mean': 0.0, 'feature_adapter_ema_gap_rel_l2': 0.0, 'critic_grad_norm': 0.0, 'policy_loss': -1.1641532182693481e-10, 'ce_loss': 0.9662183523178101, 'actor_lr': 9.999999974752427e-07, 'exp_log_probs': 0.5658642649650574, 'ce_ctl': 0.029999999329447746, 'rl_ctl': 1.0, 'actor_loss': 0.028986549004912376, 'kl_ctl_loss': 0.0, 'kl': 0.0, 'response_length': 120.0, 'total_length': 248.0, 'reward': 0.032039448618888855, 'effective_reward': 0.032039448618888855, 'diversity_reward': 0.0, 'gt_reward': 0.032039448618888855, 'feature_map_reward': 0.032039448618888855, 'distribution_reward': 0.032039448618888855, 'std_reward': 0.014987525530159473, 'zero_std_reward': 0.0, 'num_zeros_rewards': 0.0, 'gt_reward_top1': 0.04746707156300545, 'gt_reward_gap_top1_top2': 0.008977663703262806, 'return': 2.9802322387695312e-08, 'actor_grad_norm': 0.0}
-[36m(EBFTCriticModelActor pid=304708)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 5029.14it/s]
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m Episode [1/1]: 100%|██████████| 4/4 [00:47<00:00, 13.07s/it]
-[36m(EBFTCriticModelActor pid=304708)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.442, critic_classifier_accuracy_after=0.5, critic_classifier_precision_before=0.468, critic_classifier_precision_after=0, critic_classifier_recall_before=0.867, critic_classifier_recall_after=0, critic_classifier_f1_score_before=0.608, critic_classifier_f1_score_after=0, critic_classifier_pr_auc_before=0.537, critic_classifier_pr_auc_after=0.402, critic_classifier_roc_auc_before=0.469, critic_classifier_roc_auc_after=0.322, critic_classifier_mean_prob_gap_before=-0.000212, critic_classifier_mean_prob_gap_after=-0.000477, critic_classifier_prob_gen_before=0.501, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.925, critic_classifier_pred_pos_frac_after=0, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  1.34it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.442, critic_classifier_accuracy_after=0.5, critic_classifier_precision_before=0.468, critic_classifier_precision_after=0, critic_classifier_recall_before=0.867, critic_classifier_recall_after=0, critic_classifier_f1_score_before=0.608, critic_classifier_f1_score_after=0, critic_classifier_pr_auc_before=0.537, critic_classifier_pr_auc_after=0.402, critic_classifier_roc_auc_before=0.469, critic_classifier_roc_auc_after=0.322, critic_classifier_mean_prob_gap_before=-0.000212, critic_classifier_mean_prob_gap_after=-0.000477, critic_classifier_prob_gen_before=0.501, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.925, critic_classifier_pred_pos_frac_after=0, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]Train epoch [1/1]: 100%|██████████| 1/1 [00:00<00:00,  1.34it/s, critic_loss=0, critic_classifier_loss=0, critic_direct_discrepancy_loss=0, critic_classifier_accuracy_before=0.442, critic_classifier_accuracy_after=0.5, critic_classifier_precision_before=0.468, critic_classifier_precision_after=0, critic_classifier_recall_before=0.867, critic_classifier_recall_after=0, critic_classifier_f1_score_before=0.608, critic_classifier_f1_score_after=0, critic_classifier_pr_auc_before=0.537, critic_classifier_pr_auc_after=0.402, critic_classifier_roc_auc_before=0.469, critic_classifier_roc_auc_after=0.322, critic_classifier_mean_prob_gap_before=-0.000212, critic_classifier_mean_prob_gap_after=-0.000477, critic_classifier_prob_gen_before=0.501, critic_classifier_prob_gen_after=0.498, critic_classifier_pred_pos_frac_before=0.925, critic_classifier_pred_pos_frac_after=0, critic_classifier_acc_thresh0p5_before=0, critic_classifier_acc_thresh0p5_after=0, critic_logit_exact_match=0, critic_lr_backbone=0, critic_lr_head=0, critic_opt_lr_group0=0, critic_opt_lr_group1=0, feature_adapter_drift_abs_mean=0, feature_adapter_drift_rel_l2=0, feature_adapter_up_drift_abs_mean=0, feature_adapter_up_drift_rel_l2=0, feature_adapter_down_drift_abs_mean=0, feature_adapter_down_drift_rel_l2=0, feature_adapter_ema_gap_abs_mean=0, feature_adapter_ema_gap_rel_l2=0, critic_grad_norm=0]
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:05 ebft_experience_maker.py:1113] 🚀 Starting experience making with 4 samples
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:00<00:00,  1.75it/s]forward: 100%|██████████| 1/1 [00:00<00:00,  1.75it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:06 ebft_experience_maker.py:1270] [TEACHER-VERIFY] Teacher branch gate: distribution_reward_type=cf_l1oo, cf_target_mode=teacher, teacher_samples_generator=None, teacher_provider=PRESENT => ENTER teacher branch
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:06 ebft_experience_maker.py:731] [Teacher-FullQ] Requesting 1 unique questions x M=2 samples from remote teacher (model=qwen-122b).
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:06 ebft_experience_maker.py:731]   example question = ' n$.\n4. We aim to prove that for each $x \\in \\mathbb{Z}/(2n\\mathbb{Z})$, the number of ways $N(x)$ that $x$ can be written in the form $x = a + c$ (wh...'
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:06 teacher_provider.py:298] [RemoteTeacher] Requesting 1 prompts x 2 samples (temp=0.70, top_p=0.95, max_tokens=512)
-[36m(EBFTCriticModelActor pid=304708)[0m forward:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 teacher_provider.py:328] [RemoteTeacher] Done: 1 prompts in 4.3s, cache_hits=1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:756] [Teacher-FullQ] ✓ Full-question completions received.
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:756]   unique_questions = 1
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:756]   samples_per_q    = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:756]   example_answer   = "Here's a thinking process that leads to the suggested completion and explanation of the problem:\n\n1.  **Analyze the Request:**\n    *   **Input:** A fragment of a mathematical problem/proof involving m..."
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:825] [Teacher-FullQ] Built 1 teacher sample batches, each full_sequences shape torch.Size([2, 248])  (full-question teacher answers, block-aligned)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:991] [Teacher] Got 1 teacher sample batches, each with torch.Size([2, 248])
-[36m(EBFTCriticModelActor pid=304708)[0m forward: 100%|██████████| 1/1 [00:00<00:00,  5.61it/s]forward: 100%|██████████| 1/1 [00:00<00:00,  5.60it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m append:   0%|          | 0/1 [00:00<?, ?it/s]append: 100%|██████████| 1/1 [00:00<00:00, 3551.49it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1101] [Teacher] built teacher_embedding torch.Size([1, 1, 2, 15, 6144]) from 1 prompts x 2 teacher samples
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1291] [TEACHER-VERIFY] teacher_embedding built: backend=remote, shape=torch.Size([1, 1, 2, 15, 6144]), dtype=torch.float32, mean=-0.000027  (completions sourced from REMOTE DLC teacher API)
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304] [TEACHER-DIAG] === Reward construction summary ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   cf_target_mode       = teacher
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   teacher enabled      = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   teacher sample count = 2
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   teacher lambda       = 0.5
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   gen_embedding.shape  = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   gt_embedding.shape   = torch.Size([1, 1, 4, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   teacher_emb.shape    = torch.Size([1, 1, 2, 15, 6144])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1304]   reward_type          = cf_l1oo
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 embedding_utils.py:275] [TEACHER-TARGET] MIXED target built: lambda=0.5, r_gt=2, m_teacher=2, effective_lambda=0.5000, target_shape=torch.Size([1, 1, 4, 15, 6144]), teacher_mean=-0.000027, gt_mean=-0.000094
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1367] [TEACHER-DIAG] === Final reward stats ===
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1367]   gt_rewards   shape=torch.Size([1, 4, 15])  mean=0.029415  std=0.016429
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1367]   div_rewards  shape=torch.Size([1, 4, 15])  mean=0.000000
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1367]   teacher_backend   = remote
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1367]   teacher_in_reward = True
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1492] ✨ Experience making completed in 0:00:05
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1561] [RLOO Diagnostic] raw_rewards: mean=0.029415, std=0.016429, min=-0.012935, max=0.062385, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1566] [RLOO Diagnostic] baseline: mean=0.029415, std=0.006400, shape=torch.Size([1, 4, 15])
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1570] [RLOO Diagnostic] shaped_rewards (after baseline): mean=0.000000, std=0.021399, min=-0.050619, max=0.049808
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:10 ebft_experience_maker.py:1633] [Advantage Diagnostic] advantages: mean=0.000000, std=0.014798, min=-0.050619, max=0.049808, shape=torch.Size([4, 247])
-[36m(EBFTPolicyModelActor pid=304707)[0m Train epoch [1/1]:   0%|          | 0/1 [00:04<?, ?it/s, act_loss=-3.49e-10, reward=0.0294, return=4.61e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:04<00:00,  4.97s/it, act_loss=-3.49e-10, reward=0.0294, return=4.61e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]Train epoch [1/1]: 100%|██████████| 1/1 [00:04<00:00,  4.97s/it, act_loss=-3.49e-10, reward=0.0294, return=4.61e-8, gen_len=120, tot_len=248, kl=0, act_lr=1e-6]
-[36m(EBFTTrainer pid=304709)[0m Episode [1/1]: 100%|██████████| 4/4 [00:58<00:00, 14.68s/it]
-[36m(EBFTTrainer pid=304709)[0m INFO 03-24 21:40:15 ebft_trainer.py:983] ✨ Global step 4: {'critic_loss': 0.0, 'critic_classifier_loss': 0.0, 'critic_direct_discrepancy_loss': 0.0, 'critic_classifier_accuracy_before': 0.44166669249534607, 'critic_classifier_accuracy_after': 0.5, 'critic_classifier_precision_before': 0.46846845746040344, 'critic_classifier_precision_after': 0.0, 'critic_classifier_recall_before': 0.8666666746139526, 'critic_classifier_recall_after': 0.0, 'critic_classifier_f1_score_before': 0.6081871390342712, 'critic_classifier_f1_score_after': 0.0, 'critic_classifier_pr_auc_before': 0.5371072292327881, 'critic_classifier_pr_auc_after': 0.40249013900756836, 'critic_classifier_roc_auc_before': 0.46888890862464905, 'critic_classifier_roc_auc_after': 0.3222222328186035, 'critic_classifier_mean_prob_gap_before': -0.00021189451217651367, 'critic_classifier_mean_prob_gap_after': -0.00047656893730163574, 'critic_classifier_prob_gen_before': 0.5013865232467651, 'critic_classifier_prob_gen_after': 0.49849453568458557, 'critic_classifier_pred_pos_frac_before': 0.9250000715255737, 'critic_classifier_pred_pos_frac_after': 0.0, 'critic_classifier_acc_thresh0p5_before': 0.0, 'critic_classifier_acc_thresh0p5_after': 0.0, 'critic_logit_exact_match': 0.0, 'critic_lr_backbone': 0.0, 'critic_lr_head': 0.0, 'critic_opt_lr_group0': 0.0, 'critic_opt_lr_group1': 0.0, 'feature_adapter_drift_abs_mean': 0.0, 'feature_adapter_drift_rel_l2': 0.0, 'feature_adapter_up_drift_abs_mean': 0.0, 'feature_adapter_up_drift_rel_l2': 0.0, 'feature_adapter_down_drift_abs_mean': 0.0, 'feature_adapter_down_drift_rel_l2': 0.0, 'feature_adapter_ema_gap_abs_mean': 0.0, 'feature_adapter_ema_gap_rel_l2': 0.0, 'critic_grad_norm': 0.0, 'policy_loss': -3.4924596548080444e-10, 'ce_loss': 1.1373767852783203, 'actor_lr': 9.999999974752427e-07, 'exp_log_probs': 0.5121966004371643, 'ce_ctl': 0.029999999329447746, 'rl_ctl': 1.0, 'actor_loss': 0.034121301025152206, 'kl_ctl_loss': 0.0, 'kl': 0.0, 'response_length': 120.0, 'total_length': 248.0, 'reward': 0.029415126889944077, 'effective_reward': 0.029415126889944077, 'diversity_reward': 0.0, 'gt_reward': 0.029415126889944077, 'feature_map_reward': 0.029415126889944077, 'distribution_reward': 0.029415126889944077, 'std_reward': 0.017444627359509468, 'zero_std_reward': 0.0, 'num_zeros_rewards': 0.0, 'gt_reward_top1': 0.04853631556034088, 'gt_reward_gap_top1_top2': 0.011797449551522732, 'return': 4.6100467443466187e-08, 'actor_grad_norm': 0.0}
-[36m(EBFTPolicyModelActor pid=304707)[0m Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]
-[36m(EBFTPolicyModelActor pid=304707)[0m Writing model shards: 100%|██████████| 1/1 [00:02<00:00,  2.94s/it]Writing model shards: 100%|██████████| 1/1 [00:02<00:00,  2.94s/it]
-
-=================================================================
- SMOKE TEST COMPLETE — 2026-03-24 13:40:25 UTC
- Log: /root/outputs/g2_smoke_fullq_0324_133758/smoke.log
-=================================================================
-
-Verify these appeared in the log:
-  [RemoteTeacher] Init: ...          — provider initialized
-  [RemoteTeacher] Requesting ...     — API calls fired
-  [TEACHER-TARGET] MIXED target ...  — target measure built
-  gt_rewards ... mean=...            — rewards are non-zero

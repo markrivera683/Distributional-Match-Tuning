@@ -1,4 +1,4 @@
-#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python
+#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python3
 
 from deepspeed.nvme import ds_io_main
 

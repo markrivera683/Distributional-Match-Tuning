@@ -1,4 +1,4 @@
-#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python
+#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python3
 import sys
 from huggingface_hub.inference._mcp.cli import app
 if __name__ == '__main__':

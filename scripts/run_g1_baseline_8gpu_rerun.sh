@@ -12,7 +12,7 @@ set -euo pipefail
 # eval data:aops_qa_hf
 # gpu: 8xA100
 # target completion: GT answer
-# eval: null
+# test data: test_qa.jsonl
 
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
@@ -31,9 +31,9 @@ export PYTHONUNBUFFERED=1
 
 # ---- Paths (adapted for current machine) ----
 REPO_ROOT="/root/code/data/Distributional-Match-Tuning"
-MODEL_PATH="/mnt/data/Qwen3.5-2B"
-TRAIN_DATA="/mnt/data/data/aops/aops_qa_hf_dict"
-EVAL_DATA="/mnt/data/data/aops/test_qa.jsonl"
+MODEL_PATH="/mnt/data/code/Qwen3.5-2B"
+TRAIN_DATA="/mnt/data/data/code/aops/aops_qa_hf_dict"
+EVAL_DATA="/mnt/data/data/code/aops/test_qa.jsonl"
 
 # ---- Remote teacher (same endpoint as G2 script) ----
 TEACHER_API_BASE="http://172.17.0.26:8000/v1"

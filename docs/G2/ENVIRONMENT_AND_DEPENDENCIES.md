@@ -58,11 +58,11 @@ pip install --upgrade pip wheel setuptools
 pip install torch==2.5.1+cu124 --index-url https://download.pytorch.org/whl/cu124
 
 # 仓库依赖
-cd /root/code/data/Distributional-Match-Tuning
-pip install -r requirements.txt
+# cd /root/code/data/Distributional-Match-Tuning/
+pip install -r docs/G2/requirements.txt
 
 # Ray 如需精确匹配验证版本
-pip install ray[default]==2.47.0
+# pip install ray[default]==2.47.0
 
 # Flash Attention
 # Time-consuming without flash-atten and oom risk
