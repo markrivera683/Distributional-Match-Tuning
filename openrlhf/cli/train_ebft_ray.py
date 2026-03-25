@@ -94,6 +94,10 @@ def train(args):
         print(f"[TEACHER-VERIFY] remote API: {getattr(args, 'teacher_api_base', 'N/A')}, "
               f"model={getattr(args, 'teacher_model_name', 'N/A')}")
         teacher_model = None
+    elif teacher_backend == "dataset":
+        print(f"[TEACHER-VERIFY] teacher_backend=dataset — skipping local teacher model creation")
+        print(f"[TEACHER-VERIFY] dataset path: {getattr(args, 'teacher_dataset_path', 'N/A')}")
+        teacher_model = None
     elif args.teacher_pretrain:
         print(f"[TEACHER-VERIFY] Creating teacher RayActorGroup from: {args.teacher_pretrain}")
         print(f"[TEACHER-VERIFY] cf_target_mode={getattr(args, 'cf_target_mode', 'N/A')}, "
@@ -578,8 +582,9 @@ if __name__ == "__main__":
     )
 
     # Teacher backend selection
-    parser.add_argument("--teacher_backend", type=str, default="local", choices=["local", "remote"],
-                        help="Teacher source: 'local' loads a checkpoint, 'remote' calls an HTTP API")
+    parser.add_argument("--teacher_backend", type=str, default="local", choices=["local", "remote", "dataset"],
+                        help="Teacher source: 'local' loads a checkpoint, 'remote' calls an HTTP API, "
+                             "'dataset' reads from a pre-exported HF dataset")
     parser.add_argument("--teacher_api_base", type=str, default=None,
                         help="Base URL for remote teacher API (e.g. http://host:8000/v1)")
     parser.add_argument("--teacher_api_key", type=str, default="EMPTY",
@@ -606,6 +611,8 @@ if __name__ == "__main__":
                         help="Enable SQLite disk cache for remote teacher completions")
     parser.add_argument("--teacher_cache_dir", type=str, default=None,
                         help="Directory for teacher completion cache (defaults to save_path/teacher_cache)")
+    parser.add_argument("--teacher_dataset_path", type=str, default=None,
+                        help="Path to pre-exported HF dataset for teacher_backend=dataset")
 
     # Reward composition
     parser.add_argument("--alignment_rew_coef", type=float, default=1.0, help="Weight for embedding alignment reward")

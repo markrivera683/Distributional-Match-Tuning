@@ -691,8 +691,17 @@ class EBFTCriticModelActor(BaseModelActor):
         # load checkpoint
         if args.load_critic_checkpoint and os.path.exists(os.path.join(args.ckpt_path, "_critic")):
             ckpt_path = os.path.join(args.ckpt_path, "_critic")
-            strategy.print(f"Loading the checkpoint: {ckpt_path}")
-            strategy.load_ckpt(self.critic, ckpt_path)
+            adapter_enabled = getattr(args, "feature_adapter_enable", False)
+            strict = not adapter_enabled
+            strategy.print(
+                f"Loading the checkpoint: {ckpt_path} (strict={strict})"
+            )
+            if not strict:
+                strategy.print(
+                    "[G3] Non-strict load: old checkpoints without feature_adapter params "
+                    "will keep zero-init (identity behaviour)."
+                )
+            strategy.load_ckpt(self.critic, ckpt_path, load_module_strict=strict)
 
         # initial offload
         if strategy.args.deepspeed_enable_sleep:
@@ -709,6 +718,55 @@ class EBFTCriticModelActor(BaseModelActor):
             micro_train_batch_size=args.micro_train_batch_size,
             value_clip=args.value_clip,
         )
+
+                # --- G3 initialization diagnostics ---
+        self._log_critic_init_diagnostics(strategy, args)
+
+    def _log_critic_init_diagnostics(self, strategy, args):
+        """Log feature-adapter / freeze / EMA state once at init for observability."""
+        adapter_enabled = getattr(args, "feature_adapter_enable", False)
+        strategy.print("=" * 60)
+        strategy.print("[Critic Init Diagnostics]")
+        strategy.print(f"  feature_adapter_enable : {adapter_enabled}")
+        if adapter_enabled:
+            strategy.print(f"  feature_adapter_type   : {getattr(args, 'feature_adapter_type', 'residual_bottleneck')}")
+            strategy.print(f"  feature_adapter_rank   : {getattr(args, 'feature_adapter_rank', 64)}")
+            strategy.print(f"  feature_adapter_dropout: {getattr(args, 'feature_adapter_dropout', 0.0)}")
+
+        def _count_params(model, needle=None, requires_grad=None):
+            total = 0
+            for n, p in model.named_parameters():
+                if needle is not None and needle not in n:
+                    continue
+                if requires_grad is not None and p.requires_grad != requires_grad:
+                    continue
+                total += p.numel()
+            return total
+
+        critic_ref = self.critic
+        total_params = _count_params(critic_ref)
+        trainable_params = _count_params(critic_ref, requires_grad=True)
+        backbone_trainable = _count_params(critic_ref, requires_grad=True) - \
+            _count_params(critic_ref, needle="classifier_head", requires_grad=True) - \
+            _count_params(critic_ref, needle="feature_adapter", requires_grad=True)
+        adapter_params = _count_params(critic_ref, needle="feature_adapter")
+        head_params = _count_params(critic_ref, needle="classifier_head")
+
+        strategy.print(f"  total params           : {total_params:,}")
+        strategy.print(f"  trainable params       : {trainable_params:,}")
+        strategy.print(f"  backbone trainable     : {backbone_trainable:,}")
+        strategy.print(f"  feature_adapter params : {adapter_params:,}")
+        strategy.print(f"  classifier_head params : {head_params:,}")
+
+        strategy.print(f"  enable_ema             : {args.enable_ema}")
+        strategy.print(f"  ema_beta               : {args.ema_beta}")
+        strategy.print(f"  ema_model present      : {self.ema_model is not None}")
+
+        for i, group in enumerate(getattr(self.critic_optim, "param_groups", [])):
+            n_params = sum(p.numel() for p in group["params"])
+            strategy.print(f"  optimizer group {i}: lr={group.get('lr', '?')}, params={n_params:,}")
+        strategy.print("=" * 60)
+
 
     def forward(
         self,
