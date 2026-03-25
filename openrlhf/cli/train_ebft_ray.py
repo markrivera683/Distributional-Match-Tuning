@@ -85,9 +85,20 @@ def train(args):
             duplicate_actors=args.ring_attn_size * args.ds_tensor_parallel_size,
         )
 
-    # Teacher model for target-side distribution (uses same actor type for generation).
-    # Must share the actor/ref placement group so it can colocate on the same GPUs.
-    if args.teacher_pretrain:
+    # Teacher model for target-side distribution.
+    # backend=local  → load a full checkpoint as a Ray actor group
+    # backend=remote → no local model; completions come from an HTTP API
+    teacher_backend = getattr(args, "teacher_backend", "local")
+    if teacher_backend == "remote":
+        print(f"[TEACHER-VERIFY] teacher_backend=remote — skipping local teacher model creation")
+        print(f"[TEACHER-VERIFY] remote API: {getattr(args, 'teacher_api_base', 'N/A')}, "
+              f"model={getattr(args, 'teacher_model_name', 'N/A')}")
+        teacher_model = None
+    elif teacher_backend == "dataset":
+        print(f"[TEACHER-VERIFY] teacher_backend=dataset — skipping local teacher model creation")
+        print(f"[TEACHER-VERIFY] dataset path: {getattr(args, 'teacher_dataset_path', 'N/A')}")
+        teacher_model = None
+    elif args.teacher_pretrain:
         print(f"[TEACHER-VERIFY] Creating teacher RayActorGroup from: {args.teacher_pretrain}")
         print(f"[TEACHER-VERIFY] cf_target_mode={getattr(args, 'cf_target_mode', 'N/A')}, "
               f"distribution_reward_type={getattr(args, 'distribution_reward_type', 'N/A')}, "
@@ -568,6 +579,39 @@ if __name__ == "__main__":
         default=4,
         help="Number of teacher samples per prompt (M) for the teacher target measure",
     )
+
+    # Teacher backend selection
+    parser.add_argument("--teacher_backend", type=str, default="local", choices=["local", "remote", "dataset"],
+                        help="Teacher source: 'local' loads a checkpoint, 'remote' calls an HTTP API, "
+                             "'dataset' reads from a pre-exported HF dataset")
+    parser.add_argument("--teacher_api_base", type=str, default=None,
+                        help="Base URL for remote teacher API (e.g. http://host:8000/v1)")
+    parser.add_argument("--teacher_api_key", type=str, default="EMPTY",
+                        help="API key for the remote teacher service")
+    parser.add_argument("--teacher_api_style", type=str, default="completions",
+                        choices=["completions", "chat_completions"],
+                        help="API style: 'completions' for /v1/completions, "
+                             "'chat_completions' for /v1/chat/completions")
+    parser.add_argument("--teacher_model_name", type=str, default=None,
+                        help="Model name to request from the remote teacher service")
+    parser.add_argument("--teacher_timeout", type=int, default=120,
+                        help="HTTP timeout in seconds for remote teacher requests")
+    parser.add_argument("--teacher_max_retries", type=int, default=3,
+                        help="Max retries per remote teacher request")
+    parser.add_argument("--teacher_remote_batch_size", type=int, default=8,
+                        help="Concurrent request concurrency for remote teacher")
+    parser.add_argument("--teacher_temperature", type=float, default=0.7,
+                        help="Sampling temperature for remote teacher generation")
+    parser.add_argument("--teacher_top_p", type=float, default=0.95,
+                        help="Top-p sampling for remote teacher generation")
+    parser.add_argument("--teacher_max_new_tokens", type=int, default=512,
+                        help="Max new tokens for remote teacher completions")
+    parser.add_argument("--teacher_cache_enable", action="store_true", default=False,
+                        help="Enable SQLite disk cache for remote teacher completions")
+    parser.add_argument("--teacher_cache_dir", type=str, default=None,
+                        help="Directory for teacher completion cache (defaults to save_path/teacher_cache)")
+    parser.add_argument("--teacher_dataset_path", type=str, default=None,
+                        help="Path to pre-exported HF dataset for teacher_backend=dataset")
 
     # Reward composition
     parser.add_argument("--alignment_rew_coef", type=float, default=1.0, help="Weight for embedding alignment reward")

@@ -710,6 +710,29 @@ class EBFTTrainer(BaseEBFTTrainer):
             else None
         )
 
+        from openrlhf.utils.teacher_provider import build_teacher_provider
+        self.teacher_provider = build_teacher_provider(self.args)
+
+        teacher_backend = getattr(self.args, "teacher_backend", "local")
+
+        if teacher_backend == "remote":
+            assert self.teacher_provider is not None, (
+                "teacher_backend=remote but build_teacher_provider returned None"
+            )
+            assert self.teacher_model_group is None, (
+                "teacher_backend=remote but teacher_model_group is not None — "
+                "local teacher model must not be loaded when using remote backend"
+            )
+
+        if teacher_backend == "dataset":
+            assert self.teacher_provider is not None, (
+                "teacher_backend=dataset but build_teacher_provider returned None"
+            )
+            assert self.teacher_model_group is None, (
+                "teacher_backend=dataset but teacher_model_group is not None — "
+                "local teacher model must not be loaded when using dataset backend"
+            )
+
         logger.info(
             f"[TEACHER-VERIFY] teacher_model_group={'PRESENT' if self.teacher_model_group else 'None'}, "
             f"teacher_generator={'PRESENT' if self.teacher_generator else 'None'}"
