@@ -783,6 +783,15 @@ class EBFTTrainer(BaseEBFTTrainer):
                 "local teacher model must not be loaded when using remote backend"
             )
 
+        if teacher_backend == "dataset":
+            assert self.teacher_provider is not None, (
+                "teacher_backend=dataset but build_teacher_provider returned None"
+            )
+            assert self.teacher_model_group is None, (
+                "teacher_backend=dataset but teacher_model_group is not None — "
+                "local teacher model must not be loaded when using dataset backend"
+            )
+
         logger.info(
             f"[TEACHER-VERIFY] teacher_backend={teacher_backend}, "
             f"teacher_model_group={'PRESENT' if self.teacher_model_group else 'None'}, "

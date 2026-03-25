@@ -564,19 +564,33 @@ class Critic(nn.Module):
         self.model.print_trainable_parameters()
     
     def save_pretrained(self, output_dir: str, state_dict=None, **kwargs):
+        """Save the model to a directory in HuggingFace format.
+
+        The HF backbone is saved via its own ``save_pretrained`` (or a
+        ``pytorch_model.bin`` fallback).  Critic-specific modules
+        (``feature_adapter``, ``classifier_head``, ``pre_head_norm``) are
+        stored separately as ``critic_head.pt`` so that the backbone
+        checkpoint stays loadable by plain ``AutoModelForCausalLM`` while
+        the full critic state can still be restored.
         """
-        Save the model to a directory in HuggingFace format.
-        
-        Args:
-            output_dir: Directory to save the model
-            state_dict: Optional state dict to save
-            **kwargs: Additional arguments for save_pretrained
-        """
+        import os
+        os.makedirs(output_dir, exist_ok=True)
+
         if hasattr(self.model, 'save_pretrained'):
             self.model.save_pretrained(output_dir, state_dict=state_dict, **kwargs)
         else:
-            # Fallback to torch.save if model doesn't have save_pretrained
-            import os
-            os.makedirs(output_dir, exist_ok=True)
             save_path = os.path.join(output_dir, "pytorch_model.bin")
             torch.save(state_dict if state_dict is not None else self.model.state_dict(), save_path)
+
+        head_state: dict = {}
+        for module_name in ("feature_adapter", "classifier_head", "pre_head_norm"):
+            module = getattr(self, module_name, None)
+            if module is None or isinstance(module, nn.Identity):
+                continue
+            for k, v in module.state_dict().items():
+                head_state[f"{module_name}.{k}"] = v
+        if head_state:
+            torch.save(head_state, os.path.join(output_dir, "critic_head.pt"))
+            logger.info(
+                f"[Critic] Saved {len(head_state)} critic-head tensors to {output_dir}/critic_head.pt"
+            )

@@ -134,6 +134,92 @@ class TeacherCache:
 
 
 # ---------------------------------------------------------------------------
+# Dataset provider (pre-exported HF dataset, no API / SQLite at train time)
+# ---------------------------------------------------------------------------
+
+class DatasetTeacherProvider(BaseTeacherProvider):
+    """Look up teacher completions from a pre-exported HuggingFace Dataset.
+
+    Supports two dataset layouts:
+
+    1. **question-keyed** (has ``question`` column):
+       Lookup by exact question text match.  Generation params are ignored.
+
+    2. **hash-keyed** (has ``cache_key`` column):
+       Lookup by SHA-256 cache key, computed from (prompt, model, n,
+       temperature, top_p, max_tokens) — identical to ``TeacherCache._make_key``.
+       Requires ``model_name`` to be set (read from the first row's
+       ``model_name`` column).
+
+    Both layouts must have a ``teacher_completions`` column (List[str]).
+    """
+
+    def __init__(self, dataset_path: str):
+        from datasets import load_from_disk
+        ds = load_from_disk(dataset_path)
+
+        cols = set(ds.column_names)
+        self._hash_mode = "cache_key" in cols and "question" not in cols
+        self._lookup: dict[str, list[str]] = {}
+
+        if self._hash_mode:
+            self.model_name = ds[0]["model_name"]
+            for row in ds:
+                self._lookup[row["cache_key"]] = row["teacher_completions"]
+            logger.info(
+                "[DatasetTeacher] Loaded %d entries (hash-keyed, model=%s) from %s",
+                len(self._lookup), self.model_name, dataset_path,
+            )
+        else:
+            self.model_name = None
+            for row in ds:
+                self._lookup[row["question"]] = row["teacher_completions"]
+            logger.info(
+                "[DatasetTeacher] Loaded %d questions (text-keyed) from %s",
+                len(self._lookup), dataset_path,
+            )
+
+    def sample_targets(
+        self,
+        prompts: List[str],
+        n_samples: int,
+        temperature: float = 0.7,
+        top_p: float = 0.95,
+        max_new_tokens: int = 256,
+    ) -> List[List[str]]:
+        results: List[List[str]] = []
+        miss = 0
+        for prompt in prompts:
+            if self._hash_mode:
+                key = TeacherCache._make_key(
+                    prompt, self.model_name, n_samples,
+                    temperature, top_p, max_new_tokens,
+                )
+                completions = self._lookup.get(key)
+            else:
+                completions = self._lookup.get(prompt)
+
+            if completions is None:
+                miss += 1
+                results.append([""] * n_samples)
+            else:
+                if len(completions) >= n_samples:
+                    results.append(completions[:n_samples])
+                else:
+                    padded = completions + [""] * (n_samples - len(completions))
+                    results.append(padded)
+
+        if miss:
+            logger.warning(
+                "[DatasetTeacher] %d / %d prompts NOT found in dataset "
+                "(mode=%s)",
+                miss, len(prompts),
+                "hash" if self._hash_mode else "text",
+            )
+        return results
+
+
+# ---------------------------------------------------------------------------
 # Remote provider
 # ---------------------------------------------------------------------------
 
@@ -350,6 +436,12 @@ def build_teacher_provider(args) -> Optional[BaseTeacherProvider]:
 
     if backend == "local":
         return None
+
+    if backend == "dataset":
+        dataset_path = getattr(args, "teacher_dataset_path", None)
+        if not dataset_path:
+            raise ValueError("--teacher_dataset_path is required when --teacher_backend=dataset")
+        return DatasetTeacherProvider(dataset_path)
 
     if backend != "remote":
         raise ValueError(f"Unknown teacher_backend: {backend!r}")
