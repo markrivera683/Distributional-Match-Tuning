@@ -719,7 +719,7 @@ class EBFTCriticModelActor(BaseModelActor):
             value_clip=args.value_clip,
         )
 
-                # --- G3 initialization diagnostics ---
+        # --- G3 initialization diagnostics ---
         self._log_critic_init_diagnostics(strategy, args)
 
     def _log_critic_init_diagnostics(self, strategy, args):
@@ -766,7 +766,6 @@ class EBFTCriticModelActor(BaseModelActor):
             n_params = sum(p.numel() for p in group["params"])
             strategy.print(f"  optimizer group {i}: lr={group.get('lr', '?')}, params={n_params:,}")
         strategy.print("=" * 60)
-
 
     def forward(
         self,
