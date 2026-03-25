@@ -19,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional
 
 import requests
+from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +175,9 @@ class RemoteTeacherProvider(BaseTeacherProvider):
         self.cache = cache
 
         self._session = requests.Session()
+        adapter = HTTPAdapter(pool_maxsize=max(batch_size, 10))
+        self._session.mount("http://", adapter)
+        self._session.mount("https://", adapter)
         self._session.headers.update(
             {
                 "Content-Type": "application/json",

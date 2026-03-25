@@ -39,9 +39,9 @@ TEACHER_BACKEND="${TEACHER_BACKEND:-remote}"                          # remote =
 # 3. TEACHER TARGET DISTRIBUTION
 # ====================================================================
 # λ: mixing weight. 0→GT only, 1→teacher only, 0.5→equal mix
-CF_TEACHER_LAMBDA="${CF_TEACHER_LAMBDA:-0.5}"
+CF_TEACHER_LAMBDA="${CF_TEACHER_LAMBDA:-0.7}"
 # M: number of independent teacher completions per question (support points in teacher measure)
-CF_TEACHER_N_SAMPLES="${CF_TEACHER_N_SAMPLES:-2}"
+CF_TEACHER_N_SAMPLES="${CF_TEACHER_N_SAMPLES:-8}"
 # Generation params for teacher completions
 TEACHER_TEMPERATURE="${TEACHER_TEMPERATURE:-0.7}"
 TEACHER_TOP_P="${TEACHER_TOP_P:-0.95}"
@@ -52,6 +52,16 @@ TEACHER_MAX_RETRIES="${TEACHER_MAX_RETRIES:-3}"
 TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-4}"  # concurrent HTTP requests
 # Cache: SQLite disk cache for teacher completions (avoids re-fetching same questions)
 TEACHER_CACHE_ENABLE="${TEACHER_CACHE_ENABLE:-true}"      # set "false" to force fresh API calls every step
+
+# ====================================================================
+# 2b. TEACHER CACHE WARMUP
+# ====================================================================
+# Set RUN_WARMUP=true to pre-fill the cache before training starts.
+# This calls warmup_teacher_cache.py which loads the dataset, extracts
+# all unique questions, and populates the SQLite cache via the teacher
+# API.  Subsequent training steps will be 100% cache hits.
+RUN_WARMUP="${RUN_WARMUP:-true}"
+WARMUP_BATCH_SIZE="${WARMUP_BATCH_SIZE:-64}"              # concurrent HTTP requests during warmup
 
 # ====================================================================
 # 4. REWARD FUNCTION (CF-L1OO Distributional Matching)
@@ -130,7 +140,7 @@ OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
 RUN_ROOT="${OUTPUT_ROOT}/${RUN_TAG}"
 SAVE_PATH="${RUN_ROOT}/model"
 TB_ROOT="${RUN_ROOT}/tensorboard"
-CACHE_DIR="${RUN_ROOT}/teacher_cache"
+CACHE_DIR="${CACHE_DIR:-/root/outputs/teacher_cache_shared}"
 
 # Eval (disabled by default — GatedDeltaNet OOMs on long generation)
 EVAL_STEPS="${EVAL_STEPS:--1}"
@@ -186,6 +196,7 @@ echo "    Top-p:             ${TEACHER_TOP_P}"
 echo "    Max new tokens:    ${TEACHER_MAX_NEW_TOKENS}"
 echo "    Cache enabled:     ${TEACHER_CACHE_ENABLE}"
 echo "    Cache dir:         ${CACHE_DIR}"
+echo "    Run warmup:        ${RUN_WARMUP}"
 echo ""
 echo "  [Target Distribution]"
 echo "    Reward type:       ${DISTRIBUTION_REWARD_TYPE}"
@@ -212,6 +223,32 @@ echo "  [Output]"
 echo "    Run dir:           ${RUN_ROOT}"
 echo "    TensorBoard:       ${TB_ROOT}"
 echo "────────────────────────────────────────────────────────────────"
+
+# ── Optional cache warmup (before Ray / GPU init) ─────────────────
+if [[ "${RUN_WARMUP}" == "true" ]]; then
+  echo ""
+  echo "  [Warmup] Pre-filling teacher cache ..."
+  cd "${REPO_ROOT}"
+  python scripts/warmup_teacher_cache.py \
+    --prompt_data "${TRAIN_DATA}" \
+    --input_key "${INPUT_KEY}" \
+    --split train \
+    --cache_dir "${CACHE_DIR}" \
+    --teacher_api_base "${TEACHER_API_BASE}" \
+    --teacher_model_name "${TEACHER_MODEL}" \
+    --teacher_api_key "${TEACHER_API_KEY}" \
+    --teacher_api_style "${TEACHER_API_STYLE}" \
+    --n_samples "${CF_TEACHER_N_SAMPLES}" \
+    --temperature "${TEACHER_TEMPERATURE}" \
+    --top_p "${TEACHER_TOP_P}" \
+    --max_new_tokens "${TEACHER_MAX_NEW_TOKENS}" \
+    --max_samples "${MAX_SAMPLES}" \
+    --batch_size "${WARMUP_BATCH_SIZE}" \
+    --timeout "${TEACHER_TIMEOUT}" \
+    --max_retries "${TEACHER_MAX_RETRIES}"
+  echo "  [Warmup] Done."
+  echo ""
+fi
 
 ray stop --force 2>/dev/null || true
 sleep 2
