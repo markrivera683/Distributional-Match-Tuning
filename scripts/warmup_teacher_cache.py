@@ -67,6 +67,13 @@ def parse_args():
     p.add_argument("--timeout", type=int, default=180)
     p.add_argument("--max_retries", type=int, default=3)
 
+    p.add_argument("--system_prompt_text", type=str, default="",
+                   help="System prompt / prefix text injected into every teacher request. "
+                        "Must be identical to SYSTEM_PROMPT_TEXT used during training.")
+    p.add_argument("--system_prompt_id", type=str, default="",
+                   help="Short opaque ID embedded in cache keys (e.g. 'v1-balanced'). "
+                        "Must match training. Changing this invalidates existing cache entries.")
+
     return p.parse_args()
 
 
@@ -96,11 +103,13 @@ def load_unique_questions(prompt_data: str, split: str, input_key: str,
     return unique
 
 
-def count_cached(cache, questions, model_name, n_samples, temperature, top_p, max_new_tokens):
+def count_cached(cache, questions, model_name, n_samples, temperature, top_p, max_new_tokens,
+                  api_style="completions", system_prompt_id=""):
     """Count how many questions are already in the cache."""
     cached = 0
     for q in questions:
-        if cache.get(q, model_name, n_samples, temperature, top_p, max_new_tokens) is not None:
+        if cache.get(q, model_name, n_samples, temperature, top_p, max_new_tokens,
+                     api_style=api_style, system_prompt_id=system_prompt_id) is not None:
             cached += 1
     return cached
 
@@ -123,7 +132,9 @@ def main():
     pre_cached = 0
     for q in questions:
         if cache.get(q, args.teacher_model_name, args.n_samples,
-                     args.temperature, args.top_p, args.max_new_tokens) is not None:
+                     args.temperature, args.top_p, args.max_new_tokens,
+                     api_style=args.teacher_api_style,
+                     system_prompt_id=args.system_prompt_id) is not None:
             pre_cached += 1
         else:
             uncached.append(q)
@@ -145,7 +156,12 @@ def main():
         max_retries=args.max_retries,
         batch_size=args.batch_size,
         cache=cache,
+        system_prompt_text=args.system_prompt_text,
+        system_prompt_id=args.system_prompt_id,
     )
+    if args.system_prompt_id:
+        logger.info("System prompt: id=%r, text=%r", args.system_prompt_id,
+                    args.system_prompt_text[:80] + ("..." if len(args.system_prompt_text) > 80 else ""))
 
     bs = args.batch_size
     n_batches = (len(uncached) + bs - 1) // bs
@@ -188,6 +204,8 @@ def main():
     post_cached = count_cached(
         cache, questions, args.teacher_model_name,
         args.n_samples, args.temperature, args.top_p, args.max_new_tokens,
+        api_style=args.teacher_api_style,
+        system_prompt_id=args.system_prompt_id,
     )
 
     logger.info("=" * 60)

@@ -616,6 +616,13 @@ if __name__ == "__main__":
                         help="Directory for teacher completion cache (defaults to save_path/teacher_cache)")
     parser.add_argument("--teacher_dataset_path", type=str, default=None,
                         help="Path to pre-exported HF dataset for teacher_backend=dataset")
+    parser.add_argument("--teacher_system_prompt_text", type=str, default="",
+                        help="System prompt / prefix injected into every teacher request. "
+                             "Empty string = no prefix. Must match warmup and offline export.")
+    parser.add_argument("--teacher_system_prompt_id", type=str, default="",
+                        help="Short opaque version ID embedded in cache keys (e.g. 'v1-balanced'). "
+                             "Changing this invalidates existing SQLite cache entries. "
+                             "Must be identical across online warmup, training, and offline export.")
 
     # Reward composition
     parser.add_argument("--alignment_rew_coef", type=float, default=1.0, help="Weight for embedding alignment reward")

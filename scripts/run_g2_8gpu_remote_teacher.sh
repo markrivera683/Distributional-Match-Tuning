@@ -130,6 +130,38 @@ RUN_WARMUP="${RUN_WARMUP:-true}"
 WARMUP_BATCH_SIZE="${WARMUP_BATCH_SIZE:-64}"              # concurrent HTTP requests during warmup
 
 # ====================================================================
+# 2c. TEACHER SYSTEM PROMPT (PREFIX)
+# ====================================================================
+# SYSTEM_PROMPT_TEXT: the actual prefix injected into every teacher request.
+#   - For api_style=completions : prepended as plain text before the question.
+#   - For api_style=chat_completions : sent as a {"role":"system"} message.
+#
+# Design constraints respected here:
+#   1. Short → minimal token overhead, friendly to vLLM prefix-cache.
+#   2. No rigid formatting instructions → preserves multi-sample diversity.
+#   3. Version-managed → SYSTEM_PROMPT_ID is written into every cache key,
+#      so changing the prefix automatically invalidates stale cache entries.
+#
+# Three preset options (uncomment exactly one):
+#
+#   CONSERVATIVE (stable distribution, lowest variance, ~6 tokens)
+# SYSTEM_PROMPT_TEXT="Answer the following question."
+# SYSTEM_PROMPT_ID="v1-conservative"
+#
+#   BALANCED — RECOMMENDED for this project (allows diversity, ~8 tokens)
+SYSTEM_PROMPT_TEXT="${SYSTEM_PROMPT_TEXT:-You are a precise assistant. produce a correct and well-reasoned answer. Step by step when necessary. Keep reasoning sufficient. Final answer is clearly stated.}"
+SYSTEM_PROMPT_ID="${SYSTEM_PROMPT_ID:-v1-balanced}"
+#
+#   MINIMAL (zero overhead; only use when prefix hurts throughput measurably)
+# SYSTEM_PROMPT_TEXT=""
+# SYSTEM_PROMPT_ID="v1-none"
+#
+# SYSTEM_PROMPT_VERSION: human-readable version tag logged to run metadata.
+# Update this whenever SYSTEM_PROMPT_TEXT or SYSTEM_PROMPT_ID changes so
+# offline datasets and warmup caches can be traced back to the exact prefix.
+SYSTEM_PROMPT_VERSION="${SYSTEM_PROMPT_VERSION:-1.0}"
+
+# ====================================================================
 # 4. REWARD FUNCTION (CF-L1OO Distributional Matching)
 # ====================================================================
 DISTRIBUTION_REWARD_TYPE="cf_l1oo"   # cf_l1oo = characteristic function LOO distributional reward
@@ -297,6 +329,11 @@ echo "    Cache dir:         ${CACHE_DIR}"
 echo "    Run warmup:        ${RUN_WARMUP}"
 fi
 echo ""
+echo "  [System Prompt]"
+echo "    ID:                ${SYSTEM_PROMPT_ID}"
+echo "    Version:           ${SYSTEM_PROMPT_VERSION}"
+echo "    Text:              ${SYSTEM_PROMPT_TEXT:-(empty — no prefix)}"
+echo ""
 echo "  [Target Distribution]"
 echo "    Reward type:       ${DISTRIBUTION_REWARD_TYPE}"
 echo "    Target mode:       ${CF_TARGET_MODE}"
@@ -344,7 +381,9 @@ if [[ "${RUN_WARMUP}" == "true" && "${TEACHER_MODE}" == "online" ]]; then
     --max_samples "${MAX_SAMPLES}" \
     --batch_size "${WARMUP_BATCH_SIZE}" \
     --timeout "${TEACHER_TIMEOUT}" \
-    --max_retries "${TEACHER_MAX_RETRIES}"
+    --max_retries "${TEACHER_MAX_RETRIES}" \
+    --system_prompt_text "${SYSTEM_PROMPT_TEXT}" \
+    --system_prompt_id "${SYSTEM_PROMPT_ID}"
   echo "  [Warmup] Done."
   echo ""
 elif [[ "${TEACHER_MODE}" == "offline" ]]; then
@@ -382,6 +421,8 @@ python -m openrlhf.cli.train_ebft_ray \
   --teacher_temperature "${TEACHER_TEMPERATURE}" \
   --teacher_top_p "${TEACHER_TOP_P}" \
   --teacher_max_new_tokens "${TEACHER_MAX_NEW_TOKENS}" \
+  --teacher_system_prompt_text "${SYSTEM_PROMPT_TEXT}" \
+  --teacher_system_prompt_id "${SYSTEM_PROMPT_ID}" \
   "${CACHE_FLAGS[@]}" \
   \
   --embed_method "${EMBED_METHOD}" \
