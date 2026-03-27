@@ -586,7 +586,10 @@ if __name__ == "__main__":
                         help="Teacher source: 'local' loads a checkpoint, 'remote' calls an HTTP API, "
                              "'dataset' reads from a pre-exported HF dataset")
     parser.add_argument("--teacher_api_base", type=str, default=None,
-                        help="Base URL for remote teacher API (e.g. http://host:8000/v1)")
+                        help="Base URL(s) for remote teacher API. "
+                             "Single worker: 'http://host:8000/v1'. "
+                             "Multiple workers (comma-separated, round-robin): "
+                             "'http://host:8000/v1,http://host:8001/v1,http://host:8002/v1'")
     parser.add_argument("--teacher_api_key", type=str, default="EMPTY",
                         help="API key for the remote teacher service")
     parser.add_argument("--teacher_api_style", type=str, default="completions",

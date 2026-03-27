@@ -27,29 +27,95 @@ REF_GPUS="${REF_GPUS:-4}"          # colocated with actor
 REWARD_GPUS="${REWARD_GPUS:-4}"    # colocated with critic
 
 # ====================================================================
-# 2. REMOTE TEACHER ENDPOINT
+# 2. TEACHER MODE: online vs offline
 # ====================================================================
-TEACHER_API_BASE="${TEACHER_API_BASE:-http://172.17.0.26:8000/v1}"   # vLLM / OpenAI-compatible URL
+# TEACHER_MODE controls whether the teacher is called live during training
+# or whether pre-computed completions are read from a static dataset.
+#
+#   online  → TEACHER_BACKEND=remote
+#             Each training step may call the vLLM API (cache hit = 0 latency).
+#             Requires a running vLLM server.  Use RUN_WARMUP=true to pre-fill
+#             the cache so training itself never blocks on live API calls.
+#
+#   offline → TEACHER_BACKEND=dataset
+#             Completions are read from a pre-exported HF Dataset on disk.
+#             Zero network dependency; vLLM server is not required.
+#             Requires TEACHER_DATASET_PATH to point to the exported dataset.
+#             Run scripts/export_teacher_cache_to_dataset.py first.
+#
+TEACHER_MODE="${TEACHER_MODE:-online}"   # online | offline
+
+# ── Offline dataset path (only used when TEACHER_MODE=offline) ────
+TEACHER_DATASET_PATH="${TEACHER_DATASET_PATH:-/mnt/data/data/aops/teacher_dataset_n_samples_4}"
+
+# ====================================================================
+# 2b. REMOTE TEACHER ENDPOINT (only used when TEACHER_MODE=online)
+# ====================================================================
+# TEACHER_NUM_WORKERS: number of independent vLLM server instances.
+#   1  → single worker, TEACHER_API_BASE_0 is used directly
+#   N  → N workers, TEACHER_API_BASE_0 … TEACHER_API_BASE_{N-1} are joined
+#        with commas and passed as a single --teacher_api_base argument.
+#        Each prompt is pinned to one worker via consistent hashing
+#        (SHA-256 of prompt text mod N), so the same question always
+#        hits the same worker's cache → 100% cache hit rate after warmup.
+#
+TEACHER_NUM_WORKERS="${TEACHER_NUM_WORKERS:-4}"
+
+# Worker base URLs — add more lines if TEACHER_NUM_WORKERS 
+TEACHER_API_BASE_0="${TEACHER_API_BASE_0:-http://172.17.0.26:8000/v1}"
+TEACHER_API_BASE_1="${TEACHER_API_BASE_1:-http://172.17.0.27:8000/v1}"
+TEACHER_API_BASE_2="${TEACHER_API_BASE_2:-http://172.17.0.28:8000/v1}"
+TEACHER_API_BASE_3="${TEACHER_API_BASE_3:-http://172.17.0.29:8000/v1}"
+
+
 TEACHER_MODEL="${TEACHER_MODEL:-qwen-122b}"                          # model name served at the endpoint
 TEACHER_API_KEY="${TEACHER_API_KEY:-teacher-local}"                   # bearer token (use "EMPTY" if none)
-TEACHER_API_STYLE="${TEACHER_API_STYLE:-chat_completions}"           # chat_completions | completions
-TEACHER_BACKEND="${TEACHER_BACKEND:-remote}"                          # remote = HTTP API, local = Ray actor
+TEACHER_API_STYLE="${TEACHER_API_STYLE:-completions}"           # chat_completions | completions
+
+# Build comma-separated TEACHER_API_BASE from the first TEACHER_NUM_WORKERS entries
+_build_api_base() {
+  local n=$1
+  local bases=()
+  for i in $(seq 0 $((n - 1))); do
+    local var="TEACHER_API_BASE_${i}"
+    bases+=("${!var}")
+  done
+  local IFS=,
+  echo "${bases[*]}"
+}
+TEACHER_API_BASE="$(_build_api_base "${TEACHER_NUM_WORKERS}")"
+
+# Total concurrent HTTP requests across ALL workers.
+# Each vLLM worker handles (TEACHER_REMOTE_BATCH_SIZE / TEACHER_NUM_WORKERS) concurrent requests.
+# Per-worker concurrent sequences = (batch_size/workers) × CF_TEACHER_N_SAMPLES
+#
+# Current config: 4 workers × 24 req/worker = 96 total
+#   → vLLM server: 24 req × M=16 = 384 concurrent sequences per worker
+#   → prompt ~100 tok + completion 512 tok → max_model_len=1024 sufficient
+#   → --max-num-seqs 384  --max-num-batched-tokens 98304  on each vLLM server
+#
+# Formula: TEACHER_REMOTE_BATCH_SIZE = TEACHER_NUM_WORKERS × req_per_worker
+TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-$(( TEACHER_NUM_WORKERS * 24 ))}"
 
 # ====================================================================
 # 3. TEACHER TARGET DISTRIBUTION
 # ====================================================================
 # λ: mixing weight. 0→GT only, 1→teacher only, 0.5→equal mix
-CF_TEACHER_LAMBDA="${CF_TEACHER_LAMBDA:-0.7}"
+CF_TEACHER_LAMBDA="${CF_TEACHER_LAMBDA:-0.6}"
 # M: number of independent teacher completions per question (support points in teacher measure)
-CF_TEACHER_N_SAMPLES="${CF_TEACHER_N_SAMPLES:-8}"
+CF_TEACHER_N_SAMPLES="${CF_TEACHER_N_SAMPLES:-16}"
 # Generation params for teacher completions
 TEACHER_TEMPERATURE="${TEACHER_TEMPERATURE:-0.7}"
 TEACHER_TOP_P="${TEACHER_TOP_P:-0.95}"
 TEACHER_MAX_NEW_TOKENS="${TEACHER_MAX_NEW_TOKENS:-512}"   # full-answer length (NOT 8-token block)
 # Robustness
+# Timeout: prompt ~100 tok + 512 completion = ~632 tok total; 180s is conservative for 122B
 TEACHER_TIMEOUT="${TEACHER_TIMEOUT:-180}"                 # seconds per HTTP request
 TEACHER_MAX_RETRIES="${TEACHER_MAX_RETRIES:-3}"
-TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-4}"  # concurrent HTTP requests
+# TEACHER_REMOTE_BATCH_SIZE: total concurrent HTTP requests across ALL workers.
+# Default is computed above in section 2 as TEACHER_NUM_WORKERS * 32.
+# Do NOT re-define it here; override via environment variable if needed:
+#   TEACHER_REMOTE_BATCH_SIZE=16 bash scripts/run_g2_8gpu_remote_teacher.sh
 # Cache: SQLite disk cache for teacher completions (avoids re-fetching same questions)
 TEACHER_CACHE_ENABLE="${TEACHER_CACHE_ENABLE:-true}"      # set "false" to force fresh API calls every step
 
@@ -168,12 +234,38 @@ export PYTHONUNBUFFERED=1
 # ====================================================================
 # PRE-FLIGHT
 # ====================================================================
-mkdir -p "${RUN_ROOT}" "${SAVE_PATH}" "${TB_ROOT}" "${CACHE_DIR}"
+mkdir -p "${RUN_ROOT}" "${SAVE_PATH}" "${TB_ROOT}"
 
-# Resolve cache flag
-CACHE_FLAGS=()
-if [[ "${TEACHER_CACHE_ENABLE}" == "true" ]]; then
-  CACHE_FLAGS=(--teacher_cache_enable --teacher_cache_dir "${CACHE_DIR}")
+# Resolve TEACHER_BACKEND and associated flags from TEACHER_MODE
+if [[ "${TEACHER_MODE}" == "offline" ]]; then
+  TEACHER_BACKEND="dataset"
+  if [[ -z "${TEACHER_DATASET_PATH}" || ! -e "${TEACHER_DATASET_PATH}" ]]; then
+    echo "[ERROR] TEACHER_MODE=offline but TEACHER_DATASET_PATH not found: '${TEACHER_DATASET_PATH}'"
+    echo "        Run scripts/export_teacher_cache_to_dataset.py first."
+    exit 1
+  fi
+  TEACHER_FLAGS=(--teacher_backend dataset --teacher_dataset_path "${TEACHER_DATASET_PATH}")
+  CACHE_FLAGS=()
+  RUN_WARMUP="false"   # warmup is a no-op in offline mode
+  echo "[Teacher] Mode: OFFLINE — reading from dataset: ${TEACHER_DATASET_PATH}"
+else
+  TEACHER_BACKEND="remote"
+  mkdir -p "${CACHE_DIR}"
+  TEACHER_FLAGS=(
+    --teacher_backend remote
+    --teacher_api_base "${TEACHER_API_BASE}"
+    --teacher_api_key "${TEACHER_API_KEY}"
+    --teacher_api_style "${TEACHER_API_STYLE}"
+    --teacher_model_name "${TEACHER_MODEL}"
+    --teacher_timeout "${TEACHER_TIMEOUT}"
+    --teacher_max_retries "${TEACHER_MAX_RETRIES}"
+    --teacher_remote_batch_size "${TEACHER_REMOTE_BATCH_SIZE}"
+  )
+  CACHE_FLAGS=()
+  if [[ "${TEACHER_CACHE_ENABLE}" == "true" ]]; then
+    CACHE_FLAGS=(--teacher_cache_enable --teacher_cache_dir "${CACHE_DIR}")
+  fi
+  echo "[Teacher] Mode: ONLINE — API: ${TEACHER_API_BASE} (${TEACHER_NUM_WORKERS} worker(s))"
 fi
 
 echo "╔══════════════════════════════════════════════════════════════╗"
@@ -186,17 +278,24 @@ echo "    Model:             ${MODEL_PATH}"
 echo "    Train data:        ${TRAIN_DATA}"
 echo "    Eval data:         ${EVAL_DATA}"
 echo ""
-echo "  [Remote Teacher]"
-echo "    API base:          ${TEACHER_API_BASE}"
+echo "  [Teacher]"
+echo "    Mode:              ${TEACHER_MODE}  (online=remote API, offline=dataset)"
+if [[ "${TEACHER_MODE}" == "offline" ]]; then
+echo "    Dataset path:      ${TEACHER_DATASET_PATH}"
+else
+echo "    Num workers:       ${TEACHER_NUM_WORKERS}"
+echo "    API base(s):       ${TEACHER_API_BASE}"
 echo "    Model:             ${TEACHER_MODEL}"
 echo "    API key:           ${TEACHER_API_KEY}"
 echo "    API style:         ${TEACHER_API_STYLE}"
+echo "    Concurrency:       ${TEACHER_REMOTE_BATCH_SIZE}  (${TEACHER_NUM_WORKERS} workers × $(( TEACHER_REMOTE_BATCH_SIZE / TEACHER_NUM_WORKERS )))"
 echo "    Temperature:       ${TEACHER_TEMPERATURE}"
 echo "    Top-p:             ${TEACHER_TOP_P}"
 echo "    Max new tokens:    ${TEACHER_MAX_NEW_TOKENS}"
 echo "    Cache enabled:     ${TEACHER_CACHE_ENABLE}"
 echo "    Cache dir:         ${CACHE_DIR}"
 echo "    Run warmup:        ${RUN_WARMUP}"
+fi
 echo ""
 echo "  [Target Distribution]"
 echo "    Reward type:       ${DISTRIBUTION_REWARD_TYPE}"
@@ -224,10 +323,10 @@ echo "    Run dir:           ${RUN_ROOT}"
 echo "    TensorBoard:       ${TB_ROOT}"
 echo "────────────────────────────────────────────────────────────────"
 
-# ── Optional cache warmup (before Ray / GPU init) ─────────────────
-if [[ "${RUN_WARMUP}" == "true" ]]; then
+# ── Optional cache warmup (online mode only, before Ray / GPU init) ─
+if [[ "${RUN_WARMUP}" == "true" && "${TEACHER_MODE}" == "online" ]]; then
   echo ""
-  echo "  [Warmup] Pre-filling teacher cache ..."
+  echo "  [Warmup] Pre-filling teacher cache (${TEACHER_NUM_WORKERS} worker(s), concurrency=${WARMUP_BATCH_SIZE}) ..."
   cd "${REPO_ROOT}"
   python scripts/warmup_teacher_cache.py \
     --prompt_data "${TRAIN_DATA}" \
@@ -248,6 +347,8 @@ if [[ "${RUN_WARMUP}" == "true" ]]; then
     --max_retries "${TEACHER_MAX_RETRIES}"
   echo "  [Warmup] Done."
   echo ""
+elif [[ "${TEACHER_MODE}" == "offline" ]]; then
+  echo "  [Warmup] Skipped (TEACHER_MODE=offline, using pre-built dataset)"
 fi
 
 ray stop --force 2>/dev/null || true
@@ -277,14 +378,7 @@ python -m openrlhf.cli.train_ebft_ray \
   --cf_teacher_lambda "${CF_TEACHER_LAMBDA}" \
   --cf_teacher_n_samples "${CF_TEACHER_N_SAMPLES}" \
   \
-  --teacher_backend "${TEACHER_BACKEND}" \
-  --teacher_api_base "${TEACHER_API_BASE}" \
-  --teacher_api_key "${TEACHER_API_KEY}" \
-  --teacher_api_style "${TEACHER_API_STYLE}" \
-  --teacher_model_name "${TEACHER_MODEL}" \
-  --teacher_timeout "${TEACHER_TIMEOUT}" \
-  --teacher_max_retries "${TEACHER_MAX_RETRIES}" \
-  --teacher_remote_batch_size "${TEACHER_REMOTE_BATCH_SIZE}" \
+  "${TEACHER_FLAGS[@]}" \
   --teacher_temperature "${TEACHER_TEMPERATURE}" \
   --teacher_top_p "${TEACHER_TOP_P}" \
   --teacher_max_new_tokens "${TEACHER_MAX_NEW_TOKENS}" \
