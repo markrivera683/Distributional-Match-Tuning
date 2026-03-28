@@ -579,6 +579,7 @@ class EBFTCriticModelActor(BaseModelActor):
             feature_adapter_type=getattr(strategy.args, "feature_adapter_type", "residual_bottleneck"),
             feature_adapter_rank=getattr(strategy.args, "feature_adapter_rank", 64),
             feature_adapter_dropout=getattr(strategy.args, "feature_adapter_dropout", 0.0),
+            feature_adapter_unfreeze_layers=getattr(strategy.args, "feature_adapter_unfreeze_layers", 0),
         )
         # configure tokenizer
         if strategy.args.save_value_network:
@@ -608,6 +609,7 @@ class EBFTCriticModelActor(BaseModelActor):
                 feature_adapter_type=getattr(strategy.args, "feature_adapter_type", "residual_bottleneck"),
                 feature_adapter_rank=getattr(strategy.args, "feature_adapter_rank", 64),
                 feature_adapter_dropout=getattr(strategy.args, "feature_adapter_dropout", 0.0),
+                feature_adapter_unfreeze_layers=getattr(strategy.args, "feature_adapter_unfreeze_layers", 0),
             )
         else:
             ema_model = None
@@ -729,9 +731,15 @@ class EBFTCriticModelActor(BaseModelActor):
         strategy.print("[Critic Init Diagnostics]")
         strategy.print(f"  feature_adapter_enable : {adapter_enabled}")
         if adapter_enabled:
-            strategy.print(f"  feature_adapter_type   : {getattr(args, 'feature_adapter_type', 'residual_bottleneck')}")
-            strategy.print(f"  feature_adapter_rank   : {getattr(args, 'feature_adapter_rank', 64)}")
-            strategy.print(f"  feature_adapter_dropout: {getattr(args, 'feature_adapter_dropout', 0.0)}")
+            strategy.print(f"  feature_adapter_type          : {getattr(args, 'feature_adapter_type', 'residual_bottleneck')}")
+            strategy.print(f"  feature_adapter_rank          : {getattr(args, 'feature_adapter_rank', 64)}")
+            strategy.print(f"  feature_adapter_dropout       : {getattr(args, 'feature_adapter_dropout', 0.0)}")
+            unfreeze_layers = getattr(args, 'feature_adapter_unfreeze_layers', 0)
+            strategy.print(f"  feature_adapter_unfreeze_layers: {unfreeze_layers}")
+            if unfreeze_layers > 0:
+                strategy.print(f"  [2-full] backbone top-{unfreeze_layers} layers UNFROZEN")
+            else:
+                strategy.print(f"  [2-lite] backbone fully FROZEN")
 
         def _count_params(model, needle=None, requires_grad=None):
             total = 0

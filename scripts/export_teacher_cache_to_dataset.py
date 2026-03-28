@@ -59,6 +59,13 @@ def parse_args():
     p.add_argument("--top_p", type=float, default=0.95)
     p.add_argument("--max_new_tokens", type=int, default=512)
 
+    p.add_argument("--api_style", type=str, default="completions",
+                   choices=["completions", "chat_completions"],
+                   help="API style used during warmup (must match warmup args).")
+    p.add_argument("--system_prompt_id", type=str, default="",
+                   help="System prompt ID embedded in cache keys during warmup. "
+                        "Must match the value used during warmup / training.")
+
     p.add_argument("--output_dir", type=str, required=True,
                    help="Output path for the HF dataset (save_to_disk)")
 
@@ -103,6 +110,8 @@ def main():
         completions = cache.get(
             q, args.model_name, args.n_samples,
             args.temperature, args.top_p, args.max_new_tokens,
+            api_style=getattr(args, "api_style", "completions"),
+            system_prompt_id=getattr(args, "system_prompt_id", ""),
         )
         if completions is not None:
             rows.append({"question": q, "teacher_completions": completions})

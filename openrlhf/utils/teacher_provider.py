@@ -97,10 +97,13 @@ class TeacherCache:
         top_p: float,
         max_new_tokens: int,
         api_style: str = "completions",
+        system_prompt_id: str = "",
     ) -> str:
         # api_style is included because chat_completions wraps the prompt in a
         # role-message server-side, producing a different completion distribution
         # than the raw completions endpoint for the same prompt text.
+        # system_prompt_id (not the full text) is included so that changing the
+        # prefix/system-prompt invalidates old cache entries without bloating keys.
         # Prompt is canonicalized before hashing to avoid spurious misses.
         canonical = TeacherCache._canonicalize(prompt)
         raw = json.dumps(
@@ -112,6 +115,7 @@ class TeacherCache:
                 "top_p": round(top_p, 4),
                 "max_tokens": max_new_tokens,
                 "api_style": api_style,
+                "sys_id": system_prompt_id,
             },
             sort_keys=True,
             ensure_ascii=False,
@@ -121,8 +125,10 @@ class TeacherCache:
     def get(
         self, prompt, model_name, n_samples, temperature, top_p, max_new_tokens,
         api_style: str = "completions",
+        system_prompt_id: str = "",
     ) -> Optional[List[str]]:
-        key = self._make_key(prompt, model_name, n_samples, temperature, top_p, max_new_tokens, api_style)
+        key = self._make_key(prompt, model_name, n_samples, temperature, top_p, max_new_tokens,
+                             api_style, system_prompt_id)
         with sqlite3.connect(self.db_path) as conn:
             row = conn.execute("SELECT completions FROM cache WHERE key = ?", (key,)).fetchone()
         if row:
@@ -132,8 +138,10 @@ class TeacherCache:
     def put(
         self, prompt, model_name, n_samples, temperature, top_p, max_new_tokens, completions,
         api_style: str = "completions",
+        system_prompt_id: str = "",
     ):
-        key = self._make_key(prompt, model_name, n_samples, temperature, top_p, max_new_tokens, api_style)
+        key = self._make_key(prompt, model_name, n_samples, temperature, top_p, max_new_tokens,
+                             api_style, system_prompt_id)
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "INSERT OR REPLACE INTO cache"
@@ -281,6 +289,8 @@ class RemoteTeacherProvider(BaseTeacherProvider):
         max_retries: int = 3,
         batch_size: int = 8,
         cache: Optional[TeacherCache] = None,
+        system_prompt_text: str = "",
+        system_prompt_id: str = "",
     ):
         if api_style not in ("completions", "chat_completions"):
             raise ValueError(
@@ -295,6 +305,12 @@ class RemoteTeacherProvider(BaseTeacherProvider):
         self.max_retries = max_retries
         self.batch_size = batch_size
         self.cache = cache
+        # system_prompt_text is injected into every request payload.
+        # system_prompt_id is written into the cache key so that changing the
+        # prefix invalidates old cache entries (without storing the full text
+        # in every key).
+        self.system_prompt_text = system_prompt_text
+        self.system_prompt_id = system_prompt_id
 
         self._session = requests.Session()
         adapter = HTTPAdapter(pool_maxsize=max(batch_size, 10))
@@ -309,10 +325,11 @@ class RemoteTeacherProvider(BaseTeacherProvider):
 
         logger.info(
             "[RemoteTeacher] Init: api_base=%s, model=%s, style=%s, "
-            "timeout=%ds, retries=%d, concurrency=%d, cache=%s",
+            "timeout=%ds, retries=%d, concurrency=%d, cache=%s, sys_id=%r",
             api_base, model_name, api_style,
             timeout, max_retries, batch_size,
             "ON" if cache else "OFF",
+            system_prompt_id or "(none)",
         )
 
     # ---- single-prompt request with retry --------------------------------
@@ -320,12 +337,26 @@ class RemoteTeacherProvider(BaseTeacherProvider):
     def _build_request(self, prompt: str, n_samples: int,
                        temperature: float, top_p: float,
                        max_new_tokens: int):
-        """Return (url, payload) for the configured API style."""
+        """Return (url, payload) for the configured API style.
+
+        System-prompt injection rules:
+          - chat_completions: prepend a {"role": "system", "content": ...} message
+            when system_prompt_text is non-empty.  This is the canonical path
+            because vLLM handles system messages correctly in chat mode.
+          - completions (raw text): prepend the system_prompt_text directly to the
+            prompt string separated by a newline.  Keeps the injection transparent
+            to vLLM's KV-cache — the prefix is stable across all prompts so the
+            first tokens are always cache-hit after the first request.
+        """
         if self.api_style == "chat_completions":
             url = f"{self.api_base}/chat/completions"
+            messages = []
+            if self.system_prompt_text:
+                messages.append({"role": "system", "content": self.system_prompt_text})
+            messages.append({"role": "user", "content": prompt})
             payload = {
                 "model": self.model_name,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": messages,
                 "n": n_samples,
                 "temperature": temperature,
                 "top_p": top_p,
@@ -333,9 +364,16 @@ class RemoteTeacherProvider(BaseTeacherProvider):
             }
         else:
             url = f"{self.api_base}/completions"
+            # For raw completions: prepend prefix as plain text so vLLM's
+            # prefix-caching sees a stable leading token sequence.
+            full_prompt = (
+                self.system_prompt_text + "\n" + prompt
+                if self.system_prompt_text
+                else prompt
+            )
             payload = {
                 "model": self.model_name,
-                "prompt": prompt,
+                "prompt": full_prompt,
                 "n": n_samples,
                 "temperature": temperature,
                 "top_p": top_p,
@@ -370,6 +408,7 @@ class RemoteTeacherProvider(BaseTeacherProvider):
             cached = self.cache.get(
                 prompt, self.model_name, n_samples, temperature, top_p, max_new_tokens,
                 api_style=self.api_style,
+                system_prompt_id=self.system_prompt_id,
             )
             if cached is not None:
                 logger.debug("[RemoteTeacher] cache HIT (prompt len=%d)", len(prompt))
@@ -398,6 +437,7 @@ class RemoteTeacherProvider(BaseTeacherProvider):
                         prompt, self.model_name, n_samples,
                         temperature, top_p, max_new_tokens, completions,
                         api_style=self.api_style,
+                        system_prompt_id=self.system_prompt_id,
                     )
 
                 return completions
@@ -501,6 +541,8 @@ class MultiWorkerTeacherProvider(BaseTeacherProvider):
         max_retries: int = 3,
         batch_size: int = 64,
         cache_dir: Optional[str] = None,
+        system_prompt_text: str = "",
+        system_prompt_id: str = "",
     ):
         if not api_bases:
             raise ValueError("api_bases must contain at least one URL")
@@ -525,6 +567,8 @@ class MultiWorkerTeacherProvider(BaseTeacherProvider):
                     max_retries=max_retries,
                     batch_size=per_worker_concurrency,
                     cache=worker_cache,
+                    system_prompt_text=system_prompt_text,
+                    system_prompt_id=system_prompt_id,
                 )
             )
 
@@ -534,8 +578,9 @@ class MultiWorkerTeacherProvider(BaseTeacherProvider):
 
         logger.info(
             "[MultiWorkerTeacher] Init: %d workers, total_concurrency=%d, "
-            "per_worker_concurrency=%d\n  workers: %s",
+            "per_worker_concurrency=%d, sys_id=%r\n  workers: %s",
             self._num_workers, batch_size, per_worker_concurrency,
+            system_prompt_id or "(none)",
             ", ".join(api_bases),
         )
 
@@ -728,6 +773,8 @@ def build_teacher_provider(args) -> Optional[BaseTeacherProvider]:
     api_style = getattr(args, "teacher_api_style", "completions")
     timeout = int(getattr(args, "teacher_timeout", 120))
     max_retries = int(getattr(args, "teacher_max_retries", 3))
+    system_prompt_text = getattr(args, "teacher_system_prompt_text", "") or ""
+    system_prompt_id = getattr(args, "teacher_system_prompt_id", "") or ""
 
     if len(api_bases) == 1:
         # Single worker — use original provider (no extra abstraction layer)
@@ -743,9 +790,11 @@ def build_teacher_provider(args) -> Optional[BaseTeacherProvider]:
             max_retries=max_retries,
             batch_size=batch_size,
             cache=cache,
+            system_prompt_text=system_prompt_text,
+            system_prompt_id=system_prompt_id,
         )
     else:
-        # Multiple workers — round-robin across all endpoints
+        # Multiple workers — HRW-hash routing across all endpoints
         logger.info(
             "[TeacherProvider] Multi-worker mode: %d workers detected from "
             "--teacher_api_base (comma-separated)",
@@ -760,4 +809,6 @@ def build_teacher_provider(args) -> Optional[BaseTeacherProvider]:
             max_retries=max_retries,
             batch_size=batch_size,
             cache_dir=cache_dir,
+            system_prompt_text=system_prompt_text,
+            system_prompt_id=system_prompt_id,
         )

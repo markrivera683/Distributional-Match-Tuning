@@ -115,6 +115,7 @@ class Critic(nn.Module):
         feature_adapter_type: str = "residual_bottleneck",
         feature_adapter_rank: int = 64,
         feature_adapter_dropout: float = 0.0,
+        feature_adapter_unfreeze_layers: int = 0,
         debug: bool = False,
         **kwargs,
     ) -> None:
@@ -123,6 +124,7 @@ class Critic(nn.Module):
         self.critic_sequence_level = critic_sequence_level
         self.feature_adapter_enable = bool(feature_adapter_enable)
         self.feature_adapter_type = feature_adapter_type
+        self.feature_adapter_unfreeze_layers = int(feature_adapter_unfreeze_layers)
         # Debug printing in this module can easily spam logs (and break Ray Jobs log streaming).
         # Keep it off by default; enable only when explicitly debugging.
         self.debug = bool(debug)
@@ -275,11 +277,95 @@ class Critic(nn.Module):
             self.packing_samples = packing_samples
 
             if self.feature_adapter_enable:
+                # Freeze the entire backbone first.
                 for param in self.model.parameters():
                     param.requires_grad = False
+
+                # 2-full: selectively unfreeze the top-N transformer layers.
+                # feature_adapter_unfreeze_layers=0  → 2-lite (frozen backbone, adapter+head only)
+                # feature_adapter_unfreeze_layers>0  → 2-full (top-N layers + adapter + head trainable)
+                if self.feature_adapter_unfreeze_layers > 0:
+                    self._unfreeze_top_layers(self.model, self.feature_adapter_unfreeze_layers)
         else:
             self.model = pretrain_or_model
             self.feature_adapter = nn.Identity()
+            self.feature_adapter_unfreeze_layers = 0
+
+    @staticmethod
+    def _unfreeze_top_layers(model: nn.Module, n_layers: int) -> None:
+        """Unfreeze the top-N transformer layers of the backbone for 2-full adaptation.
+
+        Looks for a ``layers`` / ``blocks`` attribute in the common positions used
+        by HuggingFace decoder models (model.layers, model.model.layers, etc.).
+        Falls back to unfreezing the final LM head (norm + lm_head) when the
+        transformer stack cannot be located automatically.
+
+        Args:
+            model: The HuggingFace causal-LM module.
+            n_layers: Number of transformer layers to unfreeze from the top.
+        """
+        # Candidates for the transformer layer list, ordered by likelihood.
+        _layer_list = None
+        for attr_path in (
+            "model.layers",       # Llama / Qwen / Mistral
+            "model.model.layers",  # wrapped models
+            "transformer.h",       # GPT-2 / Falcon
+            "model.blocks",        # some custom models
+            "blocks",
+            "layers",
+        ):
+            obj = model
+            try:
+                for part in attr_path.split("."):
+                    obj = getattr(obj, part)
+                if isinstance(obj, (nn.ModuleList, list)) and len(obj) > 0:
+                    _layer_list = obj
+                    break
+            except AttributeError:
+                continue
+
+        if _layer_list is None:
+            logger.warning(
+                "[2-full] Could not locate transformer layer list in backbone. "
+                "Falling back to unfreezing final norm and lm_head only."
+            )
+            # Unfreeze final norm and lm_head as a fallback.
+            for attr in ("model.norm", "model.model.norm", "lm_head"):
+                obj = model
+                try:
+                    for part in attr.split("."):
+                        obj = getattr(obj, part)
+                    for param in obj.parameters():
+                        param.requires_grad = True
+                except AttributeError:
+                    pass
+            return
+
+        total = len(_layer_list)
+        unfreeze_from = max(0, total - n_layers)
+        unfrozen_count = 0
+        for i, layer in enumerate(_layer_list):
+            if i >= unfreeze_from:
+                for param in layer.parameters():
+                    param.requires_grad = True
+                    unfrozen_count += 1
+
+        # Also unfreeze the final layer norm (if present) for full feature quality.
+        for attr in ("model.norm", "model.model.norm", "transformer.ln_f"):
+            obj = model
+            try:
+                for part in attr.split("."):
+                    obj = getattr(obj, part)
+                for param in obj.parameters():
+                    param.requires_grad = True
+            except AttributeError:
+                pass
+
+        logger.info(
+            "[2-full] Unfroze top %d / %d transformer layers (indices %d..%d), "
+            "%d parameters set to trainable.",
+            min(n_layers, total), total, unfreeze_from, total - 1, unfrozen_count,
+        )
 
     def _apply_feature_adapter(self, hidden_states: torch.Tensor) -> torch.Tensor:
         if not self.feature_adapter_enable:

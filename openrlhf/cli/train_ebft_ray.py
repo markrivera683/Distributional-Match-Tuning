@@ -485,6 +485,13 @@ if __name__ == "__main__":
         help="Dropout applied inside the residual feature adapter",
     )
     parser.add_argument(
+        "--feature_adapter_unfreeze_layers",
+        type=int,
+        default=0,
+        help="Number of top backbone transformer layers to unfreeze for 2-full adaptation. "
+             "0 = frozen backbone (2-lite); >0 = unfreeze top-N layers (2-full).",
+    )
+    parser.add_argument(
         "--critic_direct_discrepancy_coef",
         type=float,
         default=0.0,
@@ -616,6 +623,13 @@ if __name__ == "__main__":
                         help="Directory for teacher completion cache (defaults to save_path/teacher_cache)")
     parser.add_argument("--teacher_dataset_path", type=str, default=None,
                         help="Path to pre-exported HF dataset for teacher_backend=dataset")
+    parser.add_argument("--teacher_system_prompt_text", type=str, default="",
+                        help="System prompt / prefix injected into every teacher request. "
+                             "Empty string = no prefix. Must match warmup and offline export.")
+    parser.add_argument("--teacher_system_prompt_id", type=str, default="",
+                        help="Short opaque version ID embedded in cache keys (e.g. 'v1-balanced'). "
+                             "Changing this invalidates existing SQLite cache entries. "
+                             "Must be identical across online warmup, training, and offline export.")
 
     # Reward composition
     parser.add_argument("--alignment_rew_coef", type=float, default=1.0, help="Weight for embedding alignment reward")

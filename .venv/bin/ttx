@@ -1,4 +1,4 @@
-#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python3
+#!/root/code/.venv/bin/python3
 import sys
 from fontTools.ttx import main
 if __name__ == '__main__':
