@@ -393,8 +393,9 @@ fi
 ray stop --force 2>/dev/null || true
 sleep 2
 cd "${REPO_ROOT}"
+source /root/code/.venv/bin/activate
 
-python -m openrlhf.cli.train_ebft_ray \
+/root/code/.venv/bin/python -m openrlhf.cli.train_ebft_ray \
   --bf16 --adam_offload --pretrain_mode --no_chat_template \
   --disable_ds_ckpt --colocate_actor_ref --colocate_critic_reward \
   --use_kl_loss --use_whitening --enable_ema \

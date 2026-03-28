@@ -1,4 +1,4 @@
-#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python3
+#!/root/code/.venv/bin/python3
 
 from deepspeed.env_report import cli_main
 

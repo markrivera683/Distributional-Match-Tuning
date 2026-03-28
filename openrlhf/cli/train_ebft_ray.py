@@ -485,6 +485,13 @@ if __name__ == "__main__":
         help="Dropout applied inside the residual feature adapter",
     )
     parser.add_argument(
+        "--feature_adapter_unfreeze_layers",
+        type=int,
+        default=0,
+        help="Number of top backbone transformer layers to unfreeze for 2-full adaptation. "
+             "0 = frozen backbone (2-lite); >0 = unfreeze top-N layers (2-full).",
+    )
+    parser.add_argument(
         "--critic_direct_discrepancy_coef",
         type=float,
         default=0.0,

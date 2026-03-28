@@ -1,4 +1,4 @@
-#!/root/code/data/Distributional-Match-Tuning/.venv/bin/python3
+#!/root/code/.venv/bin/python3
 
 from deepspeed.launcher.runner import main
 
