@@ -24,6 +24,8 @@ set -euo pipefail
 # ====================================================================
 # 1. GPU ALLOCATION
 # ====================================================================
+# With --colocate_all_models: actor+ref share ACTOR_GPUS, critic+reward share CRITIC_GPUS.
+# 8 GPUs total: actor=4 + critic=4 keeps each role on its own set of 4 cards.
 CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
 ACTOR_GPUS="${ACTOR_GPUS:-4}"
 CRITIC_GPUS="${CRITIC_GPUS:-4}"
@@ -178,8 +180,9 @@ cd "${REPO_ROOT}"
 source /root/code/.venv/bin/activate
 
 /root/code/.venv/bin/python -m openrlhf.cli.train_ebft_ray \
-  --bf16 --adam_offload --pretrain_mode --no_chat_template \
+  --bf16 --flash_attn --pretrain_mode --no_chat_template \
   --disable_ds_ckpt --colocate_actor_ref --colocate_critic_reward \
+  --gradient_checkpointing \
   --use_kl_loss --use_whitening --enable_ema \
   \
   --distribution_reward_type "${DISTRIBUTION_REWARD_TYPE}" \
