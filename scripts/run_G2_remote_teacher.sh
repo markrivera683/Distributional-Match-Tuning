@@ -395,8 +395,9 @@ sleep 2
 cd "${REPO_ROOT}"
 
 python -m openrlhf.cli.train_ebft_ray \
-  --bf16 --adam_offload --pretrain_mode --no_chat_template \
+  --bf16 --flash_attn --pretrain_mode --no_chat_template \
   --disable_ds_ckpt --colocate_actor_ref --colocate_critic_reward \
+  --gradient_checkpointing \
   --use_kl_loss --use_whitening --enable_ema \
   \
   --distribution_reward_type "${DISTRIBUTION_REWARD_TYPE}" \
