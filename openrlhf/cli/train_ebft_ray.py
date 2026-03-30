@@ -631,6 +631,19 @@ if __name__ == "__main__":
                              "Changing this invalidates existing SQLite cache entries. "
                              "Must be identical across online warmup, training, and offline export.")
 
+    # -----------------------------------------------------------------------
+    # Teacher prefetch
+    # -----------------------------------------------------------------------
+    parser.add_argument("--enable_teacher_prefetch", action="store_true", default=False,
+                        help="Enable cross-batch teacher prefetch: background threads pre-fetch "
+                             "teacher completions for future batches while the current step trains.")
+    parser.add_argument("--prefetch_depth", type=int, default=2,
+                        help="Number of future batches to prefetch ahead (default 2). "
+                             "Higher values improve hit rate but increase memory and server load.")
+    parser.add_argument("--prefetch_max_workers", type=int, default=8,
+                        help="Background thread pool size for teacher prefetch (default 8). "
+                             "Should be <= teacher_remote_batch_size to avoid overloading server.")
+
     # Reward composition
     parser.add_argument("--alignment_rew_coef", type=float, default=1.0, help="Weight for embedding alignment reward")
     parser.add_argument("--diversity_rew_coef", type=float, default=1.0, help="Weight for diversity reward")

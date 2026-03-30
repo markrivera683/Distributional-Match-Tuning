@@ -770,7 +770,11 @@ class EBFTTrainer(BaseEBFTTrainer):
         )
 
         from openrlhf.utils.teacher_provider import build_teacher_provider
+        from openrlhf.utils.teacher_prefetch import wrap_provider_with_prefetch
         self.teacher_provider = build_teacher_provider(self.args)
+        self.teacher_provider = wrap_provider_with_prefetch(
+            self.teacher_provider, self.args
+        )
 
         teacher_backend = getattr(self.args, "teacher_backend", "local")
 
@@ -965,6 +969,42 @@ class EBFTTrainer(BaseEBFTTrainer):
                 # make experience batch with the updated critic model
                 experiences = self.experience_maker.make_experience_batch(rollout_samples)
 
+                # ── Teacher prefetch: schedule next batch while GPU trains ──
+                # Fire-and-forget: background threads pre-fetch teacher completions
+                # for the prompts we just used (they may repeat across episodes)
+                # and for lookahead into raw_question_texts if available.
+                # Guarded by --enable_teacher_prefetch; zero cost when disabled.
+                _tp = self.teacher_provider
+                if (
+                    getattr(args, "enable_teacher_prefetch", False)
+                    and _tp is not None
+                    and hasattr(_tp, "schedule_prefetch")
+                ):
+                    from openrlhf.utils.teacher_prefetch import TeacherPrefetchScheduler
+                    # Collect unique question texts from raw_question_texts using
+                    # doc_ids from the current batch (zero-copy: uses indices only).
+                    _prefetch_prompts = []
+                    _raw_q = getattr(self, "raw_question_texts", None) or []
+                    if _raw_q:
+                        _seen_dids = set()
+                        for _exp in rollout_samples:
+                            if not hasattr(_exp, "doc_ids") or _exp.doc_ids is None:
+                                continue
+                            _dids = _exp.doc_ids.unique().tolist()
+                            for _did in _dids:
+                                _did = int(_did)
+                                if _did >= 0 and _did not in _seen_dids:
+                                    _seen_dids.add(_did)
+                                    if _did < len(_raw_q):
+                                        _prefetch_prompts.append(_raw_q[_did])
+                    if _prefetch_prompts:
+                        _n_submitted = _tp.schedule_prefetch(_prefetch_prompts)
+                        _pf_status = _tp.status() if hasattr(_tp, "status") else {}
+                        logger.debug(
+                            "[Prefetch] step=%d submitted=%d %s",
+                            steps, _n_submitted, _pf_status,
+                        )
+
 
                 # balance experiences across dp
                 if args.use_dynamic_batch:
@@ -990,6 +1030,26 @@ class EBFTTrainer(BaseEBFTTrainer):
                 if self.args.dynamic_filtering:
                     status["dynamic_filtering_pass_rate"] = pass_rate
                 logger.info(f"✨ Global step {steps}: {status}")
+
+                # Log prefetch stats alongside step status
+                if (
+                    getattr(args, "enable_teacher_prefetch", False)
+                    and self.teacher_provider is not None
+                    and hasattr(self.teacher_provider, "status")
+                ):
+                    _pf = self.teacher_provider.status()
+                    logger.info(
+                        "[Prefetch] step=%d hit_rate=%.1f%% "
+                        "mem=%d sqlite=%d fallback=%d queue=%d pending=%d",
+                        steps,
+                        _pf.get("prefetch_hit_rate", 0.0) * 100,
+                        _pf.get("prefetch_mem_hits", 0),
+                        _pf.get("prefetch_sqlite_hits", 0),
+                        _pf.get("prefetch_fallback", 0),
+                        _pf.get("prefetch_queue_size", 0),
+                        _pf.get("prefetch_pending", 0),
+                    )
+                    status.update(_pf)
  
                 # logs/checkpoints
                 client_states = {
