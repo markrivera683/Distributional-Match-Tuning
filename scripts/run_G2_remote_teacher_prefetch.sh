@@ -188,6 +188,24 @@ EVAL_STEPS="${EVAL_STEPS:--1}"
 EVAL_MAX_SAMPLES="${EVAL_MAX_SAMPLES:-50}"
 EVAL_GENERATE_MAX_LEN="${EVAL_GENERATE_MAX_LEN:-8}"
 
+# Post-train generation eval (writes jsonl predictions)
+EVAL_AFTER_TRAIN="${EVAL_AFTER_TRAIN:-true}"
+EVAL_NPROC_PER_NODE="${EVAL_NPROC_PER_NODE:-8}"
+POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
+POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-256}"
+POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-512}"
+POST_EVAL_TEMPERATURE="${POST_EVAL_TEMPERATURE:-0.6}"
+POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
+POST_EVAL_MICRO_BATCH_SIZE="${POST_EVAL_MICRO_BATCH_SIZE:-8}"
+POST_EVAL_MASTER_PORT="${POST_EVAL_MASTER_PORT:-29501}"
+POST_EVAL_OUTPUT_PATH="${POST_EVAL_OUTPUT_PATH:-${RUN_ROOT}/eval_results.jsonl}"
+POST_EVAL_LOG_PATH="${POST_EVAL_LOG_PATH:-${RUN_ROOT}/eval.log}"
+
+# Checkpoint saving
+SAVE_STEPS="${SAVE_STEPS:-100}"
+SAVE_EVEN_COUNT="${SAVE_EVEN_COUNT:-10}"
+SAVE_HF_CKPT="${SAVE_HF_CKPT:-true}"
+
 # ====================================================================
 # ENVIRONMENT
 # ====================================================================
@@ -210,6 +228,11 @@ export PYTHONUNBUFFERED=1
 # PRE-FLIGHT
 # ====================================================================
 mkdir -p "${RUN_ROOT}" "${SAVE_PATH}" "${TB_ROOT}"
+
+SAVE_HF_CKPT_FLAG=()
+if [[ "${SAVE_HF_CKPT}" == "true" ]]; then
+  SAVE_HF_CKPT_FLAG=(--save_hf_ckpt)
+fi
 
 # Resolve TEACHER_BACKEND and flags
 if [[ "${TEACHER_MODE}" == "offline" ]]; then
@@ -394,7 +417,8 @@ python -m openrlhf.cli.train_ebft_ray \
   --eval_steps "${EVAL_STEPS}" \
   --eval_max_samples "${EVAL_MAX_SAMPLES}" \
   --eval_generate_max_len "${EVAL_GENERATE_MAX_LEN}" \
-  --save_steps -1 --logging_steps 1 \
+  --save_steps "${SAVE_STEPS}" --save_even_count "${SAVE_EVEN_COUNT}" --logging_steps 1 \
+  "${SAVE_HF_CKPT_FLAG[@]}" \
   --use_tensorboard "${TB_ROOT}" \
   --save_path "${SAVE_PATH}" --ckpt_path "${SAVE_PATH}/ckpt" \
   --wandb_run_name "${RUN_TAG}" \
@@ -408,4 +432,28 @@ echo "  TensorBoard:   ${TB_ROOT}"
 echo "  Checkpoints:   ${SAVE_PATH}"
 echo "  Teacher cache: ${CACHE_DIR}"
 echo "  Prefetch:      depth=${PREFETCH_DEPTH} workers=${PREFETCH_MAX_WORKERS} enabled=${ENABLE_TEACHER_PREFETCH}"
+
+if [[ "${EVAL_AFTER_TRAIN}" == "true" ]]; then
+  echo "  [Post-Eval] Running generation eval on ${EVAL_DATA} ..."
+  CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES}" \
+  torchrun --nproc_per_node "${EVAL_NPROC_PER_NODE}" --master_port "${POST_EVAL_MASTER_PORT}" \
+    -m openrlhf.cli.batch_inference \
+    --eval_task generate \
+    --pretrain "${SAVE_PATH}" \
+    --dataset "${EVAL_DATA}" \
+    --input_key "${INPUT_KEY}" \
+    --output_path "${POST_EVAL_OUTPUT_PATH}" \
+    --prompt_max_len "${POST_EVAL_PROMPT_MAX_LEN}" \
+    --max_new_tokens "${POST_EVAL_MAX_NEW_TOKENS}" \
+    --temperature "${POST_EVAL_TEMPERATURE}" \
+    --top_p "${POST_EVAL_TOP_P}" \
+    --max_samples "${POST_EVAL_MAX_SAMPLES}" \
+    --micro_batch_size "${POST_EVAL_MICRO_BATCH_SIZE}" \
+    --bf16 \
+    --flash_attn \
+    2>&1 | tee "${POST_EVAL_LOG_PATH}"
+  echo "  [Post-Eval] Saved: ${POST_EVAL_OUTPUT_PATH}"
+  echo "  [Post-Eval] Log:   ${POST_EVAL_LOG_PATH}"
+fi
+
 echo "────────────────────────────────────────────────────────────────"
