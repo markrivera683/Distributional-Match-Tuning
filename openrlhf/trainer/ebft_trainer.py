@@ -560,7 +560,18 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
                     self.tokenizer,
                     max_samples=args.max_samples,
                 )
-        elif len(args.prompt_data.split("/")) > 2 and not args.prompt_data.endswith('.json'):
+        elif args.prompt_data.endswith('.jsonl') or args.prompt_data.endswith('.json') or args.prompt_data.endswith('.parquet'):
+            train_data = blending_datasets(args.prompt_data, None, strategy, dataset_split=self.prompt_split)
+            # NOTE: max_samples will be applied AFTER packing inside QADataset, not to individual examples
+            prompts_dataset = QADataset(
+                train_data,
+                self.tokenizer,
+                strategy,
+                max_samples=args.max_samples,
+                separate_prompt_label=False,
+                seq_len=args.prompt_max_len,
+            )
+        elif os.path.exists(args.prompt_data) and len(args.prompt_data.split("/")) > 2 and not args.prompt_data.endswith('.json'):
             if DatatroveFolderDataset is None:
                 raise RuntimeError(
                     "DatatroveFolderDataset is unavailable because datatrove is not installed, "

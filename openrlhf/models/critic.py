@@ -45,7 +45,7 @@ class Float32Linear(nn.Linear):
     A linear layer that converts input to float32 before applying the linear operation.
     """
     def forward(self, x):
-        with torch.cuda.amp.autocast(enabled=False):
+        with torch.amp.autocast("cuda", enabled=False):
             return F.linear(x.float(), self.weight.float(), 
                             None if self.bias is None else self.bias.float())
 
@@ -451,19 +451,37 @@ class Critic(nn.Module):
             # HF FlashAttention2 does not support EBFT's dense 4D additive masks.
             override_impl = "eager"
 
-        attention_impl_context = (
-            _TemporaryAttentionImplementation(self.model, override_impl)
-            if override_impl is not None
-            else nullcontext(self.model)
+        # With gradient checkpointing enabled, backward recomputation happens after this
+        # forward returns. A temporary override would be lost and HF may re-enter FA2.
+        # In that case, persist eager attention on the model config.
+        persistent_eager = (
+            override_impl == "eager"
+            and self.training
+            and torch.is_grad_enabled()
+            and bool(getattr(attention_target, "gradient_checkpointing", False))
         )
-
-        with attention_impl_context:
+        if persistent_eager:
+            attention_target.config._attn_implementation = "eager"
             output = self.model(
                 sequences,
                 attention_mask=attention_mask,
                 position_ids=pos_ids,
                 output_hidden_states=True,
             )
+        else:
+            attention_impl_context = (
+                _TemporaryAttentionImplementation(self.model, override_impl)
+                if override_impl is not None
+                else nullcontext(self.model)
+            )
+
+            with attention_impl_context:
+                output = self.model(
+                    sequences,
+                    attention_mask=attention_mask,
+                    position_ids=pos_ids,
+                    output_hidden_states=True,
+                )
 
         # Parse hidden_state_method to support flexible layer extraction
         if hidden_state_method == "last_only":

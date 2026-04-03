@@ -156,9 +156,70 @@ class CriticEBFTTrainer(ABC):
         generate_max_len = self.args.generate_max_len  # Total tokens to generate
         context_length = self.args.context_max_len   # Total context length used for generating each block
         stride = self.args.stride  # Stride between blocks
-        num_blocks = (prompt_length - generate_max_len - context_length )// stride + 1  # Number of prediction blocks
+        raw_num_blocks = (prompt_length - generate_max_len - context_length) // stride + 1
+        if raw_num_blocks <= 0:
+            raise RuntimeError(
+                f"Invalid strided setup: prompt_length={prompt_length}, generate_max_len={generate_max_len}, "
+                f"context_length={context_length}, stride={stride} -> num_blocks={raw_num_blocks}"
+            )
+        full_sequence_length = full_sequences.size(1)
+        available_generated = full_sequence_length - prompt_length
+        if available_generated < generate_max_len:
+            raise RuntimeError(
+                f"Invalid sequence layout: full_sequence_length={full_sequence_length}, prompt_length={prompt_length}, "
+                f"available_generated={available_generated}, generate_max_len={generate_max_len}"
+            )
+        max_blocks_by_full_sequence = available_generated // generate_max_len
+        num_blocks = min(raw_num_blocks, max_blocks_by_full_sequence)
+        if num_blocks <= 0:
+            raise RuntimeError(
+                f"Cannot infer a valid num_blocks from full sequence: raw_num_blocks={raw_num_blocks}, "
+                f"max_blocks_by_full_sequence={max_blocks_by_full_sequence}, full_sequence_length={full_sequence_length}, "
+                f"prompt_length={prompt_length}, generate_max_len={generate_max_len}"
+            )
+        if num_blocks != raw_num_blocks:
+            logger.warning(
+                "Adjusted num_blocks from %d to %d (full_sequence_length=%d, prompt_length=%d, generate_max_len=%d)",
+                raw_num_blocks,
+                num_blocks,
+                full_sequence_length,
+                prompt_length,
+                generate_max_len,
+            )
         doc_ids = experience.doc_ids  # B, S
         qa_masks = experience.qa_masks  # B, S
+        effective_full_sequence_length = prompt_length + generate_max_len * num_blocks
+        if full_sequence_length != effective_full_sequence_length:
+            logger.warning(
+                "Truncating full sequence length from %d to %d to match num_blocks=%d",
+                full_sequence_length,
+                effective_full_sequence_length,
+                num_blocks,
+            )
+            full_sequences = full_sequences[:, :effective_full_sequence_length]
+            doc_ids = doc_ids[:, :effective_full_sequence_length]
+            qa_masks = qa_masks[:, :effective_full_sequence_length]
+        n_samples_per_prompt = int(self.args.n_samples_per_prompt)
+        if n_samples_per_prompt <= 0:
+            raise ValueError(f"n_samples_per_prompt must be > 0, got {n_samples_per_prompt}")
+        valid_batch_size = (batch_size // n_samples_per_prompt) * n_samples_per_prompt
+        if valid_batch_size == 0:
+            raise RuntimeError(
+                f"Invalid critic micro-batch: batch_size={batch_size}, n_samples_per_prompt={n_samples_per_prompt}. "
+                "Set micro_train_batch_size >= n_samples_per_prompt and divisible by it."
+            )
+        if valid_batch_size != batch_size:
+            logger.warning(
+                "critic batch_size=%d not divisible by n_samples_per_prompt=%d; truncating to %d",
+                batch_size,
+                n_samples_per_prompt,
+                valid_batch_size,
+            )
+            prompts = prompts[:valid_batch_size]
+            full_sequences = full_sequences[:valid_batch_size]
+            doc_ids = doc_ids[:valid_batch_size]
+            qa_masks = qa_masks[:valid_batch_size]
+            batch_size = valid_batch_size
         attention_mask, pos_ids = build_strided_attention_mask_and_positions(
             full_sequence_length=full_sequences.size(1),  # Total sequence length
             prompt_length=prompts.size(1),  # Original prompt length
@@ -193,11 +254,11 @@ class CriticEBFTTrainer(ABC):
 
 
         if self.args.critic_sequence_level == "token":
-            gt_classifier_logits = gt_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, generate_max_len, gt_classifier_logits.shape[-1])
-            gen_classifier_logits = gen_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, generate_max_len, gen_classifier_logits.shape[-1])
+            gt_classifier_logits = gt_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, generate_max_len, gt_classifier_logits.shape[-1])
+            gen_classifier_logits = gen_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, generate_max_len, gen_classifier_logits.shape[-1])
         elif self.args.critic_sequence_level in ["concat", "mean_pooling", "last_token"]:
-            gt_classifier_logits = gt_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, gt_classifier_logits.shape[-1])
-            gen_classifier_logits = gen_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, gen_classifier_logits.shape[-1])
+            gt_classifier_logits = gt_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, gt_classifier_logits.shape[-1])
+            gen_classifier_logits = gen_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, gen_classifier_logits.shape[-1])
 
         # Compute prev metrics in eval mode for deterministic results
         self.critic.eval()
@@ -229,7 +290,7 @@ class CriticEBFTTrainer(ABC):
         if direct_discrepancy_coef > 0.0 and getattr(self.args, "distribution_reward_type", "pointwise") == "cf_l1oo":
             num_feat = gt_hidden_states.shape[-2]
             gt_mask_flat = qa_masks[:, context_length:prompt_length].view(batch_size, prompt_length - context_length, 1, 1).repeat(1, 1, num_feat, 1)
-            gen_mask_flat = qa_masks[:, prompt_length:].view(batch_size, generate_max_len * num_blocks, 1, 1).repeat(1, 1, num_feat, 1)
+            gen_mask_flat = qa_masks[:, prompt_length:prompt_length + generate_max_len * num_blocks].view(batch_size, generate_max_len * num_blocks, 1, 1).repeat(1, 1, num_feat, 1)
             gt_mask = gt_mask_flat.unfold(-3, generate_max_len, stride).permute(0, 1, 4, 2, 3)
             gen_mask = gen_mask_flat.reshape(batch_size, generate_max_len, num_blocks, num_feat, 1).transpose(-3, -4)
 
@@ -337,11 +398,11 @@ class CriticEBFTTrainer(ABC):
             )
 
             if self.args.critic_sequence_level == "token":
-                gt_classifier_logits = gt_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, generate_max_len, gt_classifier_logits.shape[-1])
-                gen_classifier_logits = gen_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, generate_max_len, gen_classifier_logits.shape[-1])
+                gt_classifier_logits = gt_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, generate_max_len, gt_classifier_logits.shape[-1])
+                gen_classifier_logits = gen_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, generate_max_len, gen_classifier_logits.shape[-1])
             elif self.args.critic_sequence_level in ["concat", "mean_pooling", "last_token"]:
-                gt_classifier_logits = gt_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, gt_classifier_logits.shape[-1])
-                gen_classifier_logits = gen_classifier_logits.reshape(batch_size // self.args.n_samples_per_prompt, self.args.n_samples_per_prompt, num_blocks, gen_classifier_logits.shape[-1])
+                gt_classifier_logits = gt_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, gt_classifier_logits.shape[-1])
+                gen_classifier_logits = gen_classifier_logits.reshape(batch_size // n_samples_per_prompt, n_samples_per_prompt, num_blocks, gen_classifier_logits.shape[-1])
             post_metrics = self.critic_classifier_accuracy_fn(gt_classifier_logits.detach(), gen_classifier_logits.detach())
             post_classifier_accuracy = post_metrics[0]
             post_classifier_precision = post_metrics[1]
