@@ -32,7 +32,7 @@ REWARD_GPUS="${CRITIC_GPUS}"
 # 1) TEACHER SERVING CONFIG (local vLLM)
 # ====================================================================
 LAUNCH_TEACHER="${LAUNCH_TEACHER:-true}"
-TEACHER_MODEL_PATH="${TEACHER_MODEL_PATH:-/root/code/teacher_model/models/gemma-4-31b}"
+TEACHER_MODEL_PATH="${TEACHER_MODEL_PATH:-/mnt/data/teacher_model/models/gemma-4-31b}"
 TEACHER_MODEL_NAME="${TEACHER_MODEL_NAME:-gemma-4-31b}"
 TEACHER_PORT="${TEACHER_PORT:-8004}"
 TEACHER_API_KEY="${TEACHER_API_KEY:-teacher-local}"
@@ -93,6 +93,23 @@ ENABLE_TEACHER_PREFETCH="${ENABLE_TEACHER_PREFETCH:-true}"
 PREFETCH_DEPTH="${PREFETCH_DEPTH:-2}"
 PREFETCH_MAX_WORKERS="${PREFETCH_MAX_WORKERS:-4}"
 
+# ── Eval / Checkpoint ──
+EVAL_STEPS="${EVAL_STEPS:-50}"
+EVAL_MAX_SAMPLES="${EVAL_MAX_SAMPLES:-50}"
+EVAL_GENERATE_MAX_LEN="${EVAL_GENERATE_MAX_LEN:-${GENERATE_MAX_LEN}}"
+SAVE_STEPS="${SAVE_STEPS:-50}"
+SAVE_EVEN_COUNT="${SAVE_EVEN_COUNT:-10}"
+
+EVAL_AFTER_TRAIN="${EVAL_AFTER_TRAIN:-true}"
+POST_EVAL_NPROC="${POST_EVAL_NPROC:-1}"
+POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
+POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-256}"
+POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-512}"
+POST_EVAL_TEMPERATURE="${POST_EVAL_TEMPERATURE:-0.6}"
+POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
+POST_EVAL_MICRO_BATCH_SIZE="${POST_EVAL_MICRO_BATCH_SIZE:-8}"
+POST_EVAL_MASTER_PORT="${POST_EVAL_MASTER_PORT:-29501}"
+
 # ====================================================================
 # 4) G3-SPECIFIC: FEATURE ADAPTER + EMA  ← KEY DIFFERENCE vs G2
 # ====================================================================
@@ -134,6 +151,8 @@ SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
 TEACHER_LOG="${RUN_DIR}/teacher.log"
 mkdir -p "$RUN_DIR" "$SAVE_PATH" "$TB_DIR" "$TEACHER_CACHE_DIR"
+POST_EVAL_OUTPUT_PATH="${POST_EVAL_OUTPUT_PATH:-${RUN_DIR}/eval_results.jsonl}"
+POST_EVAL_LOG_PATH="${POST_EVAL_LOG_PATH:-${RUN_DIR}/eval.log}"
 
 # ====================================================================
 # 6) SANITY CHECK
@@ -369,12 +388,69 @@ CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
   --advantage_estimator rloo --init_kl_coef 0.0 --kl_estimator k2 \
   --temperature 0.6 --top_p 1.0 \
   --zero_stage 2 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
-  --seed 43 --eval_steps -1 --logging_steps 10 \
-  --save_steps 100 --save_even_count 10 --save_hf_ckpt \
+  --seed 43 \
+  --eval_steps "${EVAL_STEPS}" \
+  --eval_max_samples "${EVAL_MAX_SAMPLES}" \
+  --eval_generate_max_len "${EVAL_GENERATE_MAX_LEN}" \
+  --logging_steps 10 \
+  --save_steps "${SAVE_STEPS}" --save_even_count "${SAVE_EVEN_COUNT}" --save_hf_ckpt \
   --use_tensorboard "${TB_DIR}" \
   --save_path "${SAVE_PATH}" --ckpt_path "${SAVE_PATH}/ckpt" \
   --wandb_run_name "${RUN_NAME}" \
   2>&1 | tee "${RUN_DIR}/train.log"
 
+# ====================================================================
+# POST-TRAINING EVAL
+# ====================================================================
+ray stop --force 2>/dev/null || true
+
+echo ""
+echo "──────────────────────────────────────────────────"
+echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')  TRAINING FINISHED"
+echo "  Logs:        ${RUN_DIR}/train.log"
+echo "  TensorBoard: ${TB_DIR}"
+echo "  Checkpoints: ${SAVE_PATH}"
+
+if [[ "${EVAL_AFTER_TRAIN}" == "true" ]]; then
+  if [[ -n "${TEACHER_PID}" ]] && kill -0 "${TEACHER_PID}" 2>/dev/null; then
+    echo "[post-eval] stopping teacher to free GPU memory..."
+    kill "${TEACHER_PID}" || true
+    wait "${TEACHER_PID}" 2>/dev/null || true
+    TEACHER_PID=""
+  fi
+
+  echo ""
+  echo "[post-eval] Running generation eval on ${EVAL_DATA} ..."
+  CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
+  "${STUDENT_PYTHON_BIN}" -m torch.distributed.run \
+    --nproc_per_node "${POST_EVAL_NPROC}" --master_port "${POST_EVAL_MASTER_PORT}" \
+    -m openrlhf.cli.batch_inference \
+    --eval_task generate \
+    --pretrain "${SAVE_PATH}" \
+    --dataset "${EVAL_DATA}" \
+    --input_key question \
+    --output_path "${POST_EVAL_OUTPUT_PATH}" \
+    --prompt_max_len "${POST_EVAL_PROMPT_MAX_LEN}" \
+    --max_new_tokens "${POST_EVAL_MAX_NEW_TOKENS}" \
+    --temperature "${POST_EVAL_TEMPERATURE}" \
+    --top_p "${POST_EVAL_TOP_P}" \
+    --max_samples "${POST_EVAL_MAX_SAMPLES}" \
+    --micro_batch_size "${POST_EVAL_MICRO_BATCH_SIZE}" \
+    --bf16 \
+    2>&1 | tee "${POST_EVAL_LOG_PATH}"
+  echo "[post-eval] Saved: ${POST_EVAL_OUTPUT_PATH}"
+  echo "[post-eval] Log:   ${POST_EVAL_LOG_PATH}"
+
+  echo ""
+  echo "[analysis] Running eval analysis ..."
+  "${STUDENT_PYTHON_BIN}" "${REPO_ROOT}/scripts/analyze_eval_results.py" \
+    --eval_results "${POST_EVAL_OUTPUT_PATH}" \
+    --eval_dataset "${EVAL_DATA}" \
+    --input_key question --label_key answer \
+    --report_path "${RUN_DIR}/eval_analysis.json" \
+    2>&1 | tee "${RUN_DIR}/eval_analysis.log"
+fi
+
+echo "──────────────────────────────────────────────────"
 echo "G3 online teacher run completed at $(date)" > "${RUN_DIR}/status.txt"
 echo "[done] logs: ${RUN_DIR}"
