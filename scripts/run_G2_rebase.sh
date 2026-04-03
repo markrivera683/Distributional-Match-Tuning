@@ -1,0 +1,279 @@
+#!/usr/bin/env bash
+# AOPS: single-node 8 GPU, online teacher + student training
+# Manual resource split:
+#   - teacher GPU ids: TEACHER_CUDA_VISIBLE_DEVICES
+#   - student GPU ids: STUDENT_CUDA_VISIBLE_DEVICES
+#   - student actor/critic GPU counts: ACTOR_GPUS / CRITIC_GPUS
+#   - ref/reward follow actor/critic automatically (colocate)
+set -euo pipefail
+
+count_csv_items() {
+  local csv="${1// /}"
+  if [[ -z "$csv" ]]; then
+    echo 0
+    return
+  fi
+  awk -F',' '{print NF}' <<<"$csv"
+}
+
+# --------------------------------------------------------------------
+# 0) MANUAL GPU ASSIGNMENT (edit these first)
+# --------------------------------------------------------------------
+TEACHER_CUDA_VISIBLE_DEVICES="${TEACHER_CUDA_VISIBLE_DEVICES:-0,1,2,3}"
+STUDENT_CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES:-4,5,6,7}"
+
+ACTOR_GPUS="${ACTOR_GPUS:-2}"
+CRITIC_GPUS="${CRITIC_GPUS:-2}"
+# Keep ref/reward colocated and follow actor/critic world-size.
+REF_GPUS="${ACTOR_GPUS}"
+REWARD_GPUS="${CRITIC_GPUS}"
+
+# --------------------------------------------------------------------
+# 1) TEACHER SERVING CONFIG (local vLLM)
+# --------------------------------------------------------------------
+# Defaults match teacher_model/code/models/qwen_122b.env — the only
+# teacher whose weights are fully downloaded on this machine.
+# Override via env to use a different teacher (e.g. a smaller 7B/14B).
+LAUNCH_TEACHER="${LAUNCH_TEACHER:-true}"
+TEACHER_MODEL_PATH="${TEACHER_MODEL_PATH:-/root/code/teacher_model/models/gemma-4-31b}"
+TEACHER_MODEL_NAME="${TEACHER_MODEL_NAME:-gemma-4-31b}"
+TEACHER_PORT="${TEACHER_PORT:-8004}"
+TEACHER_API_KEY="${TEACHER_API_KEY:-teacher-local}"
+TEACHER_TP_SIZE="${TEACHER_TP_SIZE:-4}"
+TEACHER_DTYPE="${TEACHER_DTYPE:-auto}"
+TEACHER_MAX_NUM_SEQS="${TEACHER_MAX_NUM_SEQS:-64}"
+TEACHER_MAX_BATCHED_TOKENS="${TEACHER_MAX_BATCHED_TOKENS:-32768}"
+TEACHER_GPU_MEMORY_UTIL="${TEACHER_GPU_MEMORY_UTIL:-0.90}"
+TEACHER_WAIT_SECONDS="${TEACHER_WAIT_SECONDS:-300}"
+TEACHER_API_BASE="${TEACHER_API_BASE:-http://127.0.0.1:${TEACHER_PORT}/v1}"
+
+# --------------------------------------------------------------------
+# 2) TRAINING DATA / MODEL PATHS
+# --------------------------------------------------------------------
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+MODEL_PATH="${MODEL_PATH:-/mnt/data/teacher_model/models/Qwen3.5-0.8B}"
+TRAIN_DATA="${TRAIN_DATA:-/mnt/data/data/aops/aops_qa_hf_dict}"
+EVAL_DATA="${EVAL_DATA:-/mnt/data/data/aops/test_qa.jsonl}"
+
+# --------------------------------------------------------------------
+# 3) TRAINING KNOBS
+# --------------------------------------------------------------------
+N_SAMPLES_PER_PROMPT="${N_SAMPLES_PER_PROMPT:-4}"
+ROLLOUT_BATCH_SIZE="${ROLLOUT_BATCH_SIZE:-32}"
+TRAIN_BATCH_SIZE="${TRAIN_BATCH_SIZE:-$((N_SAMPLES_PER_PROMPT * ROLLOUT_BATCH_SIZE))}"
+MICRO_TRAIN_BATCH_SIZE="${MICRO_TRAIN_BATCH_SIZE:-4}"
+MICRO_ROLLOUT_BATCH_SIZE="${MICRO_ROLLOUT_BATCH_SIZE:-4}"
+MICRO_REWARD_BATCH_SIZE="${MICRO_REWARD_BATCH_SIZE:-4}"
+
+PROMPT_MAX_LEN="${PROMPT_MAX_LEN:-256}"
+CONTEXT_MAX_LEN="${CONTEXT_MAX_LEN:-8}"
+GENERATE_MAX_LEN="${GENERATE_MAX_LEN:-8}"
+STRIDE="${STRIDE:-8}"
+
+MAX_SAMPLES="${MAX_SAMPLES:-46000}"
+NUM_EPISODES="${NUM_EPISODES:-1}"
+MAX_EPOCHS="${MAX_EPOCHS:-1}"
+
+CF_TEACHER_LAMBDA="${CF_TEACHER_LAMBDA:-0.6}"
+CF_TEACHER_N_SAMPLES="${CF_TEACHER_N_SAMPLES:-4}"
+TEACHER_TEMPERATURE="${TEACHER_TEMPERATURE:-0.7}"
+TEACHER_TOP_P="${TEACHER_TOP_P:-0.95}"
+TEACHER_MAX_NEW_TOKENS="${TEACHER_MAX_NEW_TOKENS:-512}"
+TEACHER_TIMEOUT="${TEACHER_TIMEOUT:-180}"
+TEACHER_MAX_RETRIES="${TEACHER_MAX_RETRIES:-3}"
+TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-8}"
+TEACHER_SYSTEM_PROMPT_TEXT="${TEACHER_SYSTEM_PROMPT_TEXT:-You are a precise assistant. produce a correct and well-reasoned answer. Step by step when necessary. Keep reasoning sufficient. Final answer is clearly stated.}"
+TEACHER_SYSTEM_PROMPT_ID="${TEACHER_SYSTEM_PROMPT_ID:-v1-balanced}"
+TEACHER_CACHE_DIR="${TEACHER_CACHE_DIR:-/root/outputs/teacher_cache_shared}"
+
+ENABLE_TEACHER_PREFETCH="${ENABLE_TEACHER_PREFETCH:-true}"
+PREFETCH_DEPTH="${PREFETCH_DEPTH:-2}"
+PREFETCH_MAX_WORKERS="${PREFETCH_MAX_WORKERS:-4}"
+
+# --------------------------------------------------------------------
+# 4) ENV / RUN DIR
+# --------------------------------------------------------------------
+export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
+export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
+export HF_DATASETS_OFFLINE="${HF_DATASETS_OFFLINE:-1}"
+export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
+export TOKENIZERS_PARALLELISM=false
+export RAY_DISABLE_DOCKER_CPU_WARNING=1
+export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
+export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
+export PYTHONUNBUFFERED=1
+
+RUN_NAME="${RUN_NAME:-aops_g2_online_teacher_8gpu_$(date +%m%d_%H%M)}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
+RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
+SAVE_PATH="${RUN_DIR}/model"
+TB_DIR="${RUN_DIR}/tensorboard"
+TEACHER_LOG="${RUN_DIR}/teacher.log"
+mkdir -p "$RUN_DIR" "$SAVE_PATH" "$TB_DIR" "$TEACHER_CACHE_DIR"
+
+# --------------------------------------------------------------------
+# 5) SANITY CHECK
+# --------------------------------------------------------------------
+teacher_gpu_count="$(count_csv_items "$TEACHER_CUDA_VISIBLE_DEVICES")"
+student_gpu_count="$(count_csv_items "$STUDENT_CUDA_VISIBLE_DEVICES")"
+
+if (( TEACHER_TP_SIZE > teacher_gpu_count )); then
+  echo "[ERROR] TEACHER_TP_SIZE=${TEACHER_TP_SIZE} > teacher GPU count=${teacher_gpu_count}"
+  exit 1
+fi
+
+if (( ACTOR_GPUS + CRITIC_GPUS > student_gpu_count )); then
+  echo "[ERROR] ACTOR_GPUS(${ACTOR_GPUS}) + CRITIC_GPUS(${CRITIC_GPUS}) > student GPU count(${student_gpu_count})"
+  exit 1
+fi
+
+if (( TRAIN_BATCH_SIZE != N_SAMPLES_PER_PROMPT * ROLLOUT_BATCH_SIZE )); then
+  echo "[ERROR] TRAIN_BATCH_SIZE must equal N_SAMPLES_PER_PROMPT * ROLLOUT_BATCH_SIZE"
+  echo "        got ${TRAIN_BATCH_SIZE} vs ${N_SAMPLES_PER_PROMPT} * ${ROLLOUT_BATCH_SIZE}"
+  exit 1
+fi
+
+if (( TRAIN_BATCH_SIZE % (MICRO_TRAIN_BATCH_SIZE * ACTOR_GPUS) != 0 )); then
+  echo "[ERROR] train_batch_size % (micro_train_batch_size * actor_gpus) != 0"
+  echo "        ${TRAIN_BATCH_SIZE} % (${MICRO_TRAIN_BATCH_SIZE} * ${ACTOR_GPUS}) != 0"
+  exit 1
+fi
+
+if (( MICRO_ROLLOUT_BATCH_SIZE % N_SAMPLES_PER_PROMPT != 0 )); then
+  echo "[ERROR] MICRO_ROLLOUT_BATCH_SIZE must be divisible by N_SAMPLES_PER_PROMPT"
+  exit 1
+fi
+
+echo "========== AOPS online-teacher run =========="
+echo "RUN_DIR:                    ${RUN_DIR}"
+echo "Teacher GPUs:               ${TEACHER_CUDA_VISIBLE_DEVICES} (count=${teacher_gpu_count}, tp=${TEACHER_TP_SIZE})"
+echo "Student GPUs:               ${STUDENT_CUDA_VISIBLE_DEVICES} (count=${student_gpu_count})"
+echo "Actor/Critic GPUs:          ${ACTOR_GPUS}/${CRITIC_GPUS}"
+echo "Ref/Reward GPUs (colocate): ${REF_GPUS}/${REWARD_GPUS}"
+echo "Teacher API:                ${TEACHER_API_BASE}"
+echo "Teacher model:              ${TEACHER_MODEL_NAME}"
+echo "============================================="
+
+wait_for_teacher() {
+  local waited=0
+  until curl -sf "http://127.0.0.1:${TEACHER_PORT}/health" >/dev/null; do
+    sleep 2
+    waited=$((waited + 2))
+    if (( waited >= TEACHER_WAIT_SECONDS )); then
+      echo "[ERROR] Teacher health check timeout (${TEACHER_WAIT_SECONDS}s)."
+      echo "        Check log: ${TEACHER_LOG}"
+      return 1
+    fi
+  done
+  return 0
+}
+
+TEACHER_PID=""
+cleanup() {
+  if [[ -n "${TEACHER_PID}" ]] && kill -0 "${TEACHER_PID}" 2>/dev/null; then
+    echo "[cleanup] stopping teacher pid=${TEACHER_PID}"
+    kill "${TEACHER_PID}" || true
+  fi
+}
+trap cleanup EXIT
+
+if [[ "${LAUNCH_TEACHER}" == "true" ]]; then
+  echo "[teacher] starting local vLLM..."
+  CUDA_VISIBLE_DEVICES="${TEACHER_CUDA_VISIBLE_DEVICES}" \
+  vllm serve "${TEACHER_MODEL_PATH}" \
+    --served-model-name "${TEACHER_MODEL_NAME}" \
+    --host 0.0.0.0 \
+    --port "${TEACHER_PORT}" \
+    --tensor-parallel-size "${TEACHER_TP_SIZE}" \
+    --dtype "${TEACHER_DTYPE}" \
+    --api-key "${TEACHER_API_KEY}" \
+    --generation-config vllm \
+    --max-num-seqs "${TEACHER_MAX_NUM_SEQS}" \
+    --max-num-batched-tokens "${TEACHER_MAX_BATCHED_TOKENS}" \
+    --enable-chunked-prefill \
+    --gpu-memory-utilization "${TEACHER_GPU_MEMORY_UTIL}" \
+    > "${TEACHER_LOG}" 2>&1 &
+  TEACHER_PID=$!
+  echo "[teacher] pid=${TEACHER_PID}, log=${TEACHER_LOG}"
+fi
+
+wait_for_teacher
+echo "[teacher] health check passed."
+
+PREFETCH_FLAGS=()
+if [[ "${ENABLE_TEACHER_PREFETCH}" == "true" ]]; then
+  PREFETCH_FLAGS=(
+    --enable_teacher_prefetch
+    --prefetch_depth "${PREFETCH_DEPTH}"
+    --prefetch_max_workers "${PREFETCH_MAX_WORKERS}"
+  )
+fi
+
+ray stop --force 2>/dev/null || true
+sleep 2
+cd "${REPO_ROOT}"
+
+CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
+python -m openrlhf.cli.train_ebft_ray \
+  --bf16 --flash_attn --pretrain_mode --no_chat_template \
+  --disable_ds_ckpt --colocate_actor_ref --colocate_critic_reward \
+  --gradient_checkpointing --use_kl_loss --use_whitening \
+  --distribution_reward_type cf_l1oo \
+  --feature_map_type identity --rff_num_features 128 --rff_sigma 1.0 --rff_seed 43 \
+  --cf_num_freqs 128 --cf_sigma 1.0 --cf_seed 43 --cf_alpha 0.5 --cf_beta 0.5 --cf_reward_scale 1.0 \
+  --cf_target_mode teacher --cf_teacher_lambda "${CF_TEACHER_LAMBDA}" --cf_teacher_n_samples "${CF_TEACHER_N_SAMPLES}" \
+  \
+  --teacher_backend remote \
+  --teacher_api_base "${TEACHER_API_BASE}" \
+  --teacher_api_key "${TEACHER_API_KEY}" \
+  --teacher_api_style completions \
+  --teacher_model_name "${TEACHER_MODEL_NAME}" \
+  --teacher_timeout "${TEACHER_TIMEOUT}" \
+  --teacher_max_retries "${TEACHER_MAX_RETRIES}" \
+  --teacher_remote_batch_size "${TEACHER_REMOTE_BATCH_SIZE}" \
+  --teacher_temperature "${TEACHER_TEMPERATURE}" \
+  --teacher_top_p "${TEACHER_TOP_P}" \
+  --teacher_max_new_tokens "${TEACHER_MAX_NEW_TOKENS}" \
+  --teacher_system_prompt_text "${TEACHER_SYSTEM_PROMPT_TEXT}" \
+  --teacher_system_prompt_id "${TEACHER_SYSTEM_PROMPT_ID}" \
+  --teacher_cache_enable --teacher_cache_dir "${TEACHER_CACHE_DIR}" \
+  "${PREFETCH_FLAGS[@]}" \
+  \
+  --embed_method last_token --critic_sequence_level last_token \
+  --critic_learning_rate 0.0 --critic_lr_head 0.0 \
+  --pretrain "${MODEL_PATH}" --critic_pretrain "${MODEL_PATH}" \
+  --prompt_data "${TRAIN_DATA}" --eval_dataset "${EVAL_DATA}" \
+  --input_key question --label_key answer --output_key answer \
+  --prompt_split train --eval_split test \
+  --prompt_max_len "${PROMPT_MAX_LEN}" \
+  --context_max_len "${CONTEXT_MAX_LEN}" \
+  --generate_max_len "${GENERATE_MAX_LEN}" \
+  --stride "${STRIDE}" \
+  --n_samples_per_prompt "${N_SAMPLES_PER_PROMPT}" \
+  --rollout_batch_size "${ROLLOUT_BATCH_SIZE}" \
+  --train_batch_size "${TRAIN_BATCH_SIZE}" \
+  --micro_train_batch_size "${MICRO_TRAIN_BATCH_SIZE}" \
+  --micro_rollout_batch_size "${MICRO_ROLLOUT_BATCH_SIZE}" \
+  --micro_reward_batch_size "${MICRO_REWARD_BATCH_SIZE}" \
+  --max_samples "${MAX_SAMPLES}" \
+  --num_episodes "${NUM_EPISODES}" \
+  --max_epochs "${MAX_EPOCHS}" \
+  \
+  --actor_num_nodes 1 --actor_num_gpus_per_node "${ACTOR_GPUS}" \
+  --critic_num_nodes 1 --critic_num_gpus_per_node "${CRITIC_GPUS}" \
+  --ref_num_nodes 1 --ref_num_gpus_per_node "${REF_GPUS}" \
+  --reward_num_nodes 1 --reward_num_gpus_per_node "${REWARD_GPUS}" \
+  \
+  --advantage_estimator rloo --init_kl_coef 0.0 --kl_estimator k2 \
+  --temperature 0.6 --top_p 1.0 --actor_learning_rate 1e-6 \
+  --zero_stage 2 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
+  --seed 43 --eval_steps -1 --logging_steps 10 \
+  --save_steps 100 --save_even_count 10 --save_hf_ckpt \
+  --use_tensorboard "${TB_DIR}" \
+  --save_path "${SAVE_PATH}" --ckpt_path "${SAVE_PATH}/ckpt" \
+  --wandb_run_name "${RUN_NAME}" \
+  2>&1 | tee "${RUN_DIR}/train.log"
+
+echo "G2 online teacher run completed at $(date)" > "${RUN_DIR}/status.txt"
+echo "[done] logs: ${RUN_DIR}"
