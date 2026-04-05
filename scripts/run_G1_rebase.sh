@@ -15,6 +15,7 @@
 #
 # Usage:  bash scripts/run_G1_rebase.sh
 # Override any variable via env, e.g.:
+#   TARGET_STEPS=500 bash scripts/run_G1_rebase.sh
 #   MAX_SAMPLES=10000 bash scripts/run_G1_rebase.sh
 set -euo pipefail
 
@@ -63,17 +64,22 @@ CONTEXT_MAX_LEN="${CONTEXT_MAX_LEN:-8}"
 GENERATE_MAX_LEN="${GENERATE_MAX_LEN:-8}"
 STRIDE="${STRIDE:-8}"
 
-MAX_SAMPLES="${MAX_SAMPLES:-46000}"
 NUM_EPISODES="${NUM_EPISODES:-1}"
 MAX_EPOCHS="${MAX_EPOCHS:-1}"
+TARGET_STEPS="${TARGET_STEPS:-500}"
+# Trainer computes:
+#   max_steps = len(prompts_dataset) * n_samples_per_prompt / train_batch_size * num_episodes * max_epochs
+# So we back-solve max_samples to hit TARGET_STEPS by default.
+DEFAULT_MAX_SAMPLES="$((TARGET_STEPS * TRAIN_BATCH_SIZE / N_SAMPLES_PER_PROMPT / NUM_EPISODES / MAX_EPOCHS))"
+MAX_SAMPLES="${MAX_SAMPLES:-${DEFAULT_MAX_SAMPLES}}"
 
 # ====================================================================
 # 3) EVAL / CHECKPOINT
 # ====================================================================
-EVAL_STEPS="${EVAL_STEPS:-50}"
+EVAL_STEPS="${EVAL_STEPS:-25}"
 EVAL_MAX_SAMPLES="${EVAL_MAX_SAMPLES:-50}"
 EVAL_GENERATE_MAX_LEN="${EVAL_GENERATE_MAX_LEN:-${GENERATE_MAX_LEN}}"
-SAVE_STEPS="${SAVE_STEPS:-50}"
+SAVE_STEPS="${SAVE_STEPS:-25}"
 SAVE_EVEN_COUNT="${SAVE_EVEN_COUNT:-10}"
 
 EVAL_AFTER_TRAIN="${EVAL_AFTER_TRAIN:-true}"
@@ -176,6 +182,8 @@ echo "Eval data:            ${EVAL_DATA}"
 echo "Student python:       ${STUDENT_PYTHON_BIN}"
 echo "distribution_reward:  pointwise"
 echo "cf_target_mode:       single"
+echo "target_steps:         ${TARGET_STEPS}"
+echo "max_samples:          ${MAX_SAMPLES}"
 echo "eval_steps:           ${EVAL_STEPS}"
 echo "save_steps:           ${SAVE_STEPS}"
 echo "======================================================="
