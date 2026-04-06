@@ -381,6 +381,35 @@ class RemoteTeacherProvider(BaseTeacherProvider):
             }
         return url, payload
 
+    def _build_batch_request(self, prompts: List[str], n_samples: int,
+                             temperature: float, top_p: float,
+                             max_new_tokens: int):
+        """Return (url, payload) for batched requests.
+
+        For vLLM/OpenAI ``completions`` API, ``prompt`` can be a List[str].
+        We intentionally send one batched request (uniform sampling params)
+        to improve scheduler packing and GPU utilization.
+        """
+        if self.api_style != "completions":
+            raise ValueError(
+                f"_build_batch_request only supports completions, got {self.api_style!r}"
+            )
+
+        url = f"{self.api_base}/completions"
+        full_prompts = [
+            (self.system_prompt_text + "\n" + p) if self.system_prompt_text else p
+            for p in prompts
+        ]
+        payload = {
+            "model": self.model_name,
+            "prompt": full_prompts,
+            "n": n_samples,
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_tokens": max_new_tokens,
+        }
+        return url, payload
+
     def _parse_completions(self, data: dict) -> List[str]:
         """Extract completion texts from the API response."""
         choices = data.get("choices", [])
@@ -391,6 +420,47 @@ class RemoteTeacherProvider(BaseTeacherProvider):
             ]
         else:
             return [c.get("text", "") for c in choices]
+
+    def _parse_batched_completions(
+        self,
+        data: dict,
+        num_prompts: int,
+        n_samples: int,
+    ) -> List[List[str]]:
+        """Parse batched completions response into [prompt][sample]."""
+        choices = data.get("choices", [])
+        needed = num_prompts * n_samples
+        if len(choices) < needed:
+            raise ValueError(
+                f"Server returned {len(choices)} choices, expected at least {needed}"
+            )
+
+        grouped: List[List[Optional[str]]] = [[None] * n_samples for _ in range(num_prompts)]
+
+        # vLLM/OpenAI completion choices are typically flattened with index:
+        #   index = sample_idx + prompt_idx * n_samples
+        for c in choices:
+            idx = c.get("index")
+            if isinstance(idx, int) and 0 <= idx < needed:
+                prompt_idx = idx // n_samples
+                sample_idx = idx % n_samples
+                grouped[prompt_idx][sample_idx] = c.get("text", "")
+
+        # Fallback to sequential order if any slot remains empty.
+        if any(x is None for row in grouped for x in row):
+            flat_texts = [c.get("text", "") for c in choices[:needed]]
+            for flat_idx, text in enumerate(flat_texts):
+                prompt_idx = flat_idx // n_samples
+                sample_idx = flat_idx % n_samples
+                if grouped[prompt_idx][sample_idx] is None:
+                    grouped[prompt_idx][sample_idx] = text
+
+        if any(x is None for row in grouped for x in row):
+            raise ValueError(
+                "Unable to reconstruct batched completion outputs for all prompts/samples"
+            )
+
+        return [[x or "" for x in row] for row in grouped]
 
     def _request_single(
         self,
@@ -457,6 +527,59 @@ class RemoteTeacherProvider(BaseTeacherProvider):
             f"(prompt len={len(prompt)}). Last error: {last_exc}"
         ) from last_exc
 
+    def _request_batch(
+        self,
+        prompts: List[str],
+        n_samples: int,
+        temperature: float,
+        top_p: float,
+        max_new_tokens: int,
+    ) -> List[List[str]]:
+        """Issue a single batched completion request for multiple prompts."""
+        if not prompts:
+            return []
+
+        canonical_prompts = [TeacherCache._canonicalize(p) for p in prompts]
+        url, payload = self._build_batch_request(
+            canonical_prompts, n_samples, temperature, top_p, max_new_tokens,
+        )
+
+        last_exc: Optional[Exception] = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                resp = self._session.post(url, json=payload, timeout=self.timeout)
+                resp.raise_for_status()
+                data = resp.json()
+
+                completions = self._parse_batched_completions(
+                    data, num_prompts=len(canonical_prompts), n_samples=n_samples,
+                )
+
+                if self.cache:
+                    for prompt, comp in zip(canonical_prompts, completions):
+                        self.cache.put(
+                            prompt, self.model_name, n_samples,
+                            temperature, top_p, max_new_tokens, comp,
+                            api_style=self.api_style,
+                            system_prompt_id=self.system_prompt_id,
+                        )
+                return completions
+
+            except Exception as exc:
+                last_exc = exc
+                if attempt < self.max_retries:
+                    wait = min(2 ** attempt, 30)
+                    logger.warning(
+                        "[RemoteTeacher] batched attempt %d/%d failed (batch=%d): %s  (retry in %ds)",
+                        attempt, self.max_retries, len(canonical_prompts), exc, wait,
+                    )
+                    time.sleep(wait)
+
+        raise RuntimeError(
+            f"[RemoteTeacher] All {self.max_retries} batched attempts failed "
+            f"(batch={len(canonical_prompts)}). Last error: {last_exc}"
+        ) from last_exc
+
     # ---- batch interface -------------------------------------------------
 
     def sample_targets(
@@ -473,35 +596,66 @@ class RemoteTeacherProvider(BaseTeacherProvider):
             len(prompts), n_samples, temperature, top_p, max_new_tokens,
         )
         t0 = time.time()
+        if not prompts:
+            return []
+
         results: List[Optional[List[str]]] = [None] * len(prompts)
         cache_hits = 0
+        miss_indices: List[int] = []
+        miss_prompts: List[str] = []
 
-        with ThreadPoolExecutor(max_workers=self.batch_size) as pool:
-            futures = {}
-            for idx, prompt in enumerate(prompts):
-                fut = pool.submit(
-                    self._request_single,
-                    prompt, n_samples, temperature, top_p, max_new_tokens,
-                )
-                futures[fut] = idx
-
-            for fut in as_completed(futures):
-                idx = futures[fut]
-                results[idx] = fut.result()
-
+        canonical_prompts = [TeacherCache._canonicalize(p) for p in prompts]
         if self.cache:
-            for prompt in prompts:
-                if self.cache.get(
-                    prompt, self.model_name, n_samples, temperature, top_p, max_new_tokens
-                ) is not None:
+            for idx, prompt in enumerate(canonical_prompts):
+                cached = self.cache.get(
+                    prompt, self.model_name, n_samples, temperature, top_p, max_new_tokens,
+                    api_style=self.api_style,
+                    system_prompt_id=self.system_prompt_id,
+                )
+                if cached is not None:
+                    results[idx] = cached
                     cache_hits += 1
+                else:
+                    miss_indices.append(idx)
+                    miss_prompts.append(prompt)
+        else:
+            miss_indices = list(range(len(canonical_prompts)))
+            miss_prompts = canonical_prompts
+
+        if miss_prompts:
+            if self.api_style == "completions":
+                # Send true batched requests: prompt = List[str]
+                for s in range(0, len(miss_prompts), self.batch_size):
+                    chunk_prompts = miss_prompts[s : s + self.batch_size]
+                    chunk_out = self._request_batch(
+                        chunk_prompts, n_samples, temperature, top_p, max_new_tokens,
+                    )
+                    for i, out in enumerate(chunk_out):
+                        results[miss_indices[s + i]] = out
+            else:
+                # Keep chat-completions path conservative (single prompt per call).
+                with ThreadPoolExecutor(max_workers=self.batch_size) as pool:
+                    futures = {}
+                    for local_idx, prompt in enumerate(miss_prompts):
+                        fut = pool.submit(
+                            self._request_single,
+                            prompt, n_samples, temperature, top_p, max_new_tokens,
+                        )
+                        futures[fut] = local_idx
+
+                    for fut in as_completed(futures):
+                        local_idx = futures[fut]
+                        results[miss_indices[local_idx]] = fut.result()
+
+        if any(r is None for r in results):
+            raise RuntimeError("RemoteTeacherProvider produced incomplete batch results")
 
         elapsed = time.time() - t0
         logger.info(
-            "[RemoteTeacher] Done: %d prompts in %.1fs, cache_hits=%d",
-            len(prompts), elapsed, cache_hits,
+            "[RemoteTeacher] Done: %d prompts in %.1fs, cache_hits=%d, misses=%d",
+            len(prompts), elapsed, cache_hits, len(miss_prompts),
         )
-        return results
+        return results  # type: ignore[return-value]
 
 
 # ---------------------------------------------------------------------------
@@ -628,6 +782,7 @@ class MultiWorkerTeacherProvider(BaseTeacherProvider):
         temperature: float,
         top_p: float,
         max_new_tokens: int,
+        initial_exclude: Optional[set[int]] = None,
     ) -> List[str]:
         """Send request to HRW-selected worker; fall back to next candidate on failure.
 
@@ -640,7 +795,7 @@ class MultiWorkerTeacherProvider(BaseTeacherProvider):
         At most ``num_workers`` attempts are made in total.
         """
         prompt = TeacherCache._canonicalize(prompt)
-        excluded: set = set()
+        excluded: set = set(initial_exclude or set())
         last_exc: Optional[Exception] = None
 
         for _ in range(self._num_workers):
@@ -687,27 +842,75 @@ class MultiWorkerTeacherProvider(BaseTeacherProvider):
             len(prompts), n_samples, self._num_workers, self._total_batch_size,
         )
         t0 = time.time()
-        results: List[Optional[List[str]]] = [None] * len(prompts)
+        if not prompts:
+            return []
 
-        with ThreadPoolExecutor(max_workers=self._total_batch_size) as pool:
+        canonical_prompts = [TeacherCache._canonicalize(p) for p in prompts]
+        results: List[Optional[List[str]]] = [None] * len(canonical_prompts)
+
+        # HRW route each prompt to its primary worker, then submit one
+        # batched call per worker (prompt=list[str]).
+        grouped_indices: dict[int, List[int]] = {}
+        grouped_prompts: dict[int, List[str]] = {}
+        for idx, prompt in enumerate(canonical_prompts):
+            worker_idx, _ = self._pick_worker(prompt)
+            grouped_indices.setdefault(worker_idx, []).append(idx)
+            grouped_prompts.setdefault(worker_idx, []).append(prompt)
+
+        failed_groups: List[tuple[int, List[int]]] = []
+        with ThreadPoolExecutor(max_workers=max(1, len(grouped_prompts))) as pool:
             futures = {}
-            for idx, prompt in enumerate(prompts):
+            for worker_idx, worker_prompts in grouped_prompts.items():
                 fut = pool.submit(
-                    self._request_with_fallback,
-                    prompt, n_samples, temperature, top_p, max_new_tokens,
+                    self._workers[worker_idx].sample_targets,
+                    worker_prompts, n_samples, temperature, top_p, max_new_tokens,
                 )
-                futures[fut] = idx
+                futures[fut] = worker_idx
 
             for fut in as_completed(futures):
-                idx = futures[fut]
-                results[idx] = fut.result()
+                worker_idx = futures[fut]
+                target_indices = grouped_indices[worker_idx]
+                try:
+                    worker_out = fut.result()
+                    if len(worker_out) != len(target_indices):
+                        raise ValueError(
+                            f"worker {worker_idx} returned {len(worker_out)} results "
+                            f"for {len(target_indices)} prompts"
+                        )
+                    for local_i, global_i in enumerate(target_indices):
+                        results[global_i] = worker_out[local_i]
+                except Exception as exc:
+                    logger.warning(
+                        "[MultiWorkerTeacher] worker %d (%s) batched request failed "
+                        "for %d prompts: %s — falling back per prompt",
+                        worker_idx,
+                        self._workers[worker_idx].api_base,
+                        len(target_indices),
+                        exc,
+                    )
+                    failed_groups.append((worker_idx, target_indices))
+
+        # Per-prompt fallback keeps fault-tolerance behavior.
+        for failed_worker_idx, target_indices in failed_groups:
+            for global_i in target_indices:
+                results[global_i] = self._request_with_fallback(
+                    canonical_prompts[global_i],
+                    n_samples,
+                    temperature,
+                    top_p,
+                    max_new_tokens,
+                    initial_exclude={failed_worker_idx},
+                )
+
+        if any(r is None for r in results):
+            raise RuntimeError("MultiWorkerTeacherProvider produced incomplete batch results")
 
         elapsed = time.time() - t0
         logger.info(
             "[MultiWorkerTeacher] Done: %d prompts in %.1fs (%.1f prompts/s)",
             len(prompts), elapsed, len(prompts) / max(elapsed, 1e-6),
         )
-        return results
+        return results  # type: ignore[return-value]
         """Check reachability of all workers.  Returns {url: ok/error}."""
         import requests as _req
         status = {}

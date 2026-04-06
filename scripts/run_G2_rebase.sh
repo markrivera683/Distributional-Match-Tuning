@@ -39,17 +39,28 @@ REWARD_GPUS="${CRITIC_GPUS}"
 # teacher whose weights are fully downloaded on this machine.
 # Override via env to use a different teacher (e.g. a smaller 7B/14B).
 LAUNCH_TEACHER="${LAUNCH_TEACHER:-true}"
-TEACHER_MODEL_PATH="${TEACHER_MODEL_PATH:-/mnt/data/models/gemma-4-31b}"
-TEACHER_MODEL_NAME="${TEACHER_MODEL_NAME:-gemma-4-31b}"
-TEACHER_PORT="${TEACHER_PORT:-8004}"
+TEACHER_MODEL_PATH="${TEACHER_MODEL_PATH:-/mnt/data/models/qwen3.5-27b}"
+TEACHER_MODEL_NAME="${TEACHER_MODEL_NAME:-qwen3.5-27b}"
+TEACHER_BASE_PORT="${TEACHER_BASE_PORT:-8004}"
 TEACHER_API_KEY="${TEACHER_API_KEY:-teacher-local}"
-TEACHER_TP_SIZE="${TEACHER_TP_SIZE:-4}"
-TEACHER_DTYPE="${TEACHER_DTYPE:-auto}"
-TEACHER_MAX_NUM_SEQS="${TEACHER_MAX_NUM_SEQS:-64}"
-TEACHER_MAX_BATCHED_TOKENS="${TEACHER_MAX_BATCHED_TOKENS:-32768}"
-TEACHER_GPU_MEMORY_UTIL="${TEACHER_GPU_MEMORY_UTIL:-0.90}"
-TEACHER_WAIT_SECONDS="${TEACHER_WAIT_SECONDS:-300}"
-TEACHER_API_BASE="${TEACHER_API_BASE:-http://127.0.0.1:${TEACHER_PORT}/v1}"
+TEACHER_TP_SIZE="${TEACHER_TP_SIZE:-1}"
+TEACHER_DTYPE="${TEACHER_DTYPE:-bfloat16}"
+TEACHER_MAX_MODEL_LEN="${TEACHER_MAX_MODEL_LEN:-1024}"
+TEACHER_MAX_NUM_SEQS="${TEACHER_MAX_NUM_SEQS:-16}"
+TEACHER_MAX_BATCHED_TOKENS="${TEACHER_MAX_BATCHED_TOKENS:-4096}"
+TEACHER_GPU_MEMORY_UTIL="${TEACHER_GPU_MEMORY_UTIL:-0.93}"
+TEACHER_WAIT_SECONDS="${TEACHER_WAIT_SECONDS:-600}"
+
+# Multi-worker: one vLLM worker per TP_SIZE GPUs, each on its own port.
+IFS=',' read -r -a _TEACHER_GPU_IDS <<< "${TEACHER_CUDA_VISIBLE_DEVICES}"
+TEACHER_WORKER_COUNT=$(( ${#_TEACHER_GPU_IDS[@]} / TEACHER_TP_SIZE ))
+_DEFAULT_API_URLS=""
+for (( _i=0; _i<TEACHER_WORKER_COUNT; _i++ )); do
+  _port=$(( TEACHER_BASE_PORT + _i ))
+  [[ -n "${_DEFAULT_API_URLS}" ]] && _DEFAULT_API_URLS="${_DEFAULT_API_URLS},"
+  _DEFAULT_API_URLS="${_DEFAULT_API_URLS}http://127.0.0.1:${_port}/v1"
+done
+TEACHER_API_BASE="${TEACHER_API_BASE:-${_DEFAULT_API_URLS}}"
 
 # --------------------------------------------------------------------
 # 2) TRAINING DATA / MODEL PATHS
@@ -94,7 +105,7 @@ TEACHER_TOP_P="${TEACHER_TOP_P:-0.95}"
 TEACHER_MAX_NEW_TOKENS="${TEACHER_MAX_NEW_TOKENS:-512}"
 TEACHER_TIMEOUT="${TEACHER_TIMEOUT:-180}"
 TEACHER_MAX_RETRIES="${TEACHER_MAX_RETRIES:-3}"
-TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-8}"
+TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-32}"
 TEACHER_SYSTEM_PROMPT_TEXT="${TEACHER_SYSTEM_PROMPT_TEXT:-You are a precise assistant. produce a correct and well-reasoned answer. Step by step when necessary. Keep reasoning sufficient. Final answer is clearly stated.}"
 TEACHER_SYSTEM_PROMPT_ID="${TEACHER_SYSTEM_PROMPT_ID:-v1-balanced}"
 TEACHER_CACHE_DIR="${TEACHER_CACHE_DIR:-/root/outputs/teacher_cache_shared}"
@@ -139,8 +150,8 @@ OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
 SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
-TEACHER_LOG="${RUN_DIR}/teacher.log"
-mkdir -p "$RUN_DIR" "$SAVE_PATH" "$TB_DIR" "$TEACHER_CACHE_DIR"
+TEACHER_LOG_DIR="${RUN_DIR}/teacher_logs"
+mkdir -p "$RUN_DIR" "$SAVE_PATH" "$TB_DIR" "$TEACHER_CACHE_DIR" "$TEACHER_LOG_DIR"
 POST_EVAL_OUTPUT_PATH="${POST_EVAL_OUTPUT_PATH:-${RUN_DIR}/eval_results.jsonl}"
 POST_EVAL_LOG_PATH="${POST_EVAL_LOG_PATH:-${RUN_DIR}/eval.log}"
 
@@ -164,8 +175,12 @@ if [[ ! -x "${STUDENT_PYTHON_BIN}" ]]; then
   exit 1
 fi
 
-if (( TEACHER_TP_SIZE > teacher_gpu_count )); then
-  echo "[ERROR] TEACHER_TP_SIZE=${TEACHER_TP_SIZE} > teacher GPU count=${teacher_gpu_count}"
+if (( teacher_gpu_count < TEACHER_TP_SIZE )); then
+  echo "[ERROR] teacher GPU count (${teacher_gpu_count}) < TEACHER_TP_SIZE (${TEACHER_TP_SIZE})"
+  exit 1
+fi
+if (( teacher_gpu_count % TEACHER_TP_SIZE != 0 )); then
+  echo "[ERROR] teacher GPU count (${teacher_gpu_count}) not divisible by TEACHER_TP_SIZE (${TEACHER_TP_SIZE})"
   exit 1
 fi
 
@@ -216,7 +231,12 @@ fi
 
 echo "========== AOPS online-teacher run =========="
 echo "RUN_DIR:                    ${RUN_DIR}"
-echo "Teacher GPUs:               ${TEACHER_CUDA_VISIBLE_DEVICES} (count=${teacher_gpu_count}, tp=${TEACHER_TP_SIZE})"
+echo "Teacher GPUs:               ${TEACHER_CUDA_VISIBLE_DEVICES} (count=${teacher_gpu_count})"
+echo "Teacher workers:            ${TEACHER_WORKER_COUNT} x TP${TEACHER_TP_SIZE}"
+echo "Teacher max_model_len:      ${TEACHER_MAX_MODEL_LEN}"
+echo "Teacher max_num_seqs:       ${TEACHER_MAX_NUM_SEQS}"
+echo "Teacher max_batched_tokens: ${TEACHER_MAX_BATCHED_TOKENS}"
+echo "Teacher remote_batch_size:  ${TEACHER_REMOTE_BATCH_SIZE}"
 echo "Student GPUs:               ${STUDENT_CUDA_VISIBLE_DEVICES} (count=${student_gpu_count})"
 echo "Actor/Critic GPUs:          ${ACTOR_GPUS}/${CRITIC_GPUS}"
 echo "Ref/Reward GPUs (colocate): ${REF_GPUS}/${REWARD_GPUS}"
@@ -230,56 +250,81 @@ echo "Teacher vLLM bin:           ${TEACHER_VLLM_BIN}"
 echo "Student python:             ${STUDENT_PYTHON_BIN}"
 echo "============================================="
 
-wait_for_teacher() {
-  local waited=0
-  until curl -sf "http://127.0.0.1:${TEACHER_PORT}/health" >/dev/null; do
-    if [[ -n "${TEACHER_PID}" ]] && ! kill -0 "${TEACHER_PID}" 2>/dev/null; then
-      echo "[ERROR] Teacher process exited before health check passed."
-      echo "        Check log: ${TEACHER_LOG}"
+declare -a TEACHER_PIDS=()
+declare -a TEACHER_PORTS=()
+declare -a TEACHER_WORKER_LOGS=()
+
+cleanup() {
+  for _pid in "${TEACHER_PIDS[@]:-}"; do
+    if [[ -n "${_pid}" ]] && kill -0 "${_pid}" 2>/dev/null; then
+      echo "[cleanup] stopping teacher pid=${_pid}"
+      kill "${_pid}" || true
+    fi
+  done
+  for _pid in "${TEACHER_PIDS[@]:-}"; do
+    [[ -n "${_pid}" ]] && wait "${_pid}" 2>/dev/null || true
+  done
+}
+trap cleanup EXIT INT TERM
+
+wait_for_teacher_worker() {
+  local idx="$1" pid="$2" port="$3" log="$4" waited=0
+  until curl -sf "http://127.0.0.1:${port}/health" >/dev/null; do
+    if ! kill -0 "${pid}" 2>/dev/null; then
+      echo "[ERROR] Teacher worker ${idx} exited before health check. Log: ${log}"
       return 1
     fi
-    sleep 2
-    waited=$((waited + 2))
+    sleep 3
+    waited=$((waited + 3))
     if (( waited >= TEACHER_WAIT_SECONDS )); then
-      echo "[ERROR] Teacher health check timeout (${TEACHER_WAIT_SECONDS}s)."
-      echo "        Check log: ${TEACHER_LOG}"
+      echo "[ERROR] Teacher worker ${idx} health timeout (${TEACHER_WAIT_SECONDS}s). Log: ${log}"
       return 1
     fi
   done
   return 0
 }
 
-TEACHER_PID=""
-cleanup() {
-  if [[ -n "${TEACHER_PID}" ]] && kill -0 "${TEACHER_PID}" 2>/dev/null; then
-    echo "[cleanup] stopping teacher pid=${TEACHER_PID}"
-    kill "${TEACHER_PID}" || true
-  fi
-}
-trap cleanup EXIT
-
 if [[ "${LAUNCH_TEACHER}" == "true" ]]; then
-  echo "[teacher] starting local vLLM..."
-  CUDA_VISIBLE_DEVICES="${TEACHER_CUDA_VISIBLE_DEVICES}" \
-  "${TEACHER_VLLM_BIN}" serve "${TEACHER_MODEL_PATH}" \
-    --served-model-name "${TEACHER_MODEL_NAME}" \
-    --host 0.0.0.0 \
-    --port "${TEACHER_PORT}" \
-    --tensor-parallel-size "${TEACHER_TP_SIZE}" \
-    --dtype "${TEACHER_DTYPE}" \
-    --api-key "${TEACHER_API_KEY}" \
-    --generation-config vllm \
-    --max-num-seqs "${TEACHER_MAX_NUM_SEQS}" \
-    --max-num-batched-tokens "${TEACHER_MAX_BATCHED_TOKENS}" \
-    --enable-chunked-prefill \
-    --gpu-memory-utilization "${TEACHER_GPU_MEMORY_UTIL}" \
-    > "${TEACHER_LOG}" 2>&1 &
-  TEACHER_PID=$!
-  echo "[teacher] pid=${TEACHER_PID}, log=${TEACHER_LOG}"
-fi
+  echo "[teacher] launching ${TEACHER_WORKER_COUNT} workers (TP=${TEACHER_TP_SIZE}) ..."
+  for (( _w=0; _w<TEACHER_WORKER_COUNT; _w++ )); do
+    _port=$(( TEACHER_BASE_PORT + _w ))
+    _gpu_start=$(( _w * TEACHER_TP_SIZE ))
+    _worker_gpus=""
+    for (( _g=_gpu_start; _g<_gpu_start+TEACHER_TP_SIZE; _g++ )); do
+      [[ -n "${_worker_gpus}" ]] && _worker_gpus="${_worker_gpus},"
+      _worker_gpus="${_worker_gpus}${_TEACHER_GPU_IDS[$_g]}"
+    done
+    _log="${TEACHER_LOG_DIR}/worker_${_w}.log"
 
-wait_for_teacher
-echo "[teacher] health check passed."
+    CUDA_VISIBLE_DEVICES="${_worker_gpus}" \
+    "${TEACHER_VLLM_BIN}" serve "${TEACHER_MODEL_PATH}" \
+      --served-model-name "${TEACHER_MODEL_NAME}" \
+      --host 0.0.0.0 \
+      --port "${_port}" \
+      --tensor-parallel-size "${TEACHER_TP_SIZE}" \
+      --dtype "${TEACHER_DTYPE}" \
+      --api-key "${TEACHER_API_KEY}" \
+      --generation-config vllm \
+      --max-model-len "${TEACHER_MAX_MODEL_LEN}" \
+      --max-num-seqs "${TEACHER_MAX_NUM_SEQS}" \
+      --max-num-batched-tokens "${TEACHER_MAX_BATCHED_TOKENS}" \
+      --gpu-memory-utilization "${TEACHER_GPU_MEMORY_UTIL}" \
+      --limit-mm-per-prompt '{"image":0,"video":0,"audio":0}' \
+      --enable-chunked-prefill \
+      > "${_log}" 2>&1 &
+
+    TEACHER_PIDS+=("$!")
+    TEACHER_PORTS+=("${_port}")
+    TEACHER_WORKER_LOGS+=("${_log}")
+    echo "[teacher] worker ${_w}: GPU ${_worker_gpus}, port ${_port}, log ${_log}"
+  done
+
+  for (( _w=0; _w<TEACHER_WORKER_COUNT; _w++ )); do
+    wait_for_teacher_worker "${_w}" "${TEACHER_PIDS[$_w]}" "${TEACHER_PORTS[$_w]}" "${TEACHER_WORKER_LOGS[$_w]}"
+    echo "[teacher] worker ${_w} healthy."
+  done
+  echo "[teacher] all ${TEACHER_WORKER_COUNT} workers ready."
+fi
 
 PREFETCH_FLAGS=()
 if [[ "${ENABLE_TEACHER_PREFETCH}" == "true" ]]; then
@@ -372,11 +417,15 @@ echo "  TensorBoard: ${TB_DIR}"
 echo "  Checkpoints: ${SAVE_PATH}"
 
 if [[ "${EVAL_AFTER_TRAIN}" == "true" ]]; then
-  if [[ -n "${TEACHER_PID}" ]] && kill -0 "${TEACHER_PID}" 2>/dev/null; then
-    echo "[post-eval] stopping teacher to free GPU memory..."
-    kill "${TEACHER_PID}" || true
-    wait "${TEACHER_PID}" 2>/dev/null || true
-    TEACHER_PID=""
+  if (( ${#TEACHER_PIDS[@]} > 0 )); then
+    echo "[post-eval] stopping ${#TEACHER_PIDS[@]} teacher workers to free GPU memory..."
+    for _pid in "${TEACHER_PIDS[@]}"; do
+      kill "${_pid}" 2>/dev/null || true
+    done
+    for _pid in "${TEACHER_PIDS[@]}"; do
+      wait "${_pid}" 2>/dev/null || true
+    done
+    TEACHER_PIDS=()
   fi
 
   echo ""
