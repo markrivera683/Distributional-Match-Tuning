@@ -45,9 +45,9 @@ TEACHER_BASE_PORT="${TEACHER_BASE_PORT:-8004}"
 TEACHER_API_KEY="${TEACHER_API_KEY:-teacher-local}"
 TEACHER_TP_SIZE="${TEACHER_TP_SIZE:-1}"
 TEACHER_DTYPE="${TEACHER_DTYPE:-bfloat16}"
-TEACHER_MAX_MODEL_LEN="${TEACHER_MAX_MODEL_LEN:-1024}"
+TEACHER_MAX_MODEL_LEN="${TEACHER_MAX_MODEL_LEN:-2048}"
 TEACHER_MAX_NUM_SEQS="${TEACHER_MAX_NUM_SEQS:-16}"
-TEACHER_MAX_BATCHED_TOKENS="${TEACHER_MAX_BATCHED_TOKENS:-4096}"
+TEACHER_MAX_BATCHED_TOKENS="${TEACHER_MAX_BATCHED_TOKENS:-8192}"
 TEACHER_GPU_MEMORY_UTIL="${TEACHER_GPU_MEMORY_UTIL:-0.93}"
 TEACHER_WAIT_SECONDS="${TEACHER_WAIT_SECONDS:-600}"
 
@@ -105,7 +105,7 @@ TEACHER_TOP_P="${TEACHER_TOP_P:-0.95}"
 TEACHER_MAX_NEW_TOKENS="${TEACHER_MAX_NEW_TOKENS:-512}"
 TEACHER_TIMEOUT="${TEACHER_TIMEOUT:-180}"
 TEACHER_MAX_RETRIES="${TEACHER_MAX_RETRIES:-3}"
-TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-32}"
+TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-48}"
 TEACHER_SYSTEM_PROMPT_TEXT="${TEACHER_SYSTEM_PROMPT_TEXT:-You are a precise assistant. produce a correct and well-reasoned answer. Step by step when necessary. Keep reasoning sufficient. Final answer is clearly stated.}"
 TEACHER_SYSTEM_PROMPT_ID="${TEACHER_SYSTEM_PROMPT_ID:-v1-balanced}"
 TEACHER_CACHE_DIR="${TEACHER_CACHE_DIR:-/root/outputs/teacher_cache_shared}"
@@ -408,6 +408,10 @@ CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
 # POST-TRAINING EVAL
 # ====================================================================
 ray stop --force 2>/dev/null || true
+# Refresh the student environment before post-training eval so newly
+# installed/updated packages are picked up by a fresh Python process.
+source "${STUDENT_VENV}/bin/activate"
+STUDENT_PYTHON_BIN="${STUDENT_VENV}/bin/python"
 
 echo ""
 echo "──────────────────────────────────────────────────"
