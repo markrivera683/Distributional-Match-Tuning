@@ -21,22 +21,68 @@ def _unwrap_attention_target(model):
     return target
 
 
+def _config_attn_implementation(config) -> Optional[str]:
+    """HF may expose attention implementation as _attn_implementation or attn_implementation."""
+    return getattr(config, "_attn_implementation", None) or getattr(
+        config, "attn_implementation", None
+    )
+
+
+def _set_config_attn_implementation(config, value: str) -> None:
+    """Best-effort set for both private/public attention implementation fields."""
+    if hasattr(config, "_attn_implementation"):
+        config._attn_implementation = value
+    if hasattr(config, "attn_implementation"):
+        config.attn_implementation = value
+
+
+def _is_gradient_checkpointing_enabled(model) -> bool:
+    """Detect gradient-checkpointing across common wrapper stacks (PEFT/DS/HF)."""
+    queue = [_unwrap_attention_target(model)]
+    seen = set()
+    while queue:
+        obj = queue.pop(0)
+        if obj is None:
+            continue
+        oid = id(obj)
+        if oid in seen:
+            continue
+        seen.add(oid)
+
+        if bool(getattr(obj, "is_gradient_checkpointing", False)):
+            return True
+        if bool(getattr(obj, "gradient_checkpointing", False)):
+            return True
+
+        queue.append(getattr(obj, "model", None))
+        queue.append(getattr(obj, "base_model", None))
+        queue.append(getattr(obj, "module", None))
+    return False
+
+
 class _TemporaryAttentionImplementation:
     def __init__(self, model, override_impl: Optional[str]):
         self.model = _unwrap_attention_target(model)
         self.override_impl = override_impl
-        self.original_impl = None
+        self.original_private_impl = None
+        self.original_public_impl = None
 
     def __enter__(self):
         if self.override_impl is None:
             return self.model
-        self.original_impl = getattr(self.model.config, "_attn_implementation", None)
-        self.model.config._attn_implementation = self.override_impl
+        self.original_private_impl = getattr(self.model.config, "_attn_implementation", None)
+        self.original_public_impl = getattr(self.model.config, "attn_implementation", None)
+        _set_config_attn_implementation(self.model.config, self.override_impl)
         return self.model
 
     def __exit__(self, exc_type, exc, tb):
         if self.override_impl is not None:
-            self.model.config._attn_implementation = self.original_impl
+            _set_config_attn_implementation(
+                self.model.config,
+                self.original_private_impl
+                if self.original_private_impl is not None
+                else self.original_public_impl,
+            )
         return False
 
 
@@ -291,6 +337,8 @@ class Critic(nn.Module):
             self.feature_adapter = nn.Identity()
             self.feature_adapter_unfreeze_layers = 0
 
+        self._critic_forward_train_debug_logged = False
+
     @staticmethod
     def _unfreeze_top_layers(model: nn.Module, n_layers: int) -> None:
         """Unfreeze the top-N transformer layers of the backbone for 2-full adaptation.
@@ -446,7 +494,7 @@ class Critic(nn.Module):
         if (
             attention_mask is not None
             and attention_mask.dim() == 4
-            and getattr(attention_target.config, "_attn_implementation", None) == "flash_attention_2"
+            and _config_attn_implementation(attention_target.config) == "flash_attention_2"
         ):
             # HF FlashAttention2 does not support EBFT's dense 4D additive masks.
             override_impl = "eager"
@@ -454,14 +502,49 @@ class Critic(nn.Module):
         # With gradient checkpointing enabled, backward recomputation happens after this
         # forward returns. A temporary override would be lost and HF may re-enter FA2.
         # In that case, persist eager attention on the model config.
+        gradient_checkpointing_enabled = _is_gradient_checkpointing_enabled(attention_target)
         persistent_eager = (
             override_impl == "eager"
             and self.training
             and torch.is_grad_enabled()
-            and bool(getattr(attention_target, "gradient_checkpointing", False))
+            and gradient_checkpointing_enabled
         )
+
+        if self.training and torch.is_grad_enabled() and not self._critic_forward_train_debug_logged:
+            am_dim = None if attention_mask is None else attention_mask.dim()
+            am_shape = None if attention_mask is None else tuple(attention_mask.shape)
+            impl = _config_attn_implementation(attention_target.config)
+            logger.info(
+                "[Critic.forward] one-shot training attn debug: attention_mask.dim=%s "
+                "attention_mask.shape=%s _attn_implementation=%r override_impl=%r "
+                "persistent_eager=%r gradient_checkpointing(raw)=%r "
+                "is_gradient_checkpointing(raw)=%r gradient_checkpointing(effective)=%r",
+                am_dim,
+                am_shape,
+                impl,
+                override_impl,
+                persistent_eager,
+                bool(getattr(attention_target, "gradient_checkpointing", False)),
+                bool(getattr(attention_target, "is_gradient_checkpointing", False)),
+                gradient_checkpointing_enabled,
+            )
+            self._critic_forward_train_debug_logged = True
+
+        def _assert_no_fa2_with_4d_ebft_mask() -> None:
+            if attention_mask is None or attention_mask.dim() != 4:
+                return
+            impl = _config_attn_implementation(attention_target.config)
+            if impl == "flash_attention_2":
+                raise AssertionError(
+                    "EBFT 4D additive attention_mask is incompatible with FlashAttention-2; "
+                    "expected eager override but attention is still flash_attention_2. "
+                    f"mask.shape={tuple(attention_mask.shape)}, override_impl={override_impl!r}, "
+                    f"persistent_eager={persistent_eager}."
+                )
+
         if persistent_eager:
-            attention_target.config._attn_implementation = "eager"
+            _set_config_attn_implementation(attention_target.config, "eager")
+            _assert_no_fa2_with_4d_ebft_mask()
             output = self.model(
                 sequences,
                 attention_mask=attention_mask,
@@ -476,6 +559,7 @@ class Critic(nn.Module):
             )
 
             with attention_impl_context:
+                _assert_no_fa2_with_4d_ebft_mask()
                 output = self.model(
                     sequences,
                     attention_mask=attention_mask,

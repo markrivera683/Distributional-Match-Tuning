@@ -470,3 +470,5 @@ fi
 echo "──────────────────────────────────────────────────"
 echo "G2 online teacher run completed at $(date)" > "${RUN_DIR}/status.txt"
 echo "[done] logs: ${RUN_DIR}"
+
+
