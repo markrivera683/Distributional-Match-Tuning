@@ -33,3 +33,6 @@ matplotlib
 pyyaml
 wandb
 wheel
+
+
+nvitop

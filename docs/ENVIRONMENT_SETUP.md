@@ -88,7 +88,7 @@ pip install torch==2.5.1+cu124 --index-url https://download.pytorch.org/whl/cu12
 
 cd /path/to/ebft_openrlhf_u1_ncfm
 pip install -r requirements.txt
-pip install ray[default]==2.47.0
+pip install ray[default]==2.48.0
 pip install flash-attn==2.8.3 --no-build-isolation
 pip install -e .
 ```
