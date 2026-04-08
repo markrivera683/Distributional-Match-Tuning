@@ -165,7 +165,7 @@ export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:T
 export PYTHONUNBUFFERED=1
 
 RUN_NAME="${RUN_NAME:-g3_rebase_$(date +%m%d_%H%M)}"
-OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/outputs}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
 SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
