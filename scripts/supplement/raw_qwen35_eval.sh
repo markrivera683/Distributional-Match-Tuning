@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Standalone raw Qwen3.5-0.8B Base eval.
 # Usage:
-MODEL_PATH=/mnt/data/teacher_model/models/Qwen3.5-0.8B 
+#   MODEL_PATH=/mnt/data/teacher_model/models/Qwen3.5-0.8B
 #   bash scripts/supplement/raw_qwen35_eval.sh /mnt/data/teacher_model/models/Qwen3.5-0.8B
 #   RUN_DIR=/root/outputs/raw_qwen35_eval bash scripts/supplement/raw_qwen35_eval.sh /path/to/Qwen3.5-0.8B
 set -euo pipefail
@@ -18,11 +18,11 @@ MODEL_PATH="${MODEL_PATH:-${1:-}}"
 RUN_DIR="${RUN_DIR:-${2:-/root/outputs/raw_qwen35_eval_${TS}}}"
 EVAL_TAG="${EVAL_TAG:-raw_base}"
 
-MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-0,1,2,3}"
-POST_EVAL_NPROC="${POST_EVAL_NPROC:-4}"
+MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
+POST_EVAL_NPROC="${POST_EVAL_NPROC:-8}"
 POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
 POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-512}"
-POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-1536}"
+POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-8192}"
 POST_EVAL_TEMPERATURE="${POST_EVAL_TEMPERATURE:-0.6}"
 POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
 POST_EVAL_MICRO_BATCH_SIZE="${POST_EVAL_MICRO_BATCH_SIZE:-128}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Standalone G1 post-eval rerun for an existing checkpoint.
 # Usage:
-RUN_DIR=/root/outputs/g1_rebase_0405_2259
+#   RUN_DIR=/root/outputs/g1_rebase_0405_2259
 #   bash scripts/supplement/G1_eval.sh /root/outputs/g1_rebase_0405_2259
 set -euo pipefail
 
@@ -23,11 +23,11 @@ EVAL_TAG="${EVAL_TAG:-supplement}"
 SCRIPT_NAME="$(basename "$0" .sh)"
 TS="${TS:-$(date +%m%d_%H%M)}"
 
-CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-4,5,6,7}"
-POST_EVAL_NPROC="${POST_EVAL_NPROC:-4}"
+CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
+POST_EVAL_NPROC="${POST_EVAL_NPROC:-8}"
 POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
 POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-512}"
-POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-1536}"
+POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-8192}"
 POST_EVAL_TEMPERATURE="${POST_EVAL_TEMPERATURE:-0.6}"
 POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
 POST_EVAL_MICRO_BATCH_SIZE="${POST_EVAL_MICRO_BATCH_SIZE:-128}"
