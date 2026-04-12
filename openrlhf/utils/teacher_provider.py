@@ -848,12 +848,11 @@ class MultiWorkerTeacherProvider(BaseTeacherProvider):
         canonical_prompts = [TeacherCache._canonicalize(p) for p in prompts]
         results: List[Optional[List[str]]] = [None] * len(canonical_prompts)
 
-        # HRW route each prompt to its primary worker, then submit one
-        # batched call per worker (prompt=list[str]).
+        # Round-robin distribute prompts evenly across workers for balanced load.
         grouped_indices: dict[int, List[int]] = {}
         grouped_prompts: dict[int, List[str]] = {}
         for idx, prompt in enumerate(canonical_prompts):
-            worker_idx, _ = self._pick_worker(prompt)
+            worker_idx = idx % self._num_workers
             grouped_indices.setdefault(worker_idx, []).append(idx)
             grouped_prompts.setdefault(worker_idx, []).append(prompt)
 

@@ -87,21 +87,23 @@ EMA target geometry ：online 分支更新得更快，EMA 分支变化更慢，r
 | G3 | 5328 | 430 | 8.07% |
 | SFT | 5328 | 240 | 4.50% |
 
-**表 2：修复后当前可复核的 rebase 结果（更可信，但尚非全量闭合对比）**
+**表 2：修复后当前第二轮 rebase 结果（长 completion 补充评测，更可信，但尚非全量闭合对比）**
 
 | 版本 | 评测样本 | 正确数 | 准确率 | 备注 |
 | --- | --- | --- | --- | --- |
-| G1 rebase | 5317 | 230 | 4.33% | `reasoning_incomplete` 占 65.6%，post-eval 为 `256 prompt / 512 new tokens` |
-| G2 rebase | 5317 | 330 | 6.21% | `reasoning_incomplete` 占 51.1%，`wrong_answer` 占 27.7%，post-eval 为 `384 prompt / 768 new tokens` |
-| G3 rebase | 5317 | 415 | 7.81% | `wrong_answer` 占 46.6%，`reasoning_incomplete` 降到 36.0%，post-eval 为 `384 prompt / 768 new tokens` |
+| G1 rebase | 5317 | 229 | 4.31% | `reasoning_incomplete` 占 56.8%，`wrong_answer` 占 23.1%，post-eval 为 `512 prompt / 1536 new tokens` |
+| G2 rebase | 5317 | 424 | 7.97% | `reasoning_incomplete` 占 23.7%，`wrong_answer` 占 61.0%，post-eval 为 `512 prompt / 1536 new tokens` |
+| G3 rebase | 5317 | 443 | 8.33% | `reasoning_incomplete` 占 19.1%，`wrong_answer` 占 66.1%，post-eval 为 `512 prompt / 1536 new tokens` |
 
 ### 4.2 现象总结
 
 如果先看修复前的五路完整对比，最直观的现象是：G1 基本没有超过 Base，G2/G3 也没有打出清晰增益，SFT 甚至出现了显著下降。换句话说，在那一版完整 ladder 里，所有 fine-tuned 版本都没有形成一个令人信服的超越 Base 的信号。这至少说明一件事：在 AoPS 上，方法升级并不会像在较简单任务上一样自动转化成 final-answer 提升。
 
-但如果再看修复后可复核的 rebase 梯度，现象会变得更有结构。G1 的 actor-only 准确率是 4.33%，且 65.6% 的失败属于 `reasoning_incomplete`；G2 提升到 6.21%，`reasoning_incomplete` 降到 51.1%，同时 `wrong_answer` 上升到 27.7%；G3 进一步到 7.81%，`reasoning_incomplete` 继续降到 36.0%，而 `wrong_answer` 上升到 46.6%。也就是说，修复后的 rebase ladder 呈现出一个相当清楚的趋势：`G1 -> G2 -> G3` 并不是毫无差异，而是在逐步把失败模式从“推理做不完”推向“推理更完整但最后仍会做错”。
+但如果再看修复后第二轮补充评测的 rebase 梯度，现象会变得更有结构。G1 的 actor-only 准确率是 4.31%，且 `reasoning_incomplete` 仍占 56.8%；G2 提升到 7.97%，`reasoning_incomplete` 降到 23.7%，但 `wrong_answer` 同时上升到 61.0%；G3 进一步到 8.33%，`reasoning_incomplete` 继续降到 19.1%，而 `wrong_answer` 上升到 66.1%。这说明当前 `G1 -> G2 -> G3` 的差异已经不只是“有没有提升”这么简单，而是在逐步把失败模式从“推理无法闭合”推向“推理更完整、能走到某个终答，但最终答案仍然错误”。
 
-因此，本轮现象不能再被简单概括成“distributional 方法没效果”，但也仍然不能被简化成“G3 有提升所以方法已经成立”。更准确的总结应该是：在修复前的完整表里，没有任何版本表现出可靠优势；而在修复后的 rebase 证据里，我们第一次看到了一个方向上单调的梯度，但这个梯度仍叠加了评测预算差异和未补齐的 Base/SFT 重评，所以它更像是“方法信号开始浮现”，而不是已经足够宣告胜负的最终证据。
+更重要的是，第二轮评测已经把 post-eval 预算统一扩大到 `512 prompt / 1536 new tokens`，completion 平均长度也显著上升，但 `reasoning_incomplete` 依然没有消失，尤其在 G1 中仍占过半，在 G2/G3 中也仍有接近四分之一到五分之一的量级。这说明当前 incomplete 现象并不是一个仅靠增加 generation budget 就能被简单消掉的纯截断问题，而更可能暴露了小型 base model 在 AoPS 上无法稳定完成长程推理闭环、以及无法稳定显式给出可验证最终答案的问题。因此，当前 actor-only final-answer accuracy 虽然仍然有用，但更适合作为一个**保守下界信号**：它能反映方法方向是否在改善，却还不足以被当作“模型真实推理质量上限”的精确刻画。
+
+因此，本轮现象不能再被简单概括成“distributional 方法没效果”，但也仍然不能被简化成“G3 有提升所以方法已经成立”。更准确的总结应该是：在修复前的完整表里，没有任何版本表现出可靠优势；而在修复后的第二轮 rebase 证据里，我们看到了更清楚的单调梯度，但这条梯度目前更像是在说明“方法正在把更多样本从 incomplete 推向可闭合轨迹”，而不是已经充分证明“这些轨迹能稳定转化为正确数学终答”。换句话说，这组结果更适合作为方法信号开始浮现的证据，而不是已经足够宣告胜负的最终结论。
 
 ### 4.3 第一性原理解释（核心）
 
@@ -109,7 +111,7 @@ EMA target geometry ：online 分支更新得更快，EMA 分支变化更慢，r
 
 第二类原因是**模型能力问题**。早期项目讨论常把问题表述成“2B base 对比 math-specialized model”，但当前 rebase 脚本实际上使用的是更小的 `Qwen3.5-0.8B Base`。这意味着即便按“2B 也偏弱”的口径来看，本轮真实实验的基座能力还要再向下一级。与此同时，AoPS 论文常见的工作区间却是 `DeepSeek-Math-7B-Instruct`、`Mathstral-7B`、`Llama-3.2 Instruct` 这类更强的数学或指令模型，甚至还会用更大的 teacher 做答案重写，并配合更长的训练预算。于是，本轮实验所面对的其实不是“一个已经有较强数学归纳能力的模型，再比较不同后训练目标”，而更像是“让一个较弱的通用 base 先跨过 AoPS 的能力门槛，再期待目标函数差异显现”。如果底座尚未进入 AoPS 的有效工作区间，那么方法差异很可能被 capacity ceiling 直接淹没。
 
-第三类原因是**目标函数问题**。G2/G3 优化的是 feature-space distribution matching，而最终评测看的是 actor-only final-answer accuracy；这两者之间隔着一条很长的因果链：`reward discrepancy -> policy update -> 轨迹展开质量 -> 最终答案抽取 -> 精确答案验证`。只要这条链上的任意一环没有被打通，distributional reward 的改进就可能停留在中间层，而无法体现在最终 accuracy 上。修复后的 `G1 -> G2 -> G3` 梯度恰好说明了这一点：correct 从 230 提升到 330，再到 415，但更显著的变化其实是 failure mode 的迁移，即 `reasoning_incomplete` 持续下降，而 `wrong_answer` 持续上升。这表明 distributional reward 和 geometry learning 很可能先改善了“推理是否能展开、是否能形成更完整轨迹”，但还没有完全打通“更完整的轨迹如何稳定转化为正确终答案”的最后一段路径。这也是为什么 feature geometry learning 即便在概念上成立，也仍需证明它改善的是与数学 correctness 相关的几何，而不是仅仅让风格、篇幅或局部结构更像 target。
+第三类原因是**目标函数问题**。G2/G3 优化的是 feature-space distribution matching，而最终评测看的是 actor-only final-answer accuracy；这两者之间隔着一条很长的因果链：`reward discrepancy -> policy update -> 轨迹展开质量 -> 最终答案抽取 -> 精确答案验证`。只要这条链上的任意一环没有被打通，distributional reward 的改进就可能停留在中间层，而无法体现在最终 accuracy 上。第二轮长 completion 补充评测恰好把这个问题暴露得更清楚：correct 从 G1 的 229 提升到 G2 的 424，再到 G3 的 443，但更显著的变化其实是 failure mode 的迁移，即 `reasoning_incomplete` 大幅下降，而 `wrong_answer` 更明显地上升。这表明 distributional reward 和 geometry learning 很可能先改善了“推理是否能展开、是否能形成更完整轨迹、是否能走到一个显式终答”，但还没有完全打通“更完整的轨迹如何稳定转化为正确终答案”的最后一段路径。这也是为什么 feature geometry learning 即便在概念上成立，也仍需证明它改善的是与数学 correctness 相关的几何，而不是仅仅让风格、篇幅或局部结构更像 target。
 
 因此，**当前结果无法直接说明方法无效，而更可能是任务难度、基座能力与目标函数之间存在明显的 mismatch**：AoPS 需要的是长程符号推理，小型通用 base 还没有进入这个任务的有效能力区间，而 distributional reward 当前优化的又是 feature-space discrepancy，而不是 final-answer correctness 本身。在这种三重错配没有被解除之前，负结果更应该被理解为“实验栈尚未把方法信号与任务/模型噪声分离开”，而不是“distributional matching 方向已经被证伪”。
 
@@ -119,7 +121,7 @@ EMA target geometry ：online 分支更新得更快，EMA 分支变化更慢，r
 
 ## 5. 结论
 
-这轮实验最稳妥的结论，不是“distributional matching 没效果”，而是：**目前证据开始显示方法信号，但仍不足以完成最终验证**。修复前的完整五路对比没有出现清晰赢家；修复后的 rebase 结果则形成了 `G1 4.33 -> G2 6.21 -> G3 7.81` 的单调梯度，说明方法升级并非完全没有方向性作用。但由于 Base/SFT 仍未在同一修复协议下补齐，且 G1 与 G2/G3 的 eval budget 不一致，这组结果还不足以支持“方法已被验证有效”的强结论。
+这轮实验最稳妥的结论，不是“distributional matching 没效果”，而是：**目前证据开始显示方法信号，但仍不足以完成最终验证**。修复前的完整五路对比没有出现清晰赢家；修复后的第二轮 rebase 结果则形成了 `G1 4.31 -> G2 7.97 -> G3 8.33` 的单调梯度，说明方法升级并非完全没有方向性作用。但由于大量 completion 依然停留在 `reasoning_incomplete`，而且不少样本只是从 incomplete 迁移到了 `wrong_answer`，这组 actor-only accuracy 更应被理解为“当前协议下的保守下界”，而不是方法真实上限的精确估计。
 
 换句话说，本轮实验的真正产出，不是一个已经定型的方法胜负，而是一组更清晰的研究判断：AoPS 上的负结果很可能首先暴露的是任务难度、模型能力和评测协议的错配，而不是单纯地否定 distributional reward 这一路线。就研究推进而言，这仍然是有价值的，因为它告诉我们下一步该优先解决什么，而不是继续在一个尚未闭合的实验面上堆更多技巧。
 
