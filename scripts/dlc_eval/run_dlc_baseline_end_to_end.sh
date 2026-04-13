@@ -108,17 +108,28 @@ main() {
   log "Step 2/3: run baseline eval"
   printf "Monitor progress from another terminal with:\n  bash \"%s\"\n" "${progress_script}"
 
+  local eval_exit_code=0
   REPO_ROOT="${DST_REPO}" \
   RUN_DIR="${RUN_DIR}" \
   CURRENT_PROGRESS_POINTER="${CURRENT_PROGRESS_POINTER}" \
-  bash "${eval_script}"
+  bash "${eval_script}" || eval_exit_code=$?
 
-  log "Step 3/3: sync finished outputs back to ${OUTPUTS3_ROOT}"
-  sync_run_dir_back "${RUN_DIR}" "${OUTPUTS3_ROOT}"
+  log "Step 3/3: sync outputs back to ${OUTPUTS3_ROOT}"
+  if [[ -d "${RUN_DIR}" ]]; then
+    sync_run_dir_back "${RUN_DIR}" "${OUTPUTS3_ROOT}"
+    printf "Synced run dir:\n  %s\n" "${OUTPUTS3_ROOT}/$(basename "${RUN_DIR}")"
+  else
+    log "WARNING: RUN_DIR does not exist, nothing to sync: ${RUN_DIR}"
+  fi
+
+  printf "Local run dir:\n  %s\n" "${RUN_DIR}"
+
+  if (( eval_exit_code != 0 )); then
+    log "ERROR: eval script exited with code ${eval_exit_code}. Partial results have been synced back."
+    exit "${eval_exit_code}"
+  fi
 
   log "Done"
-  printf "Local run dir:\n  %s\n" "${RUN_DIR}"
-  printf "Synced run dir:\n  %s\n" "${OUTPUTS3_ROOT}/$(basename "${RUN_DIR}")"
 }
 
 main "$@"
