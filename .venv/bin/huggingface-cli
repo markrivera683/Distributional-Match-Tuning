@@ -1,6 +1,6 @@
 #!/root/code/Distributional-Match-Tuning/.venv/bin/python
 import sys
-from huggingface_hub.cli.hf import main
+from huggingface_hub.cli.deprecated_cli import main
 if __name__ == '__main__':
     sys.argv[0] = sys.argv[0].removesuffix('.exe')
     sys.exit(main())
