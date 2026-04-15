@@ -17,7 +17,7 @@ REPO_URL_DEFAULT="https://github.com/markrivera683/Distributional-Match-Tuning.g
 REPO_COMMIT_DEFAULT="0a9b59b933d04441485a4aa8f74c9bd65af5ac23"
 PYTHON_VERSION_DEFAULT="3.12.12"
 
-STUDENT_TORCH_INDEX_URL_DEFAULT="https://download.pytorch.org/whl/cu124"
+STUDENT_TORCH_INDEX_URL_DEFAULT=""
 STUDENT_TRANSFORMERS_REF_DEFAULT="db9f18c370c92e971172e69bc9a88854947d9fc5"
 STUDENT_FLASH_ATTN_VERSION_DEFAULT="2.8.3"
 
@@ -55,6 +55,7 @@ Optional environment variables:
   REPO_URL                        Repo to clone when REPO_DIR is missing
   REPO_DIR                        Target repo path. Defaults to the parent of this script
   REPO_COMMIT                     Repo commit to checkout when the repo is clean
+  REPO_SYNC_MODE                  auto (default), skip, or git
   PYTHON_VERSION                  Defaults to 3.12.12
   INSTALL_APT_DEPS                1 (default) to install Ubuntu/Debian build deps
   RECREATE_STUDENT_ENV            1 (default) to rebuild .venv
@@ -95,6 +96,7 @@ DEFAULT_REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_URL="${REPO_URL:-$REPO_URL_DEFAULT}"
 REPO_DIR="${REPO_DIR:-$DEFAULT_REPO_DIR}"
 REPO_COMMIT="${REPO_COMMIT:-$REPO_COMMIT_DEFAULT}"
+REPO_SYNC_MODE="${REPO_SYNC_MODE:-auto}"
 PYTHON_VERSION="${PYTHON_VERSION:-$PYTHON_VERSION_DEFAULT}"
 INSTALL_APT_DEPS="${INSTALL_APT_DEPS:-1}"
 RECREATE_STUDENT_ENV="${RECREATE_STUDENT_ENV:-1}"
@@ -170,8 +172,28 @@ ensure_uv() {
 ensure_repo() {
   mkdir -p "$(dirname "$REPO_DIR")"
 
+  case "$REPO_SYNC_MODE" in
+    auto|skip|git)
+      ;;
+    *)
+      die "Unsupported REPO_SYNC_MODE=$REPO_SYNC_MODE"
+      ;;
+  esac
+
+  if [[ "$REPO_SYNC_MODE" == "skip" ]]; then
+    [[ -d "$REPO_DIR" ]] || die "REPO_SYNC_MODE=skip but REPO_DIR does not exist: $REPO_DIR"
+    log "Using existing repo snapshot at $REPO_DIR (REPO_SYNC_MODE=skip)"
+    return
+  fi
+
   if [[ -d "$REPO_DIR/.git" ]]; then
     log "Using existing repo at $REPO_DIR"
+  elif [[ -d "$REPO_DIR" ]] && [[ -n "$(ls -A "$REPO_DIR" 2>/dev/null || true)" ]]; then
+    if [[ "$REPO_SYNC_MODE" == "git" ]]; then
+      die "REPO_SYNC_MODE=git requires a git repo at $REPO_DIR"
+    fi
+    log "Using existing non-git repo snapshot at $REPO_DIR"
+    return
   else
     log "Cloning repo into $REPO_DIR"
     git clone "$REPO_URL" "$REPO_DIR"
@@ -195,7 +217,7 @@ create_venv() {
   mkdir -p "$(dirname "$venv_path")"
   log "Creating virtualenv at $venv_path"
   rm -rf "$venv_path"
-  "$UV_BIN" venv --python "$PYTHON_VERSION" "$venv_path"
+  "$UV_BIN" venv --seed --python "$PYTHON_VERSION" "$venv_path"
   python_bin="$venv_path/bin/python"
   [[ -x "$python_bin" ]] || die "Virtualenv creation failed for $venv_path"
   "$python_bin" -m pip install --upgrade pip setuptools==82.0.1 wheel==0.46.3
@@ -203,8 +225,12 @@ create_venv() {
 
 install_student_torch_stack() {
   log "Installing student PyTorch CUDA 12.4 stack into $STUDENT_VENV"
+  local torch_args=()
+  if [[ -n "$STUDENT_TORCH_INDEX_URL" ]]; then
+    torch_args+=(--extra-index-url "$STUDENT_TORCH_INDEX_URL")
+  fi
   "$STUDENT_PYTHON_BIN" -m pip install \
-    --index-url "$STUDENT_TORCH_INDEX_URL" \
+    "${torch_args[@]}" \
     "torch==2.5.1" \
     "torchvision==0.20.1" \
     "torchaudio==2.5.1"
@@ -369,8 +395,22 @@ PY
 }
 
 main() {
+  local need_git="0"
+
   run_apt_install
-  ensure_cmd git
+
+  if [[ "$REPO_SYNC_MODE" == "git" ]]; then
+    need_git="1"
+  elif [[ "$REPO_SYNC_MODE" == "auto" ]]; then
+    if [[ ! -d "$REPO_DIR" ]] || [[ -d "$REPO_DIR/.git" ]]; then
+      need_git="1"
+    fi
+  fi
+
+  if [[ "$need_git" == "1" ]]; then
+    ensure_cmd git
+  fi
+
   ensure_uv
   ensure_repo
 

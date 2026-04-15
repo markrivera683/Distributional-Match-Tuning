@@ -166,6 +166,8 @@ def main():
             unmatched += 1
             records.append({
                 "idx": i,
+                "source_idx": r.get("source_idx", i),
+                "attempt_idx": r.get("attempt_idx", 0),
                 "prompt": prompt[:200],
                 "model_output": model_output[:500],
                 "gold_answer": None,
@@ -179,6 +181,8 @@ def main():
         correct, category, detail = classify_output(model_output, gold)
         records.append({
             "idx": i,
+            "source_idx": r.get("source_idx", i),
+            "attempt_idx": r.get("attempt_idx", 0),
             "prompt": prompt[:200],
             "model_output": model_output[:500],
             "gold_answer": gold,
@@ -227,7 +231,7 @@ def main():
         short_count = sum(1 for r in records
                          if r["category"] in ("too_short", "empty_output"))
         print(f"\n  [WARNING] {short_count} samples had too-short/empty output.")
-        print(f"            Consider increasing POST_EVAL_MAX_NEW_TOKENS.")
+        print(f"            Consider increasing max_new_tokens.")
 
     print(f"\n  Sample outputs per category:")
     shown = set()
