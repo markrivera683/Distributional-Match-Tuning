@@ -30,7 +30,7 @@ export OPENRLHF_RAY_OBJECT_STORE_MEMORY_BYTES="${OPENRLHF_RAY_OBJECT_STORE_MEMOR
 export PYTHONUNBUFFERED=1
 
 # ---- Paths (adapted for current machine) ----
-REPO_ROOT="/root/code/data/Distributional-Match-Tuning"
+REPO_ROOT="/root/code/Distributional-Matching-Tuning"
 MODEL_PATH="/mnt/data/Qwen3.5-2B"
 TRAIN_DATA="/mnt/data/data/aops/aops_qa_hf_dict"
 EVAL_DATA="/mnt/data/data/aops/test_qa.jsonl"

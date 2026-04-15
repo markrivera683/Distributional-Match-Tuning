@@ -9,7 +9,7 @@ set -euo pipefail
 # - sends one tiny /v1/completions request
 # - cleans up the server process automatically
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
 TEACHER_VLLM_BIN="${TEACHER_VLLM_BIN:-${TEACHER_VENV}/bin/vllm}"
 

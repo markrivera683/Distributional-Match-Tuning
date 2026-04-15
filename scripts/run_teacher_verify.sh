@@ -7,11 +7,11 @@
 #
 #  Usage:
 #    # Mode A: baseline (no teacher)
-#    TEACHER_ENABLE=0 MODEL_PATH=/root/code/Qwen3.5-2B \
+#    TEACHER_ENABLE=0 MODEL_PATH=/root/code/Distributional-Matching-Tuning/Qwen3.5-2B \
 #      bash scripts/run_teacher_verify.sh
 #
 #    # Mode B: teacher enabled
-#    TEACHER_ENABLE=1 MODEL_PATH=/root/code/Qwen3.5-2B \
+#    TEACHER_ENABLE=1 MODEL_PATH=/root/code/Distributional-Matching-Tuning/Qwen3.5-2B \
 #      bash scripts/run_teacher_verify.sh
 # ============================================================================
 set -euo pipefail
@@ -30,7 +30,7 @@ export OPENRLHF_RAY_OBJECT_STORE_MEMORY_BYTES="${OPENRLHF_RAY_OBJECT_STORE_MEMOR
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ── Core knobs ─────────────────────────────────────────────────────────────
-MODEL_PATH="${MODEL_PATH:-/root/code/Qwen3.5-2B}"
+MODEL_PATH="${MODEL_PATH:-/root/code/Distributional-Matching-Tuning/Qwen3.5-2B}"
 TEACHER_ENABLE="${TEACHER_ENABLE:-1}"
 
 # ── Derived config based on teacher mode ───────────────────────────────────

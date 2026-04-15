@@ -1,4 +1,4 @@
-#!/root/code/.venv/bin/python3
+#!/root/code/.venv/bin/python
 
 from benchmarks.communication.run_all import main
 from benchmarks.communication.constants import *

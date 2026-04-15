@@ -17,12 +17,12 @@ Usage:
   PROGRESS_JSON_PATH=/path/to/progress.json bash scripts/dlc_eval/dlc_baseline_eval_progress.sh
 
 Defaults:
-  - REPO_ROOT defaults to ~/data/Distributional-Match-Tuning
+  - REPO_ROOT defaults to ~/data/Distributional-Matching-Tuning
   - The script first tries the current pointer file written by dlc_baseline_eval.sh
   - If that is missing, it falls back to the newest progress_*.json under ~/outputs
 
 Optional environment variables:
-  REPO_ROOT                Defaults to ~/data/Distributional-Match-Tuning
+  REPO_ROOT                Defaults to ~/data/Distributional-Matching-Tuning
   CURRENT_PROGRESS_POINTER Defaults to $REPO_ROOT/.dlc_baseline_eval_current.env
   PIPELINE_STATE_PATH      Explicit pipeline state JSON to inspect
   PROGRESS_JSON_PATH       Explicit progress JSON to inspect
@@ -37,7 +37,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-REPO_ROOT="${REPO_ROOT:-${HOME}/data/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-${HOME}/data/Distributional-Matching-Tuning}"
 CURRENT_PROGRESS_POINTER="${CURRENT_PROGRESS_POINTER:-${REPO_ROOT}/.dlc_baseline_eval_current.env}"
 PIPELINE_STATE_PATH="${PIPELINE_STATE_PATH:-}"
 PROGRESS_JSON_PATH="${PROGRESS_JSON_PATH:-}"

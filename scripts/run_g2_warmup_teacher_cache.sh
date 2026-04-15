@@ -46,7 +46,7 @@ WARMUP_BATCH_SIZE="${WARMUP_BATCH_SIZE:-32}"
 # ====================================================================
 # 4. DATA
 # ====================================================================
-REPO_ROOT="${REPO_ROOT:-/root/code/data/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 TRAIN_DATA="${TRAIN_DATA:-/mnt/data/data/aops/aops_qa_hf_dict}"
 INPUT_KEY="${INPUT_KEY:-question}"
 SPLIT="${SPLIT:-train}"

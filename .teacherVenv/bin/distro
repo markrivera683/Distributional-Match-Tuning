@@ -1,4 +1,4 @@
-#!/root/code/Distributional-Match-Tuning/.teacherVenv/bin/python
+#!/root/code/.teacherVenv/bin/python
 import sys
 from distro.distro import main
 if __name__ == '__main__':

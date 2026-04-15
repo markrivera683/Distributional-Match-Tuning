@@ -58,7 +58,7 @@ pip install --upgrade pip wheel setuptools
 pip install torch==2.5.1+cu124 --index-url https://download.pytorch.org/whl/cu124
 
 # 仓库依赖
-# cd /root/code/data/Distributional-Match-Tuning/
+# cd /root/code/Distributional-Matching-Tuning/
 pip install -r docs/G2/requirements.txt
 
 # Ray 如需精确匹配验证版本
@@ -76,7 +76,7 @@ pip install -e .
 
 仓库中已有的 `docs/ENVIRONMENT_SETUP.md` 记录的是**旧机器上的验证快照**：
 
-- 路径指向 `/root/autodl-tmp/Energy/...`，与当前仓库位置（`/root/code/data/Distributional-Match-Tuning`）不同。
+- 路径指向 `/root/autodl-tmp/Energy/...`，与当前仓库位置（`/root/code/Distributional-Matching-Tuning`）不同。
 - 模型为 `Qwen2.5-1.5B`，G2 阶段已切换到 `Qwen3.5-2B`。
 - 数据集为 `sjelassi/opencode-instruct_100k_200tok`，G2 使用 AoPS 数据。
 
@@ -92,7 +92,7 @@ pip install -e .
 python -m pip show openrlhf | grep Location
 ```
 
-如果输出的路径不是 `/root/code/data/Distributional-Match-Tuning`，需要重新执行 `pip install -e .`。
+如果输出的路径不是 `/root/code/Distributional-Matching-Tuning`，需要重新执行 `pip install -e .`。
 
 ## 7. 环境变量
 

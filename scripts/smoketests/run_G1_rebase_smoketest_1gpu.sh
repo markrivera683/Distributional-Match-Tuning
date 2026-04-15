@@ -10,7 +10,7 @@ CRITIC_GPUS="${CRITIC_GPUS:-1}"
 REF_GPUS="${REF_GPUS:-1}"
 REWARD_GPUS="${REWARD_GPUS:-1}"
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/teacher_model/models/Qwen3.5-0.8B}"
 DEFAULT_TRAIN_DATA="/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"

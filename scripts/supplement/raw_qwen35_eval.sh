@@ -6,7 +6,7 @@
 #   RUN_DIR=/root/outputs/raw_qwen35_eval bash scripts/supplement/raw_qwen35_eval.sh /path/to/Qwen3.5-0.8B
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"

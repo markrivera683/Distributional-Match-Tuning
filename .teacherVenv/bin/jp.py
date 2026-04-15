@@ -1,4 +1,4 @@
-#!/root/code/Distributional-Match-Tuning/.teacherVenv/bin/python
+#!/root/code/.teacherVenv/bin/python
 
 import sys
 import json

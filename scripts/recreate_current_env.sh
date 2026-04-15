@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Recreate the current Distributional-Match-Tuning layout on another machine.
+# Recreate the current Distributional-Matching-Tuning layout on another machine.
 # This script creates two virtualenvs under the repo root:
 # - .venv        : training / analysis / OpenRLHF environment
 # - .teacherVenv : teacher-model / vLLM environment
@@ -361,11 +361,16 @@ install_teacher_torch_stack() {
 install_teacher_core_python_packages() {
   log "Installing teacher vLLM stack into $TEACHER_VENV"
   "$TEACHER_PYTHON_BIN" -m pip install \
-    "huggingface_hub==${TEACHER_HF_HUB_VERSION}" \
-    "transformers==${TEACHER_TRANSFORMERS_VERSION}" \
+    "vllm==${TEACHER_VLLM_VERSION}" \
     "flashinfer-python==${TEACHER_FLASHINFER_VERSION}" \
-    "tqdm==4.67.3" \
-    "vllm==${TEACHER_VLLM_VERSION}"
+    "tqdm==4.67.3"
+  "$TEACHER_PYTHON_BIN" -m pip install \
+    "huggingface_hub==${TEACHER_HF_HUB_VERSION}"
+  if [[ -n "${TEACHER_TRANSFORMERS_VERSION}" ]]; then
+    log "Upgrading teacher transformers to ${TEACHER_TRANSFORMERS_VERSION}"
+    "$TEACHER_PYTHON_BIN" -m pip install --no-deps \
+      "transformers==${TEACHER_TRANSFORMERS_VERSION}"
+  fi
 }
 
 verify_teacher_env() {

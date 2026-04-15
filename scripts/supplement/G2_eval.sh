@@ -5,7 +5,7 @@
 #   bash scripts/supplement/G2_eval.sh /root/outputs/g2_rebase_0406_1109
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"

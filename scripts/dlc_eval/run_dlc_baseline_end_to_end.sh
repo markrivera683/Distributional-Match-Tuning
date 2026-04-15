@@ -16,7 +16,7 @@ Usage:
   bash scripts/dlc_eval/run_dlc_baseline_end_to_end.sh
 
 What this script does:
-1. Migrate the DLC repo snapshot to ~/data/Distributional-Match-Tuning
+1. Migrate the DLC repo snapshot to ~/data/Distributional-Matching-Tuning
 2. Recreate .venv and .teacherVenv in the migrated repo
 3. Run scripts/dlc_eval/dlc_baseline_eval.sh from the migrated repo
    - first pass: full eval at 16k
@@ -24,10 +24,10 @@ What this script does:
 4. Copy the finished run directory back to /mnt/data/ebft-teacher-distribution/outputs3
 
 Progress monitoring from another terminal:
-  bash ~/data/Distributional-Match-Tuning/scripts/dlc_eval/dlc_baseline_eval_progress.sh
+  bash ~/data/Distributional-Matching-Tuning/scripts/dlc_eval/dlc_baseline_eval_progress.sh
 
 Optional environment variables:
-  DST_REPO               Defaults to ~/data/Distributional-Match-Tuning
+  DST_REPO               Defaults to ~/data/Distributional-Matching-Tuning
   RUN_DIR                Defaults to ~/outputs/dlc_baseline_eval_retry16k_to_32k_<timestamp>
   OUTPUTS3_ROOT          Defaults to /mnt/data/ebft-teacher-distribution/outputs3
   COPY_REPO              Passed to migrate_eval_dlc_to_home.sh, defaults to 1
@@ -55,7 +55,7 @@ MIGRATE_SCRIPT="${SCRIPT_DIR}/migrate_eval_dlc_to_home.sh"
 [[ -f "${MIGRATE_SCRIPT}" ]] || die "Missing migrate script: ${MIGRATE_SCRIPT}"
 
 TS="${TS:-$(date +%m%d_%H%M)}"
-DST_REPO="${DST_REPO:-${HOME}/data/Distributional-Match-Tuning}"
+DST_REPO="${DST_REPO:-${HOME}/data/Distributional-Matching-Tuning}"
 RUN_DIR="${RUN_DIR:-${HOME}/outputs/dlc_baseline_eval_retry16k_to_32k_${TS}}"
 OUTPUTS3_ROOT="${OUTPUTS3_ROOT:-/mnt/data/ebft-teacher-distribution/outputs3}"
 CURRENT_PROGRESS_POINTER="${CURRENT_PROGRESS_POINTER:-${DST_REPO}/.dlc_baseline_eval_current.env}"

@@ -4,7 +4,7 @@ set -euo pipefail
 # Launch 4 persistent single-GPU vLLM workers for Qwen3.5-27B and keep them
 # alive until this script is terminated.
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
 TEACHER_VLLM_BIN="${TEACHER_VLLM_BIN:-${TEACHER_VENV}/bin/vllm}"
 

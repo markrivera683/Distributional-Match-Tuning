@@ -9,7 +9,7 @@ set -euo pipefail
 #   bash scripts/smoketests/smoketest_G2_multiworker.sh
 #   WORKER_GPUS_CSV=0,1,2,3 bash scripts/smoketests/smoketest_G2_multiworker.sh
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
 STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"
 TEACHER_VLLM_BIN="${TEACHER_VLLM_BIN:-${TEACHER_VENV}/bin/vllm}"

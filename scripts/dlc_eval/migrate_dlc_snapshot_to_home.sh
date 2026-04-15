@@ -23,15 +23,15 @@ Usage:
   bash scripts/dlc_eval/migrate_dlc_snapshot_to_home.sh
 
 What this script does:
-1. Copy the repo snapshot from /mnt/data to ~/data/Distributional-Match-Tuning
+1. Copy the repo snapshot from /mnt/data to ~/data/Distributional-Matching-Tuning
 2. Copy /mnt/data/ebft-teacher-distribution/outputs2/ into ~/outputs/
 3. Create:
-   - ~/data/Distributional-Match-Tuning/.venv
-   - ~/data/Distributional-Match-Tuning/.teacherVenv
+   - ~/data/Distributional-Matching-Tuning/.venv
+   - ~/data/Distributional-Matching-Tuning/.teacherVenv
 
 Optional environment variables:
   SRC_REPO_DIR               Source repo snapshot. Auto-detected if unset.
-  TARGET_REPO_DIR            Defaults to $HOME/data/Distributional-Match-Tuning
+  TARGET_REPO_DIR            Defaults to $HOME/data/Distributional-Matching-Tuning
   SRC_OUTPUTS_DIR            Defaults to /mnt/data/ebft-teacher-distribution/outputs2
   TARGET_OUTPUTS_DIR         Defaults to $HOME/outputs
   COPY_OUTPUTS               1 (default) to copy outputs
@@ -61,7 +61,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RECREATE_SCRIPT="$(cd "${SCRIPT_DIR}/.." && pwd)/recreate_current_env.sh"
 [[ -f "$RECREATE_SCRIPT" ]] || die "Missing recreate script: $RECREATE_SCRIPT"
 
-TARGET_REPO_DIR="${TARGET_REPO_DIR:-$HOME/data/Distributional-Match-Tuning}"
+TARGET_REPO_DIR="${TARGET_REPO_DIR:-$HOME/data/Distributional-Matching-Tuning}"
 SRC_OUTPUTS_DIR="${SRC_OUTPUTS_DIR:-/mnt/data/ebft-teacher-distribution/outputs2}"
 TARGET_OUTPUTS_DIR="${TARGET_OUTPUTS_DIR:-$HOME/outputs}"
 COPY_OUTPUTS="${COPY_OUTPUTS:-1}"

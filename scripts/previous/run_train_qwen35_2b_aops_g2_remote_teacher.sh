@@ -43,7 +43,7 @@ set -euo pipefail
 # ==========================================================
 # =====================================================================
 
-REPO_DIR="${REPO_DIR:-/root/code/data/Distributional-Match-Tuning}"
+REPO_DIR="${REPO_DIR:-/root/code/Distributional-Matching-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/Qwen3.5-2B}"
 
 # ── Data paths ──

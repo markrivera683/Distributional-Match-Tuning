@@ -1,4 +1,4 @@
-#!/root/code/Distributional-Match-Tuning/.venv/bin/python
+#!/root/code/.venv/bin/python
 import sys
 from nvitop.cli import main
 if __name__ == '__main__':

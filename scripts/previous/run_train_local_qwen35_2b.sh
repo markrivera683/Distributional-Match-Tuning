@@ -8,7 +8,7 @@ set -euo pipefail
 #   bash scripts/run_train_local_qwen35_2b.sh
 #
 # Optional overrides:
-#   REPO_DIR=/root/code/Distributional-Match-Tuning \
+#   REPO_DIR=/root/code/Distributional-Matching-Tuning \
 #   MODEL_PATH=/mnt/data/Qwen3.5-2B \
 #   PROMPT_DATA=openai/gsm8k \
 #   EVAL_DATASET=openai/gsm8k \
@@ -23,7 +23,7 @@ set -euo pipefail
 # - Ray is auto-started by train_ebft_ray.py (no manual ray start --head needed).
 # ---------------------------------------------------------------------
 
-REPO_DIR="${REPO_DIR:-/root/code/Distributional-Match-Tuning}"
+REPO_DIR="${REPO_DIR:-/root/code/Distributional-Matching-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/Qwen3.5-2B}"
 
 OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/outputs/ebft_local_qwen35_2b}"

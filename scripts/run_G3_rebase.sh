@@ -62,7 +62,7 @@ TEACHER_API_BASE="${TEACHER_API_BASE:-${_DEFAULT_API_URLS}}"
 # ====================================================================
 # 2) TRAINING DATA / MODEL PATHS
 # ====================================================================
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/teacher_model/models/Qwen3.5-0.8B}"
 DEFAULT_TRAIN_DATA="/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
@@ -139,7 +139,7 @@ UNFREEZE_LAYERS="${UNFREEZE_LAYERS:-0}"
 
 ACTOR_LR="${ACTOR_LR:-1e-6}"
 CE_LOSS_COEF="${CE_LOSS_COEF:-0.03}"
-EMA_BETA="${EMA_BETA:-0.9}"
+EMA_BETA="${EMA_BETA:-0.99}"
 
 CRITIC_LR="${CRITIC_LR:-0}"
 CRITIC_LR_HEAD="${CRITIC_LR_HEAD:-5e-5}"

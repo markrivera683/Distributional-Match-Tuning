@@ -186,7 +186,7 @@ CF_TARGET_SEED="${CF_TARGET_SEED:-43}"
 # ====================================================================
 # 5. MODEL & DATA PATHS
 # ====================================================================
-REPO_ROOT="${REPO_ROOT:-/root/code/}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning/}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/Qwen3.5-2B}"
 TRAIN_DATA="${TRAIN_DATA:-/mnt/data/data/aops/aops_qa_hf_dict}"
 EVAL_DATA="${EVAL_DATA:-/mnt/data/data/aops/test_qa.jsonl}"

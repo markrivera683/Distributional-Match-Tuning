@@ -73,7 +73,7 @@ CRITIC_DIRECT_DISCREPANCY_TARGET="${CRITIC_DIRECT_DISCREPANCY_TARGET:-ema_gt}"
 # ====================================================================
 # 4. MODEL & DATA PATHS
 # ====================================================================
-REPO_ROOT="${REPO_ROOT:-/root/code/data/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/code/Qwen3.5-2B}"
 TRAIN_DATA="${TRAIN_DATA:-/mnt/data/code/data/aops/aops_qa_hf_dict}"
 EVAL_DATA="${EVAL_DATA:-/mnt/data/code/data/aops/test_qa.jsonl}"

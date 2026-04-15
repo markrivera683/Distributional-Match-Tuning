@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Default: single-node 8-GPU smoke test on the current machine.
+# Optional: if HEAD_NODE and WORKER_NODE are both set, run a tiny 2-node smoke test instead.
+set -euo pipefail
+
+DEFAULT_LOCAL_RUN_NAME="smoke_g3_rebase_8gpu_$(date +%m%d_%H%M%S)"
+DEFAULT_2NODE_RUN_NAME="smoke_g3_rebase_2node_8gpu_$(date +%m%d_%H%M%S)"
+
+export MODEL_PATH="${MODEL_PATH:-/mnt/data/teacher_model/models/Qwen3.5-0.8B}"
+export TEACHER_MODEL_PATH="${TEACHER_MODEL_PATH:-/mnt/data/models/qwen3.5-27b}"
+export TEACHER_MODEL_NAME="${TEACHER_MODEL_NAME:-qwen3.5-27b}"
+export TEACHER_TP_SIZE="${TEACHER_TP_SIZE:-1}"
+export TEACHER_DTYPE="${TEACHER_DTYPE:-auto}"
+export TEACHER_MAX_MODEL_LEN="${TEACHER_MAX_MODEL_LEN:-512}"
+export TEACHER_MAX_NUM_SEQS="${TEACHER_MAX_NUM_SEQS:-4}"
+export TEACHER_MAX_BATCHED_TOKENS="${TEACHER_MAX_BATCHED_TOKENS:-8192}"
+export TEACHER_GPU_MEMORY_UTIL="${TEACHER_GPU_MEMORY_UTIL:-0.45}"
+export TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-4}"
+export TEACHER_MAX_NEW_TOKENS="${TEACHER_MAX_NEW_TOKENS:-64}"
+export TEACHER_TIMEOUT="${TEACHER_TIMEOUT:-120}"
+export TEACHER_WAIT_SECONDS="${TEACHER_WAIT_SECONDS:-1800}"
+
+export N_SAMPLES_PER_PROMPT="${N_SAMPLES_PER_PROMPT:-2}"
+export ROLLOUT_BATCH_SIZE="${ROLLOUT_BATCH_SIZE:-2}"
+export TRAIN_BATCH_SIZE="${TRAIN_BATCH_SIZE:-4}"
+export MICRO_TRAIN_BATCH_SIZE="${MICRO_TRAIN_BATCH_SIZE:-2}"
+export MICRO_ROLLOUT_BATCH_SIZE="${MICRO_ROLLOUT_BATCH_SIZE:-2}"
+export MICRO_REWARD_BATCH_SIZE="${MICRO_REWARD_BATCH_SIZE:-1}"
+export PROMPT_MAX_LEN="${PROMPT_MAX_LEN:-64}"
+export CONTEXT_MAX_LEN="${CONTEXT_MAX_LEN:-8}"
+export GENERATE_MAX_LEN="${GENERATE_MAX_LEN:-8}"
+export TARGET_STEPS="${TARGET_STEPS:-2}"
+export MAX_SAMPLES="${MAX_SAMPLES:-8}"
+export NUM_EPISODES="${NUM_EPISODES:-1}"
+export MAX_EPOCHS="${MAX_EPOCHS:-1}"
+export EVAL_STEPS="${EVAL_STEPS:-1}"
+export EVAL_MAX_SAMPLES="${EVAL_MAX_SAMPLES:-2}"
+export EVAL_GENERATE_MAX_LEN="${EVAL_GENERATE_MAX_LEN:-8}"
+export SAVE_STEPS="${SAVE_STEPS:-1}"
+export SAVE_EVEN_COUNT="${SAVE_EVEN_COUNT:-1}"
+export ENABLE_TEACHER_PREFETCH="${ENABLE_TEACHER_PREFETCH:-false}"
+export EVAL_AFTER_TRAIN="${EVAL_AFTER_TRAIN:-false}"
+
+if [[ -n "${HEAD_NODE:-}" && -n "${WORKER_NODE:-}" ]]; then
+  # Tiny 2-node smoke layout, 4 GPUs per node / 8 GPUs total.
+  export RUN_NAME="${RUN_NAME:-${DEFAULT_2NODE_RUN_NAME}}"
+  export HEAD_TEACHER_CUDA_VISIBLE_DEVICES="${HEAD_TEACHER_CUDA_VISIBLE_DEVICES:-0,1,2}"
+  export WORKER_TEACHER_CUDA_VISIBLE_DEVICES="${WORKER_TEACHER_CUDA_VISIBLE_DEVICES:-0,1,2}"
+  export HEAD_STUDENT_CUDA_VISIBLE_DEVICES="${HEAD_STUDENT_CUDA_VISIBLE_DEVICES:-3}"
+  export WORKER_STUDENT_CUDA_VISIBLE_DEVICES="${WORKER_STUDENT_CUDA_VISIBLE_DEVICES:-3}"
+  export ACTOR_GPUS="${ACTOR_GPUS:-1}"
+  export CRITIC_GPUS="${CRITIC_GPUS:-1}"
+  exec bash /root/code/Distributional-Matching-Tuning/scripts/run_G3_rebase_2node_once.sh
+fi
+
+# Single-node 8-GPU smoke layout on the current machine:
+# - teacher: GPUs 0-5
+# - student: GPUs 6-7
+# - actor/ref: GPU 6
+# - critic/reward: GPU 7
+export TEACHER_CUDA_VISIBLE_DEVICES="${TEACHER_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5}"
+export STUDENT_CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES:-6,7}"
+export ACTOR_GPUS="${ACTOR_GPUS:-1}"
+export CRITIC_GPUS="${CRITIC_GPUS:-1}"
+export RUN_NAME="${RUN_NAME:-${DEFAULT_LOCAL_RUN_NAME}}"
+
+exec bash /root/code/Distributional-Matching-Tuning/scripts/run_G3_rebase.sh

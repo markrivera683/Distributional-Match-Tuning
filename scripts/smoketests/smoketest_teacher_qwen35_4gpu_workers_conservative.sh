@@ -30,4 +30,4 @@ echo "- MAX_NUM_SEQS=${MAX_NUM_SEQS}"
 echo "- MAX_BATCHED_TOKENS=${MAX_BATCHED_TOKENS}"
 echo
 
-exec bash "/root/code/Distributional-Match-Tuning/scripts/smoketests/smoketest_teacher_qwen35_4gpu_workers.sh"
+exec bash "/root/code/Distributional-Matching-Tuning/scripts/smoketests/smoketest_teacher_qwen35_4gpu_workers.sh"

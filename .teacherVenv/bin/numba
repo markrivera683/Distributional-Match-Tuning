@@ -1,4 +1,4 @@
-#!/root/code/Distributional-Match-Tuning/.teacherVenv/bin/python
+#!/root/code/.teacherVenv/bin/python
 # -*- coding: UTF-8 -*-
 from __future__ import print_function, division, absolute_import
 

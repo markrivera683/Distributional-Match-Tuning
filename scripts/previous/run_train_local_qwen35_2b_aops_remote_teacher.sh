@@ -30,10 +30,10 @@ set -euo pipefail
   REWARD_NUM_GPUS_PER_NODE=1
 
 # [CORE] OUTPUT DIR
-  OUTPUT_ROOT=/root/code/data/outputs/ebft_local_qwen35_2b_aops_remote_teacher
+  OUTPUT_ROOT=/root/code/Distributional-Matching-Tuning/data/outputs/ebft_local_qwen35_2b_aops_remote_teacher
 # ==========================================================
 
-REPO_DIR="${REPO_DIR:-/root/code/data/Distributional-Match-Tuning}"
+REPO_DIR="${REPO_DIR:-/root/code/Distributional-Matching-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/Qwen3.5-2B}"
 
 # AoPS processed datasets (generated from your previous conversion step)
@@ -65,7 +65,7 @@ CRITIC_NUM_GPUS_PER_NODE="${CRITIC_NUM_GPUS_PER_NODE:-4}"
 REF_NUM_GPUS_PER_NODE="${REF_NUM_GPUS_PER_NODE:-1}"
 REWARD_NUM_GPUS_PER_NODE="${REWARD_NUM_GPUS_PER_NODE:-1}"
 
-OUTPUT_ROOT="${OUTPUT_ROOT:-/root/code/data/outputs/ebft_local_qwen35_2b_aops_remote_teacher}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-/root/code/Distributional-Matching-Tuning/data/outputs/ebft_local_qwen35_2b_aops_remote_teacher}"
 RUN_NAME="${RUN_NAME:-aops_remote_teacher_$(date -u +%Y%m%d_%H%M%S)}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
 TB_DIR="${RUN_DIR}/tensorboard"

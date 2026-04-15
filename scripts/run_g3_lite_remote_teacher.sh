@@ -143,7 +143,7 @@ CRITIC_DIRECT_DISCREPANCY_TARGET="${CRITIC_DIRECT_DISCREPANCY_TARGET:-ema_gt}"
 # ====================================================================
 # 6. MODEL & DATA PATHS
 # ====================================================================
-REPO_ROOT="${REPO_ROOT:-/root/code/data/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/Qwen3.5-2B}"
 TRAIN_DATA="${TRAIN_DATA:-/mnt/data/data/aops/aops_qa_hf_dict}"
 EVAL_DATA="${EVAL_DATA:-/mnt/data/data/aops/test_qa.jsonl}"
@@ -336,9 +336,9 @@ fi
 ray stop --force 2>/dev/null || true
 sleep 2
 cd "${REPO_ROOT}"
-source /root/code/.venv/bin/activate
+source /root/code/Distributional-Matching-Tuning/.venv/bin/activate
 
-/root/code/.venv/bin/python -m openrlhf.cli.train_ebft_ray \
+/root/code/Distributional-Matching-Tuning/.venv/bin/python -m openrlhf.cli.train_ebft_ray \
   --bf16 --adam_offload --pretrain_mode --no_chat_template \
   --disable_ds_ckpt --colocate_actor_ref --colocate_critic_reward \
   --use_kl_loss --use_whitening --enable_ema \
