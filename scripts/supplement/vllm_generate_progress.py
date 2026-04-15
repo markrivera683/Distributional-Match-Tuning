@@ -6,14 +6,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import tempfile
 import time
 from datetime import datetime, timezone
 from typing import Any
 
 from tqdm import tqdm
-from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
+from vllm.transformers_utils.configs.qwen3_5 import Qwen3_5Config, Qwen3_5TextConfig
 
 
 def now_iso() -> str:
@@ -77,6 +78,74 @@ def load_dataset_rows(path: str) -> list[dict[str, Any]]:
 def chunked(items: list[str], size: int):
     for start in range(0, len(items), size):
         yield start, items[start : start + size]
+
+
+def ensure_qwen35_config_registered() -> None:
+    """Register qwen3.5 config aliases for older transformers builds."""
+    try:
+        from transformers import AutoConfig
+
+        AutoConfig.register("qwen3_5_text", Qwen3_5TextConfig, exist_ok=True)
+        AutoConfig.register("qwen3_5", Qwen3_5Config, exist_ok=True)
+    except Exception:
+        # Best-effort only; continue if registration API differs.
+        pass
+
+
+def qwen35_hf_overrides(cfg: Any) -> Any:
+    """Normalize qwen3_5_text config for vLLM multimodal registry.
+
+    Some model checkpoints expose a text-only HF config (`qwen3_5_text`), while
+    vLLM renderer paths expect the wrapper config type (`Qwen3_5Config`).
+    """
+    try:
+        model_type = getattr(cfg, "model_type", None)
+        if model_type == "qwen3_5_text" and not isinstance(cfg, Qwen3_5Config):
+            text_cfg = cfg.to_dict() if hasattr(cfg, "to_dict") else {}
+            # Remove generic metadata keys that do not belong to text_config.
+            text_cfg.pop("model_type", None)
+            text_cfg.pop("transformers_version", None)
+            wrapped = Qwen3_5Config(text_config=text_cfg)
+            # Preserve architecture hint expected by vLLM model registry.
+            arch = getattr(cfg, "architectures", None)
+            if arch:
+                wrapped.architectures = list(arch)
+            elif text_cfg.get("architectures"):
+                wrapped.architectures = list(text_cfg["architectures"])
+            else:
+                wrapped.architectures = ["Qwen3_5ForCausalLM"]
+            return wrapped
+    except Exception:
+        pass
+    return cfg
+
+
+def ensure_qwen35_preprocessor_files(model_path: str) -> None:
+    """Ensure qwen3.5 preprocessor json files exist for vLLM multimodal init."""
+    if not os.path.isdir(model_path):
+        return
+
+    preproc = os.path.join(model_path, "preprocessor_config.json")
+    video_preproc = os.path.join(model_path, "video_preprocessor_config.json")
+    if os.path.exists(preproc):
+        return
+
+    # Common local base-model paths used in this repo.
+    candidates = [
+        "/mnt/data/teacher_model/models/Qwen3.5-0.8B",
+        "/mnt/data/models/Qwen3.5-0.8B",
+        "/mnt/data/models/qwen3.5-0.8b",
+    ]
+
+    for base in candidates:
+        src_preproc = os.path.join(base, "preprocessor_config.json")
+        if os.path.exists(src_preproc):
+            shutil.copy2(src_preproc, preproc)
+            src_video = os.path.join(base, "video_preprocessor_config.json")
+            if os.path.exists(src_video) and not os.path.exists(video_preproc):
+                shutil.copy2(src_video, video_preproc)
+            print(f"[compat] copied preprocessor config from: {base}")
+            return
 
 
 def main() -> None:
@@ -163,7 +232,26 @@ def main() -> None:
                 source_idx = idx
             source_indices.append(source_idx)
 
-        tokenizer = AutoTokenizer.from_pretrained(args.pretrain, trust_remote_code=True)
+        output_dir = os.path.dirname(args.output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
+        progress_state.update(status="loading_model", updated_at=now_iso())
+        write_json_atomic(args.progress_json_path, progress_state)
+
+        ensure_qwen35_config_registered()
+        ensure_qwen35_preprocessor_files(args.pretrain)
+        llm = LLM(
+            model=args.pretrain,
+            tensor_parallel_size=args.tp_size,
+            trust_remote_code=True,
+            seed=args.seed,
+            max_num_seqs=args.max_num_seqs,
+            enable_prefix_caching=args.enable_prefix_caching,
+            hf_overrides=qwen35_hf_overrides,
+        )
+
+        tokenizer = llm.get_tokenizer()
         model_prompts = []
         truncated_count = 0
         for prompt in tqdm(prompts, desc="Truncating prompts", dynamic_ncols=True):
@@ -176,15 +264,11 @@ def main() -> None:
                 prompt_for_model = prompt
             model_prompts.append(prompt_for_model)
 
-        output_dir = os.path.dirname(args.output_path)
-        if output_dir:
-            os.makedirs(output_dir, exist_ok=True)
-
         total_outputs = len(model_prompts) * args.best_of_n
         chunk_count = (len(model_prompts) + args.progress_batch_size - 1) // args.progress_batch_size
 
         progress_state.update(
-            status="loading_model",
+            status="generating",
             updated_at=now_iso(),
             total_prompts=len(model_prompts),
             total_outputs=total_outputs,
@@ -211,15 +295,6 @@ def main() -> None:
         if args.progress_json_path:
             print(f"Progress JSON:          {args.progress_json_path}")
         print("=" * 72)
-
-        llm = LLM(
-            model=args.pretrain,
-            tensor_parallel_size=args.tp_size,
-            trust_remote_code=True,
-            seed=args.seed,
-            max_num_seqs=args.max_num_seqs,
-            enable_prefix_caching=args.enable_prefix_caching,
-        )
 
         sampling_params = SamplingParams(
             max_tokens=args.max_new_tokens,

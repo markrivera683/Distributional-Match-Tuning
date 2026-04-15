@@ -17,7 +17,7 @@ REPO_URL_DEFAULT="https://github.com/markrivera683/Distributional-Match-Tuning.g
 REPO_COMMIT_DEFAULT="0a9b59b933d04441485a4aa8f74c9bd65af5ac23"
 PYTHON_VERSION_DEFAULT="3.12.12"
 
-STUDENT_TORCH_INDEX_URL_DEFAULT="https://download.pytorch.org/whl/cu124"
+STUDENT_TORCH_INDEX_URL_DEFAULT=""
 STUDENT_TRANSFORMERS_REF_DEFAULT="db9f18c370c92e971172e69bc9a88854947d9fc5"
 STUDENT_FLASH_ATTN_VERSION_DEFAULT="2.8.3"
 
@@ -217,7 +217,7 @@ create_venv() {
   mkdir -p "$(dirname "$venv_path")"
   log "Creating virtualenv at $venv_path"
   rm -rf "$venv_path"
-  "$UV_BIN" venv --python "$PYTHON_VERSION" "$venv_path"
+  "$UV_BIN" venv --seed --python "$PYTHON_VERSION" "$venv_path"
   python_bin="$venv_path/bin/python"
   [[ -x "$python_bin" ]] || die "Virtualenv creation failed for $venv_path"
   "$python_bin" -m pip install --upgrade pip setuptools==82.0.1 wheel==0.46.3
@@ -225,8 +225,12 @@ create_venv() {
 
 install_student_torch_stack() {
   log "Installing student PyTorch CUDA 12.4 stack into $STUDENT_VENV"
+  local torch_args=()
+  if [[ -n "$STUDENT_TORCH_INDEX_URL" ]]; then
+    torch_args+=(--extra-index-url "$STUDENT_TORCH_INDEX_URL")
+  fi
   "$STUDENT_PYTHON_BIN" -m pip install \
-    --index-url "$STUDENT_TORCH_INDEX_URL" \
+    "${torch_args[@]}" \
     "torch==2.5.1" \
     "torchvision==0.20.1" \
     "torchaudio==2.5.1"
@@ -357,11 +361,16 @@ install_teacher_torch_stack() {
 install_teacher_core_python_packages() {
   log "Installing teacher vLLM stack into $TEACHER_VENV"
   "$TEACHER_PYTHON_BIN" -m pip install \
-    "huggingface_hub==${TEACHER_HF_HUB_VERSION}" \
-    "transformers==${TEACHER_TRANSFORMERS_VERSION}" \
+    "vllm==${TEACHER_VLLM_VERSION}" \
     "flashinfer-python==${TEACHER_FLASHINFER_VERSION}" \
-    "tqdm==4.67.3" \
-    "vllm==${TEACHER_VLLM_VERSION}"
+    "tqdm==4.67.3"
+  "$TEACHER_PYTHON_BIN" -m pip install \
+    "huggingface_hub==${TEACHER_HF_HUB_VERSION}"
+  if [[ -n "${TEACHER_TRANSFORMERS_VERSION}" ]]; then
+    log "Upgrading teacher transformers to ${TEACHER_TRANSFORMERS_VERSION}"
+    "$TEACHER_PYTHON_BIN" -m pip install --no-deps \
+      "transformers==${TEACHER_TRANSFORMERS_VERSION}"
+  fi
 }
 
 verify_teacher_env() {

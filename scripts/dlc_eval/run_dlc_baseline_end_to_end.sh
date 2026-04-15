@@ -97,6 +97,8 @@ main() {
   RECREATE_ENVS=1 \
   REPLACE_DST_REPO="${REPLACE_DST_REPO}" \
   INSTALL_APT_DEPS="${INSTALL_APT_DEPS}" \
+  STUDENT_TORCH_INDEX_URL="${STUDENT_TORCH_INDEX_URL:-}" \
+  STUDENT_FLASH_ATTN_WHEEL="${STUDENT_FLASH_ATTN_WHEEL:-}" \
   bash "${MIGRATE_SCRIPT}"
 
   local eval_script="${DST_REPO}/scripts/dlc_eval/dlc_baseline_eval.sh"
@@ -111,8 +113,9 @@ main() {
   local eval_exit_code=0
   REPO_ROOT="${DST_REPO}" \
   RUN_DIR="${RUN_DIR}" \
+  MODEL_PATH=/mnt/data/teacher_model/models/qwen3.5-0.8b \
   CURRENT_PROGRESS_POINTER="${CURRENT_PROGRESS_POINTER}" \
-  bash "${eval_script}" || eval_exit_code=$?
+  bash "${DST_REPO}/scripts/supplement_2rounds/baseline.sh" || eval_exit_code=$?
 
   log "Step 3/3: sync outputs back to ${OUTPUTS3_ROOT}"
   if [[ -d "${RUN_DIR}" ]]; then

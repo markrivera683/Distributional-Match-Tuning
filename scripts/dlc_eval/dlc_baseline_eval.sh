@@ -99,7 +99,44 @@ import tempfile
 from datetime import datetime, timezone
 
 path, status, phase, message, extra_json = sys.argv[1:6]
-extra = json.loads(extra_json)
+
+def parse_extra_json(raw):
+    raw = (raw or "").strip()
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        decoder = json.JSONDecoder()
+        idx = 0
+        parsed_parts = []
+        while idx < len(raw):
+            while idx < len(raw) and raw[idx].isspace():
+                idx += 1
+            if idx >= len(raw):
+                break
+            try:
+                part, end = decoder.raw_decode(raw, idx)
+            except json.JSONDecodeError:
+                # Keep pipeline alive even if shell-side payload has trailing junk.
+                return {}
+            parsed_parts.append(part)
+            idx = end
+
+        if not parsed_parts:
+            return {}
+        if len(parsed_parts) == 1:
+            parsed = parsed_parts[0]
+        else:
+            parsed = {}
+            for part in parsed_parts:
+                if isinstance(part, dict):
+                    parsed.update(part)
+    if isinstance(parsed, dict):
+        return parsed
+    return {}
+
+extra = parse_extra_json(extra_json)
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

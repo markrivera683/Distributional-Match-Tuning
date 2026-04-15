@@ -172,6 +172,8 @@ recreate_envs() {
   REPO_DIR="$DST_REPO" \
   REPO_SYNC_MODE="$REPO_SYNC_MODE_FOR_ENV" \
   INSTALL_APT_DEPS="$INSTALL_APT_DEPS" \
+  STUDENT_TORCH_INDEX_URL="${STUDENT_TORCH_INDEX_URL:-}" \
+  STUDENT_FLASH_ATTN_WHEEL="${STUDENT_FLASH_ATTN_WHEEL:-/mnt/data/ebft-teacher-distribution/flash_attn-2.8.3+cu124torch2.5-cp312-cp312-linux_x86_64.whl}" \
   bash "$recreate_script"
 }
 
