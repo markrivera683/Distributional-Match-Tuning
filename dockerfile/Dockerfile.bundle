@@ -1,0 +1,60 @@
+# syntax=docker/dockerfile:1.4
+#
+# Build this bundled image from the repository root so code + virtualenvs are included:
+#   DOCKER_BUILDKIT=1 docker build \
+#     --build-context teacher_cache_bundle=/root/outputs/teacher_cache_shared \
+#     -f dockerfile/Dockerfile.bundle \
+#     -t distribution-match-ema:bundle \
+#     .
+#
+# The named build context `teacher_cache_bundle` must point at the local teacher cache
+# directory that you want baked into the image.
+
+FROM nvcr.io/nvidia/pytorch:25.02-py3
+
+ARG REPO_ROOT=/root/code/Distributional-Matching-Tuning
+ENV REPO_ROOT=${REPO_ROOT} \
+    CONTAINER_WORKDIR=${REPO_ROOT}
+
+WORKDIR /app
+
+RUN set -eux && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+      gosu \
+      sudo \
+      tzdata \
+      openssh-client \
+      build-essential \
+      git \
+      python3-dev \
+      python3-pip \
+      libopenexr-dev \
+      libxi-dev \
+      libglfw3-dev \
+      libglew-dev \
+      libomp-dev \
+      libxinerama-dev \
+      libxcursor-dev \
+      gdb && \
+    rm -rf /var/lib/apt/lists/* && \
+    gosu nobody true
+
+COPY dockerfile/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod a+x /app/docker-entrypoint.sh
+
+COPY . ${REPO_ROOT}
+COPY --from=teacher_cache_bundle . /root/outputs/teacher_cache_shared
+
+RUN set -eux && \
+    test -d "${REPO_ROOT}/.venv" && \
+    test -d "${REPO_ROOT}/.teacherVenv" && \
+    test -d /root/outputs/teacher_cache_shared && \
+    mkdir -p /root/code /root/outputs && \
+    ln -sfn "${REPO_ROOT}/.venv" /root/code/.venv && \
+    ln -sfn "${REPO_ROOT}/.teacherVenv" /root/code/.teacherVenv && \
+    ln -sfn /root/outputs/teacher_cache_shared /root/teacher_cache_shared
+
+WORKDIR /root/code/Distributional-Matching-Tuning
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["bash"]

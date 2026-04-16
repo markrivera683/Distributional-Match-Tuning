@@ -40,6 +40,7 @@ WORKER_NODE="${WORKER_NODE:-}"
 WORKER_NODE_IP="${WORKER_NODE_IP:-}"
 SSH_USER="${SSH_USER:-}"
 SSH_OPTS="${SSH_OPTS:-}"
+WORKER_SSH_HOST="${WORKER_SSH_HOST:-}"
 POST_EVAL_HEAD_CUDA_VISIBLE_DEVICES="${POST_EVAL_HEAD_CUDA_VISIBLE_DEVICES:-${STUDENT_CUDA_VISIBLE_DEVICES}}"
 POST_EVAL_WORKER_CUDA_VISIBLE_DEVICES="${POST_EVAL_WORKER_CUDA_VISIBLE_DEVICES:-${STUDENT_CUDA_VISIBLE_DEVICES}}"
 
@@ -60,12 +61,28 @@ export PYTHONUNBUFFERED=1
 resolve_host_ip() {
   local host="$1"
   local ip=""
-  ip="$(getent ahostsv4 "${host}" | awk 'NR==1 {print $1}')"
-  if [[ -z "${ip}" ]]; then
-    echo "[ERROR] failed to resolve IPv4 for host: ${host}"
-    exit 1
+  local waited=0
+  local resolve_wait_seconds="${HOST_RESOLVE_WAIT_SECONDS:-60}"
+  local resolve_retry_seconds="${HOST_RESOLVE_RETRY_SECONDS:-2}"
+
+  if [[ "${host}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+    echo "${host}"
+    return 0
   fi
-  echo "${ip}"
+
+  while true; do
+    ip="$(getent ahostsv4 "${host}" | awk 'NR==1 {print $1}')"
+    if [[ -n "${ip}" ]]; then
+      echo "${ip}"
+      return 0
+    fi
+    if (( waited >= resolve_wait_seconds )); then
+      echo "[ERROR] failed to resolve IPv4 for host: ${host}"
+      exit 1
+    fi
+    sleep "${resolve_retry_seconds}"
+    waited=$((waited + resolve_retry_seconds))
+  done
 }
 
 if [[ ! -x "${STUDENT_PYTHON_BIN}" ]]; then
@@ -108,10 +125,11 @@ if (( POST_EVAL_NNODES > 1 )); then
   if [[ -z "${WORKER_NODE_IP}" ]]; then
     WORKER_NODE_IP="$(resolve_host_ip "${WORKER_NODE}")"
   fi
+  WORKER_SSH_HOST="${WORKER_SSH_HOST:-${WORKER_NODE_IP}}"
   if [[ -n "${SSH_USER}" ]]; then
-    WORKER_SSH_TARGET="${SSH_USER}@${WORKER_NODE}"
+    WORKER_SSH_TARGET="${SSH_USER}@${WORKER_SSH_HOST}"
   else
-    WORKER_SSH_TARGET="${WORKER_NODE}"
+    WORKER_SSH_TARGET="${WORKER_SSH_HOST}"
   fi
 fi
 

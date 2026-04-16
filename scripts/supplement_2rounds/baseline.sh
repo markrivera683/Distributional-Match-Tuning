@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# G2 two-round post-eval via vLLM: 16k first pass, 32k retry on incorrect prompts.
+# baseline0.8B two-round post-eval via vLLM: 16k first pass, 32k retry on incorrect prompts.
+# Literal TP=8 baseline experiment aligned with G2 execution mode.
 # Usage:
-#   bash scripts/supplement_2rounds/G2.sh /mnt/data/teacher_model/models/qwen3.5-0.8b
-#   RUN_DIR=/mnt/data/teacher_model/models/qwen3.5-0.8b bash scripts/supplement_2rounds/baseline.sh
+#   bash scripts/supplement_2rounds/baseline.sh /mnt/data/ebft-teacher-distribution/outputs_baseline_16k
+#   RUN_DIR=/mnt/data/ebft-teacher-distribution/outputs_baseline_16k bash scripts/supplement_2rounds/baseline.sh
+#   MODEL_PATH=/path/to/checkpoint RUN_DIR=/mnt/data/ebft-teacher-distribution/outputs_baseline_16k bash scripts/supplement_2rounds/baseline.sh
 set -euo pipefail
 
 REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
+DEFAULT_OUTPUT_DIR="/mnt/data/ebft-teacher-distribution/outputs_baseline_16k"
+DEFAULT_MODEL_PATH="/mnt/data/teacher_model/models/Qwen3.5-0.8B"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 
 TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
@@ -15,21 +19,18 @@ ANALYSIS_VENV="${ANALYSIS_VENV:-${REPO_ROOT}/.venv}"
 ANALYSIS_PYTHON_BIN="${ANALYSIS_PYTHON_BIN:-${ANALYSIS_VENV}/bin/python}"
 PROGRESS_HELPER="${PROGRESS_HELPER:-${REPO_ROOT}/scripts/supplement/vllm_generate_progress.py}"
 
-RUN_DIR="${RUN_DIR:-${1:-}}"
-if [[ -z "${RUN_DIR}" ]]; then
-  echo "Usage: RUN_DIR=/path/to/run bash scripts/supplement_2rounds/baseline.sh"
-  echo "   or: bash scripts/supplement_2rounds/baseline.sh /path/to/run"
-  exit 1
-fi
-
-MODEL_PATH="${MODEL_PATH:-${RUN_DIR}/model}"
-EVAL_TAG="${EVAL_TAG:-2rounds_vllm}"
 SCRIPT_NAME="$(basename "$0" .sh)"
 TS="${TS:-$(date +%m%d_%H%M)}"
+RUN_DIR="${RUN_DIR:-${1:-${DEFAULT_OUTPUT_DIR}}}"
+MODEL_PATH="${MODEL_PATH:-${DEFAULT_MODEL_PATH}}"
+
+EVAL_TAG="${EVAL_TAG:-2rounds_vllm}"
 
 MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
 IFS=',' read -r -a _VISIBLE_GPUS <<< "${MODEL_CUDA_VISIBLE_DEVICES}"
-VLLM_TP_SIZE="${VLLM_TP_SIZE:-${#_VISIBLE_GPUS[@]}}"
+VISIBLE_GPU_COUNT="${#_VISIBLE_GPUS[@]}"
+VLLM_TP_SIZE="${VLLM_TP_SIZE:-8}"
+VLLM_GPU_MEMORY_UTILIZATION="${VLLM_GPU_MEMORY_UTILIZATION:-}"
 POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
 POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-512}"
 FIRST_PASS_MAX_NEW_TOKENS="${FIRST_PASS_MAX_NEW_TOKENS:-16384}"
@@ -72,12 +73,17 @@ export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
 for _bin in "${TEACHER_PYTHON_BIN}" "${ANALYSIS_PYTHON_BIN}"; do
   [[ -x "${_bin}" ]] || { echo "[ERROR] Not executable: ${_bin}"; exit 1; }
 done
-[[ -d "${RUN_DIR}" ]] || { echo "[ERROR] RUN_DIR not found: ${RUN_DIR}"; exit 1; }
 [[ -e "${MODEL_PATH}" ]] || { echo "[ERROR] MODEL_PATH not found: ${MODEL_PATH}"; exit 1; }
 [[ -e "${EVAL_DATA}" ]] || { echo "[ERROR] EVAL_DATA not found: ${EVAL_DATA}"; exit 1; }
 [[ -f "${PROGRESS_HELPER}" ]] || { echo "[ERROR] PROGRESS_HELPER not found: ${PROGRESS_HELPER}"; exit 1; }
+(( VLLM_TP_SIZE >= 1 )) || { echo "[ERROR] VLLM_TP_SIZE must be >= 1, got: ${VLLM_TP_SIZE}"; exit 1; }
+(( VLLM_TP_SIZE <= VISIBLE_GPU_COUNT )) || {
+  echo "[ERROR] VLLM_TP_SIZE=${VLLM_TP_SIZE} exceeds visible GPU count=${VISIBLE_GPU_COUNT}"
+  echo "        MODEL_CUDA_VISIBLE_DEVICES=${MODEL_CUDA_VISIBLE_DEVICES}"
+  exit 1
+}
 
-mkdir -p "${LOG_DIR}"
+mkdir -p "${RUN_DIR}" "${LOG_DIR}"
 exec > >(tee -a "${SCRIPT_LOG_PATH}") 2>&1
 cd "${REPO_ROOT}"
 
@@ -108,6 +114,7 @@ run_vllm_generation() {
   )
   [[ -n "${INPUT_TEMPLATE}" ]] && vllm_cmd+=(--input_template "${INPUT_TEMPLATE}")
   [[ "${VLLM_ENABLE_PREFIX_CACHING}" == "true" ]] && vllm_cmd+=(--enable_prefix_caching)
+  [[ -n "${VLLM_GPU_MEMORY_UTILIZATION}" ]] && vllm_cmd+=(--gpu_memory_utilization "${VLLM_GPU_MEMORY_UTILIZATION}")
 
   CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES}" \
   "${vllm_cmd[@]}" 2>&1 | tee "${log_path}"
@@ -199,8 +206,9 @@ with open(op,"w") as f: json.dump(out,f,indent=2,ensure_ascii=False); f.write("\
 PY
 }
 
-echo "========== G2 Two-Round vLLM Eval =========="
+echo "========== baseline0.8B Two-Round vLLM Eval =========="
 echo "RUN_DIR:                      ${RUN_DIR}"
+echo "LOG_DIR:                      ${LOG_DIR}"
 echo "MODEL_PATH:                   ${MODEL_PATH}"
 echo "EVAL_DATA:                    ${EVAL_DATA}"
 echo "FIRST_PASS_MAX_NEW_TOKENS:    ${FIRST_PASS_MAX_NEW_TOKENS}"
@@ -209,7 +217,8 @@ echo "MODEL_CUDA_VISIBLE_DEVICES:   ${MODEL_CUDA_VISIBLE_DEVICES}"
 echo "VLLM_TP_SIZE:                 ${VLLM_TP_SIZE}"
 echo "VLLM_MAX_NUM_SEQS:            ${VLLM_MAX_NUM_SEQS}"
 echo "POST_EVAL_MAX_SAMPLES:        ${POST_EVAL_MAX_SAMPLES}"
-echo "============================================="
+echo "==============================================="
+echo "[control] Literal baseline experiment: single vLLM process with TP=${VLLM_TP_SIZE}."
 
 echo ""
 echo "===== Stage 1: Full eval at ${FIRST_PASS_MAX_NEW_TOKENS} tokens ====="
@@ -241,6 +250,8 @@ echo "===== Building final merged report ====="
 
 echo ""
 echo "========== Done =========="
+echo "Output folder:      ${RUN_DIR}"
+echo "Log dir:            ${LOG_DIR}"
 echo "First pass report:  ${FIRST_PASS_ANALYSIS_REPORT_PATH}"
 echo "Retry report:       ${SECOND_PASS_ANALYSIS_REPORT_PATH}"
 echo "Final report:       ${FINAL_ANALYSIS_REPORT_PATH}"

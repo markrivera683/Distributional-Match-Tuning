@@ -22,12 +22,28 @@ count_csv_items() {
 resolve_host_ip() {
   local host="$1"
   local ip=""
-  ip="$(getent ahostsv4 "${host}" | awk 'NR==1 {print $1}')"
-  if [[ -z "${ip}" ]]; then
-    echo "[ERROR] failed to resolve IPv4 for host: ${host}" >&2
-    exit 1
+  local waited=0
+  local resolve_wait_seconds="${HOST_RESOLVE_WAIT_SECONDS:-60}"
+  local resolve_retry_seconds="${HOST_RESOLVE_RETRY_SECONDS:-2}"
+
+  if [[ "${host}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+    echo "${host}"
+    return 0
   fi
-  echo "${ip}"
+
+  while true; do
+    ip="$(getent ahostsv4 "${host}" | awk 'NR==1 {print $1}')"
+    if [[ -n "${ip}" ]]; then
+      echo "${ip}"
+      return 0
+    fi
+    if (( waited >= resolve_wait_seconds )); then
+      echo "[ERROR] failed to resolve IPv4 for host: ${host}" >&2
+      exit 1
+    fi
+    sleep "${resolve_retry_seconds}"
+    waited=$((waited + resolve_retry_seconds))
+  done
 }
 
 require_cmd() {
@@ -55,6 +71,9 @@ build_teacher_urls() {
 
 HEAD_NODE="${HEAD_NODE:-}"
 WORKER_NODE="${WORKER_NODE:-}"
+HEAD_NODE_IP="${HEAD_NODE_IP:-}"
+WORKER_NODE_IP="${WORKER_NODE_IP:-}"
+WORKER_SSH_HOST="${WORKER_SSH_HOST:-}"
 SSH_USER="${SSH_USER:-}"
 SSH_OPTS="${SSH_OPTS:-}"
 
@@ -65,14 +84,15 @@ if [[ -z "${HEAD_NODE}" || -z "${WORKER_NODE}" ]]; then
   exit 1
 fi
 
-if [[ -n "${SSH_USER}" ]]; then
-  WORKER_SSH_TARGET="${SSH_USER}@${WORKER_NODE}"
-else
-  WORKER_SSH_TARGET="${WORKER_NODE}"
-fi
-
 HEAD_NODE_IP="${HEAD_NODE_IP:-$(resolve_host_ip "${HEAD_NODE}")}"
 WORKER_NODE_IP="${WORKER_NODE_IP:-$(resolve_host_ip "${WORKER_NODE}")}"
+WORKER_SSH_HOST="${WORKER_SSH_HOST:-${WORKER_NODE_IP}}"
+
+if [[ -n "${SSH_USER}" ]]; then
+  WORKER_SSH_TARGET="${SSH_USER}@${WORKER_SSH_HOST}"
+else
+  WORKER_SSH_TARGET="${WORKER_SSH_HOST}"
+fi
 
 CURRENT_HOSTNAME="$(hostname)"
 CURRENT_HOSTNAME_SHORT="$(hostname -s 2>/dev/null || hostname)"
@@ -333,7 +353,7 @@ archive_shared_teacher_cache() {
 write_run_metadata() {
   local vars=(
     RUN_NAME OUTPUT_ROOT RUN_DIR SAVE_PATH TB_DIR TEACHER_LOG_DIR RAY_LOG_DIR PID_DIR JOB_SCRIPT JOB_LOG
-    HEAD_NODE HEAD_NODE_IP WORKER_NODE WORKER_NODE_IP SSH_USER SSH_OPTS
+    HEAD_NODE HEAD_NODE_IP WORKER_NODE WORKER_NODE_IP WORKER_SSH_HOST SSH_USER SSH_OPTS
     HEAD_TEACHER_CUDA_VISIBLE_DEVICES WORKER_TEACHER_CUDA_VISIBLE_DEVICES
     HEAD_STUDENT_CUDA_VISIBLE_DEVICES WORKER_STUDENT_CUDA_VISIBLE_DEVICES
     ACTOR_GPUS CRITIC_GPUS REF_GPUS REWARD_GPUS
