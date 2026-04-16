@@ -15,21 +15,23 @@ ANALYSIS_VENV="${ANALYSIS_VENV:-${REPO_ROOT}/.venv}"
 ANALYSIS_PYTHON_BIN="${ANALYSIS_PYTHON_BIN:-${ANALYSIS_VENV}/bin/python}"
 PROGRESS_HELPER="${PROGRESS_HELPER:-${REPO_ROOT}/scripts/supplement/vllm_generate_progress.py}"
 
+SCRIPT_NAME="$(basename "$0" .sh)"
+TS="${TS:-$(date +%m%d_%H%M)}"
 RUN_DIR="${RUN_DIR:-${1:-}}"
 if [[ -z "${RUN_DIR}" ]]; then
   echo "Usage: RUN_DIR=/path/to/run bash scripts/supplement_2rounds/baseline.sh"
   echo "   or: bash scripts/supplement_2rounds/baseline.sh /path/to/run"
   exit 1
 fi
-
 MODEL_PATH="${MODEL_PATH:-${RUN_DIR}/model}"
+
 EVAL_TAG="${EVAL_TAG:-2rounds_vllm}"
-SCRIPT_NAME="$(basename "$0" .sh)"
-TS="${TS:-$(date +%m%d_%H%M)}"
 
 MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
 IFS=',' read -r -a _VISIBLE_GPUS <<< "${MODEL_CUDA_VISIBLE_DEVICES}"
-VLLM_TP_SIZE="${VLLM_TP_SIZE:-${#_VISIBLE_GPUS[@]}}"
+VISIBLE_GPU_COUNT="${#_VISIBLE_GPUS[@]}"
+VLLM_TP_SIZE="${VLLM_TP_SIZE:-${VISIBLE_GPU_COUNT}}"
+VLLM_GPU_MEMORY_UTILIZATION="${VLLM_GPU_MEMORY_UTILIZATION:-}"
 POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
 POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-512}"
 FIRST_PASS_MAX_NEW_TOKENS="${FIRST_PASS_MAX_NEW_TOKENS:-16384}"
@@ -76,6 +78,12 @@ done
 [[ -e "${MODEL_PATH}" ]] || { echo "[ERROR] MODEL_PATH not found: ${MODEL_PATH}"; exit 1; }
 [[ -e "${EVAL_DATA}" ]] || { echo "[ERROR] EVAL_DATA not found: ${EVAL_DATA}"; exit 1; }
 [[ -f "${PROGRESS_HELPER}" ]] || { echo "[ERROR] PROGRESS_HELPER not found: ${PROGRESS_HELPER}"; exit 1; }
+(( VLLM_TP_SIZE >= 1 )) || { echo "[ERROR] VLLM_TP_SIZE must be >= 1, got: ${VLLM_TP_SIZE}"; exit 1; }
+(( VLLM_TP_SIZE <= VISIBLE_GPU_COUNT )) || {
+  echo "[ERROR] VLLM_TP_SIZE=${VLLM_TP_SIZE} exceeds visible GPU count=${VISIBLE_GPU_COUNT}"
+  echo "        MODEL_CUDA_VISIBLE_DEVICES=${MODEL_CUDA_VISIBLE_DEVICES}"
+  exit 1
+}
 
 mkdir -p "${LOG_DIR}"
 exec > >(tee -a "${SCRIPT_LOG_PATH}") 2>&1
@@ -108,6 +116,7 @@ run_vllm_generation() {
   )
   [[ -n "${INPUT_TEMPLATE}" ]] && vllm_cmd+=(--input_template "${INPUT_TEMPLATE}")
   [[ "${VLLM_ENABLE_PREFIX_CACHING}" == "true" ]] && vllm_cmd+=(--enable_prefix_caching)
+  [[ -n "${VLLM_GPU_MEMORY_UTILIZATION}" ]] && vllm_cmd+=(--gpu_memory_utilization "${VLLM_GPU_MEMORY_UTILIZATION}")
 
   CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES}" \
   "${vllm_cmd[@]}" 2>&1 | tee "${log_path}"
