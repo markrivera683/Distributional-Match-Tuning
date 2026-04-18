@@ -388,14 +388,20 @@ second_records = second_report.get("records", [])
 
 final_records = list(first_records)
 retry_indices = set()
-for record in second_records:
+second_by_idx = {}
+
+def get_source_idx(record):
     source_idx = record.get("source_idx")
     if source_idx is None:
         source_idx = record.get("idx")
+    return None if source_idx is None else int(source_idx)
+
+for record in second_records:
+    source_idx = get_source_idx(record)
     if source_idx is None:
         continue
-    source_idx = int(source_idx)
     retry_indices.add(source_idx)
+    second_by_idx[source_idx] = record
     if 0 <= source_idx < len(final_records):
         merged = dict(final_records[source_idx])
         merged["first_pass"] = dict(final_records[source_idx])
@@ -435,6 +441,34 @@ for idx in retry_indices:
     elif final_correct is not True:
         still_incorrect_after_retry += 1
 
+oracle_union_evaluated = 0
+oracle_both_correct = 0
+oracle_stage1_only_correct = 0
+oracle_stage2_only_correct = 0
+for idx in range(len(final_records)):
+    first_correct = first_records[idx].get("is_correct") if idx < len(first_records) else None
+    second_record = second_by_idx.get(idx)
+    second_correct = None if second_record is None else second_record.get("is_correct")
+    if first_correct is not None or second_correct is not None:
+        oracle_union_evaluated += 1
+    if first_correct is True and second_correct is True:
+        oracle_both_correct += 1
+    elif first_correct is True and second_correct is not True:
+        oracle_stage1_only_correct += 1
+    elif second_correct is True and first_correct is not True:
+        oracle_stage2_only_correct += 1
+
+oracle_union_correct = (
+    oracle_both_correct
+    + oracle_stage1_only_correct
+    + oracle_stage2_only_correct
+)
+oracle_union_accuracy_pct = (
+    round((oracle_union_correct / oracle_union_evaluated) * 100.0, 2)
+    if oracle_union_evaluated
+    else 0.0
+)
+
 summary = {
     "total_predictions": len(final_records),
     "matched": matched,
@@ -450,6 +484,12 @@ summary = {
     "second_pass_retry_count": retry_metadata.get("retry_count", len(retry_indices)),
     "retry_improved_to_correct": improved_after_retry,
     "retry_still_incorrect": still_incorrect_after_retry,
+    "oracle_union_evaluated": oracle_union_evaluated,
+    "oracle_union_correct": oracle_union_correct,
+    "oracle_union_accuracy_pct": oracle_union_accuracy_pct,
+    "oracle_both_correct": oracle_both_correct,
+    "oracle_stage1_only_correct": oracle_stage1_only_correct,
+    "oracle_stage2_only_correct": oracle_stage2_only_correct,
 }
 
 final_report = {
@@ -464,6 +504,26 @@ os.makedirs(os.path.dirname(os.path.abspath(final_report_path)), exist_ok=True)
 with open(final_report_path, "w", encoding="utf-8") as f:
     json.dump(final_report, f, indent=2, ensure_ascii=False)
     f.write("\n")
+
+print("======================================================================")
+print("  Final Merged Report")
+print("======================================================================")
+print(f"  Total predictions:      {summary['total_predictions']}")
+print(f"  Evaluated:              {summary['evaluated']}")
+print(f"  Correct:                {summary['correct']}")
+print(f"  Accuracy:               {summary['accuracy_pct']}%")
+print(f"  First pass correct:     {summary['first_pass_correct']}")
+print(f"  First pass accuracy:    {summary['first_pass_accuracy_pct']}%")
+print(f"  Second pass retry cnt:  {summary['second_pass_retry_count']}")
+print(f"  Retry improved correct: {summary['retry_improved_to_correct']}")
+print(f"  Retry still incorrect:  {summary['retry_still_incorrect']}")
+print(f"  Oracle union eval:      {summary['oracle_union_evaluated']}")
+print(f"  Oracle union correct:   {summary['oracle_union_correct']}")
+print(f"  Oracle union accuracy:  {summary['oracle_union_accuracy_pct']}%")
+print(f"  Oracle both correct:    {summary['oracle_both_correct']}")
+print(f"  Oracle stage1 only:     {summary['oracle_stage1_only_correct']}")
+print(f"  Oracle stage2 only:     {summary['oracle_stage2_only_correct']}")
+print("")
 PY
 }
 

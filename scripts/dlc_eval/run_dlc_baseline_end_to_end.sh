@@ -113,9 +113,8 @@ main() {
   local eval_exit_code=0
   REPO_ROOT="${DST_REPO}" \
   RUN_DIR="${RUN_DIR}" \
-  MODEL_PATH=/mnt/data/teacher_model/models/qwen3.5-0.8b \
   CURRENT_PROGRESS_POINTER="${CURRENT_PROGRESS_POINTER}" \
-  bash "${DST_REPO}/scripts/supplement_2rounds/baseline.sh" || eval_exit_code=$?
+  bash "${eval_script}" || eval_exit_code=$?
 
   log "Step 3/3: sync outputs back to ${OUTPUTS3_ROOT}"
   if [[ -d "${RUN_DIR}" ]]; then
