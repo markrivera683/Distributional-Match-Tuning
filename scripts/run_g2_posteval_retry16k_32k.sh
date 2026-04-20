@@ -9,7 +9,7 @@
 # Wait for the current g3train tmux to finish before running this.
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/root/outputs/g2_online_teacher_8gpu_0411_0652/model}"
 EVAL_DATA="${EVAL_DATA:-/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl}"
 

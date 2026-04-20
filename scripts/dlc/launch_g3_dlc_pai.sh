@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SNAPSHOT_REPO_DIR="${SNAPSHOT_REPO_DIR:-/mnt/data/ebft-teacher-distribution/code/Distributional-Matching-Tuning-g3-dlc}"
+SNAPSHOT_REPO_DIR="${SNAPSHOT_REPO_DIR:-/mnt/data/ebft-teacher-distribution/code/Distributional-Match-Tuning-g3-dlc}"
 SOURCE_TEACHER_CACHE_DIR="${SOURCE_TEACHER_CACHE_DIR:-/mnt/data/ebft-teacher-distribution/teacher_cache_shared_g3_dlc}"
-TARGET_REPO_DIR="${TARGET_REPO_DIR:-/root/code/Distributional-Matching-Tuning}"
+TARGET_REPO_DIR="${TARGET_REPO_DIR:-/root/code/Distributional-Match-Tuning}"
 TARGET_TEACHER_CACHE_DIR="${TARGET_TEACHER_CACHE_DIR:-/root/outputs/teacher_cache_shared}"
 BOOTSTRAP="${BOOTSTRAP:-${SNAPSHOT_REPO_DIR}/scripts/dlc/bootstrap_g3_dlc_runtime.sh}"
 SYNC_DIR_BASE="${SYNC_DIR_BASE:-/mnt/data/ebft-teacher-distribution/dlc_g3_sync}"

@@ -21,7 +21,7 @@ Default behavior:
      or
        /mnt/data/ebft-teacher-distribution/code/Distributional-Match-Tuning-eval-dlc
      to:
-       ~/data/Distributional-Matching-Tuning
+       ~/data/Distributional-Match-Tuning
 
   2. Copy outputs from:
        /mnt/data/ebft-teacher-distribution/outputs2
@@ -29,12 +29,12 @@ Default behavior:
        ~/outputs
 
   3. Recreate:
-       ~/data/Distributional-Matching-Tuning/.venv
-       ~/data/Distributional-Matching-Tuning/.teacherVenv
+       ~/data/Distributional-Match-Tuning/.venv
+       ~/data/Distributional-Match-Tuning/.teacherVenv
 
 Optional environment variables:
   SRC_REPO                 Explicit source repo path
-  DST_REPO                 Defaults to ~/data/Distributional-Matching-Tuning
+  DST_REPO                 Defaults to ~/data/Distributional-Match-Tuning
   SRC_OUTPUTS              Defaults to /mnt/data/ebft-teacher-distribution/outputs2
   DST_OUTPUTS              Defaults to ~/outputs
   COPY_REPO                1 (default) or 0
@@ -59,7 +59,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 SRC_REPO="${SRC_REPO:-}"
-DST_REPO="${DST_REPO:-${HOME}/data/Distributional-Matching-Tuning}"
+DST_REPO="${DST_REPO:-${HOME}/data/Distributional-Match-Tuning}"
 SRC_OUTPUTS="${SRC_OUTPUTS:-/mnt/data/ebft-teacher-distribution/outputs2}"
 DST_OUTPUTS="${DST_OUTPUTS:-${HOME}/outputs}"
 COPY_REPO="${COPY_REPO:-1}"

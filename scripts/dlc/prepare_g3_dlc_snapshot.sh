@@ -21,7 +21,7 @@ Usage:
 
 What this script does:
 1. Copy the current repo working tree into:
-     /mnt/data/ebft-teacher-distribution/code/Distributional-Matching-Tuning-g3-dlc
+     /mnt/data/ebft-teacher-distribution/code/Distributional-Match-Tuning-g3-dlc
    while excluding .venv/.teacherVenv and other local caches.
 2. Snapshot the exact current student/teacher Python environments into
    .dlc_snapshot/*.txt and .dlc_snapshot/*.env under that copied repo.
@@ -30,7 +30,7 @@ What this script does:
 
 Environment variables:
   SRC_REPO_DIR           Defaults to the current repo root
-  DST_REPO_DIR           Defaults to /mnt/data/ebft-teacher-distribution/code/Distributional-Matching-Tuning-g3-dlc
+  DST_REPO_DIR           Defaults to /mnt/data/ebft-teacher-distribution/code/Distributional-Match-Tuning-g3-dlc
   SRC_STUDENT_VENV       Defaults to $SRC_REPO_DIR/.venv
   SRC_TEACHER_VENV       Defaults to $SRC_REPO_DIR/.teacherVenv
   SRC_TEACHER_CACHE_DIR  Defaults to /root/outputs/teacher_cache_shared
@@ -50,7 +50,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_SRC_REPO_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 SRC_REPO_DIR="${SRC_REPO_DIR:-$DEFAULT_SRC_REPO_DIR}"
-DST_REPO_DIR="${DST_REPO_DIR:-/mnt/data/ebft-teacher-distribution/code/Distributional-Matching-Tuning-g3-dlc}"
+DST_REPO_DIR="${DST_REPO_DIR:-/mnt/data/ebft-teacher-distribution/code/Distributional-Match-Tuning-g3-dlc}"
 SRC_STUDENT_VENV="${SRC_STUDENT_VENV:-$SRC_REPO_DIR/.venv}"
 SRC_TEACHER_VENV="${SRC_TEACHER_VENV:-$SRC_REPO_DIR/.teacherVenv}"
 SRC_TEACHER_CACHE_DIR="${SRC_TEACHER_CACHE_DIR:-/root/outputs/teacher_cache_shared}"

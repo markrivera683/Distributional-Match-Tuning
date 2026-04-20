@@ -20,15 +20,15 @@ Usage:
   bash scripts/dlc/bootstrap_g3_dlc_runtime.sh [command ...]
 
 What this script does:
-1. Sync the code snapshot from /mnt/data into /root/code/Distributional-Matching-Tuning
+1. Sync the code snapshot from /mnt/data into /root/code/Distributional-Match-Tuning
 2. Copy the teacher cache snapshot from /mnt/data into /root/outputs/teacher_cache_shared
 3. Recreate .venv and .teacherVenv from the exact freeze snapshots
 4. Export REPO_ROOT / STUDENT_VENV / TEACHER_VENV / TEACHER_CACHE_DIR
 5. Optionally execute the provided command inside the prepared repo
 
 Environment variables:
-  SNAPSHOT_REPO_DIR         Defaults to /mnt/data/ebft-teacher-distribution/code/Distributional-Matching-Tuning-g3-dlc
-  TARGET_REPO_DIR           Defaults to /root/code/Distributional-Matching-Tuning
+  SNAPSHOT_REPO_DIR         Defaults to /mnt/data/ebft-teacher-distribution/code/Distributional-Match-Tuning-g3-dlc
+  TARGET_REPO_DIR           Defaults to /root/code/Distributional-Match-Tuning
   SNAPSHOT_DIR              Defaults to $SNAPSHOT_REPO_DIR/.dlc_snapshot
   SOURCE_TEACHER_CACHE_DIR  Defaults to the snapshot manifest value or
                             /mnt/data/ebft-teacher-distribution/teacher_cache_shared_g3_dlc
@@ -50,7 +50,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_SNAPSHOT_REPO_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 SNAPSHOT_REPO_DIR="${SNAPSHOT_REPO_DIR:-$DEFAULT_SNAPSHOT_REPO_DIR}"
-TARGET_REPO_DIR="${TARGET_REPO_DIR:-/root/code/Distributional-Matching-Tuning}"
+TARGET_REPO_DIR="${TARGET_REPO_DIR:-/root/code/Distributional-Match-Tuning}"
 SNAPSHOT_DIR="${SNAPSHOT_DIR:-$SNAPSHOT_REPO_DIR/.dlc_snapshot}"
 SYNC_REPO="${SYNC_REPO:-1}"
 SYNC_TEACHER_CACHE="${SYNC_TEACHER_CACHE:-1}"

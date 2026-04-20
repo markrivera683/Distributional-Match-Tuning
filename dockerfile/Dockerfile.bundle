@@ -12,7 +12,7 @@
 
 FROM nvcr.io/nvidia/pytorch:25.02-py3
 
-ARG REPO_ROOT=/root/code/Distributional-Matching-Tuning
+ARG REPO_ROOT=/root/code/Distributional-Match-Tuning
 ENV REPO_ROOT=${REPO_ROOT} \
     CONTAINER_WORKDIR=${REPO_ROOT}
 
@@ -55,6 +55,6 @@ RUN set -eux && \
     ln -sfn "${REPO_ROOT}/.teacherVenv" /root/code/.teacherVenv && \
     ln -sfn /root/outputs/teacher_cache_shared /root/teacher_cache_shared
 
-WORKDIR /root/code/Distributional-Matching-Tuning
+WORKDIR /root/code/Distributional-Match-Tuning
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["bash"]

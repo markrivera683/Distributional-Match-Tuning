@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Standalone G3 post-eval rerun for an existing checkpoint.
 # Usage:
-RUN_DIR=/root/outputs/g3_rebase_0407_1338
+#   RUN_DIR=/root/outputs/g3_rebase_0407_1338 bash scripts/supplement/G3_eval.sh
 #   bash scripts/supplement/G3_eval.sh /root/outputs/g3_rebase_0407_1338
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"

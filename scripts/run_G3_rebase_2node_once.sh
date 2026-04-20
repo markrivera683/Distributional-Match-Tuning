@@ -138,7 +138,7 @@ TEACHER_MAX_BATCHED_TOKENS="${TEACHER_MAX_BATCHED_TOKENS:-16384}"
 TEACHER_GPU_MEMORY_UTIL="${TEACHER_GPU_MEMORY_UTIL:-0.96}"
 TEACHER_WAIT_SECONDS="${TEACHER_WAIT_SECONDS:-3600}"
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/teacher_model/models/Qwen3.5-0.8B}"
 DEFAULT_TRAIN_DATA="/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"

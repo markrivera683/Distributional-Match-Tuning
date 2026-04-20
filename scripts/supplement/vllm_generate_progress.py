@@ -334,6 +334,7 @@ def ensure_qwen35_preprocessor_files(model_path: str) -> None:
     # Common local base-model paths used in this repo.
     candidates = [
         "/mnt/data/teacher_model/models/Qwen3.5-0.8B",
+        "/mnt/data/teacher_model/models/qwen3.5-0.8b",
         "/mnt/data/models/Qwen3.5-0.8B",
         "/mnt/data/models/qwen3.5-0.8b",
     ]

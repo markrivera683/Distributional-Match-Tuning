@@ -1,16 +1,12 @@
 #!/usr/bin/env bash
-# baseline0.8B two-round post-eval via vLLM: 16k first pass, 32k retry on incorrect prompts.
-# Literal TP=8 baseline experiment aligned with G2 execution mode.
+# G2 two-round post-eval via vLLM: 16k first pass, 32k retry on incorrect prompts.
 # Usage:
-#   bash scripts/supplement_2rounds/baseline.sh /mnt/data/ebft-teacher-distribution/outputs_baseline_16k
-#   RUN_DIR=/mnt/data/ebft-teacher-distribution/outputs_baseline_16k bash scripts/supplement_2rounds/baseline.sh
-#   MODEL_PATH=/path/to/checkpoint RUN_DIR=/mnt/data/ebft-teacher-distribution/outputs_baseline_16k bash scripts/supplement_2rounds/baseline.sh
+#   bash scripts/supplement_2rounds/G2.sh /mnt/data/teacher_model/models/Qwen3.5-0.8B
+#   RUN_DIR=/mnt/data/teacher_model/models/Qwen3.5-0.8B bash scripts/supplement_2rounds/baseline.sh
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
-DEFAULT_OUTPUT_DIR="/mnt/data/ebft-teacher-distribution/outputs_baseline_16k"
-DEFAULT_MODEL_PATH="/mnt/data/teacher_model/models/Qwen3.5-0.8B"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 
 TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
@@ -21,15 +17,20 @@ PROGRESS_HELPER="${PROGRESS_HELPER:-${REPO_ROOT}/scripts/supplement/vllm_generat
 
 SCRIPT_NAME="$(basename "$0" .sh)"
 TS="${TS:-$(date +%m%d_%H%M)}"
-RUN_DIR="${RUN_DIR:-${1:-${DEFAULT_OUTPUT_DIR}}}"
-MODEL_PATH="${MODEL_PATH:-${DEFAULT_MODEL_PATH}}"
+RUN_DIR="${RUN_DIR:-${1:-}}"
+if [[ -z "${RUN_DIR}" ]]; then
+  echo "Usage: RUN_DIR=/path/to/run bash scripts/supplement_2rounds/baseline.sh"
+  echo "   or: bash scripts/supplement_2rounds/baseline.sh /path/to/run"
+  exit 1
+fi
+MODEL_PATH="${MODEL_PATH:-${RUN_DIR}/model}"
 
 EVAL_TAG="${EVAL_TAG:-2rounds_vllm}"
 
 MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
 IFS=',' read -r -a _VISIBLE_GPUS <<< "${MODEL_CUDA_VISIBLE_DEVICES}"
 VISIBLE_GPU_COUNT="${#_VISIBLE_GPUS[@]}"
-VLLM_TP_SIZE="${VLLM_TP_SIZE:-8}"
+VLLM_TP_SIZE="${VLLM_TP_SIZE:-${VISIBLE_GPU_COUNT}}"
 VLLM_GPU_MEMORY_UTILIZATION="${VLLM_GPU_MEMORY_UTILIZATION:-}"
 POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
 POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-512}"
@@ -73,6 +74,7 @@ export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
 for _bin in "${TEACHER_PYTHON_BIN}" "${ANALYSIS_PYTHON_BIN}"; do
   [[ -x "${_bin}" ]] || { echo "[ERROR] Not executable: ${_bin}"; exit 1; }
 done
+[[ -d "${RUN_DIR}" ]] || { echo "[ERROR] RUN_DIR not found: ${RUN_DIR}"; exit 1; }
 [[ -e "${MODEL_PATH}" ]] || { echo "[ERROR] MODEL_PATH not found: ${MODEL_PATH}"; exit 1; }
 [[ -e "${EVAL_DATA}" ]] || { echo "[ERROR] EVAL_DATA not found: ${EVAL_DATA}"; exit 1; }
 [[ -f "${PROGRESS_HELPER}" ]] || { echo "[ERROR] PROGRESS_HELPER not found: ${PROGRESS_HELPER}"; exit 1; }
@@ -83,7 +85,7 @@ done
   exit 1
 }
 
-mkdir -p "${RUN_DIR}" "${LOG_DIR}"
+mkdir -p "${LOG_DIR}"
 exec > >(tee -a "${SCRIPT_LOG_PATH}") 2>&1
 cd "${REPO_ROOT}"
 
@@ -177,38 +179,143 @@ PY
 build_final_report() {
   python3 - "$1" "$2" "$3" "$4" <<'PY'
 import json, os, sys
+
 fp, sp, mp, op = sys.argv[1:5]
-fr = json.load(open(fp)); sr = json.load(open(sp)); rm = json.load(open(mp))
-frc = fr.get("records",[]); src = sr.get("records",[]); final = list(frc); ri = set()
+with open(fp, "r", encoding="utf-8") as f:
+    fr = json.load(f)
+with open(sp, "r", encoding="utf-8") as f:
+    sr = json.load(f)
+with open(mp, "r", encoding="utf-8") as f:
+    rm = json.load(f)
+
+frc = fr.get("records", [])
+src = sr.get("records", [])
+final = list(frc)
+ri = set()
+second_by_idx = {}
+
+def get_source_idx(record):
+    value = record.get("source_idx")
+    if value is None:
+        value = record.get("idx")
+    return None if value is None else int(value)
+
 for r in src:
-    si = r.get("source_idx") or r.get("idx")
-    if si is None: continue
-    si = int(si); ri.add(si)
-    if 0<=si<len(final):
-        m=dict(final[si]); m["first_pass"]=dict(final[si]); m["second_pass"]=dict(r)
-        m["prompt"]=r.get("prompt",m.get("prompt",""))
-        m["model_output"]=r.get("model_output",m.get("model_output",""))
-        m["gold_answer"]=r.get("gold_answer",m.get("gold_answer"))
-        m["is_correct"]=r.get("is_correct"); m["category"]=r.get("category")
-        m["detail"]=r.get("detail"); m["retry_applied"]=True; final[si]=m
-for i,r in enumerate(final): r.setdefault("retry_applied",i in ri)
-ev=[r for r in final if r.get("is_correct") is not None]
-cor=sum(1 for r in ev if r.get("is_correct"))
-acc=round(cor/len(ev)*100,2) if ev else 0.0
-imp=sum(1 for i in ri if 0<=i<len(frc) and 0<=i<len(final) and frc[i].get("is_correct") is not True and final[i].get("is_correct") is True)
-stw=sum(1 for i in ri if 0<=i<len(final) and final[i].get("is_correct") is not True)
-out={"summary":{"total_predictions":len(final),"evaluated":len(ev),"correct":cor,"accuracy_pct":acc,
-     "first_pass_correct":fr.get("summary",{}).get("correct"),"first_pass_accuracy_pct":fr.get("summary",{}).get("accuracy_pct"),
-     "second_pass_retry_count":rm.get("retry_count",len(ri)),"retry_improved_to_correct":imp,"retry_still_incorrect":stw},
-     "first_pass_report_path":fp,"second_pass_report_path":sp,"retry_metadata":rm,"records":final}
-os.makedirs(os.path.dirname(os.path.abspath(op)),exist_ok=True)
-with open(op,"w") as f: json.dump(out,f,indent=2,ensure_ascii=False); f.write("\n")
+    si = get_source_idx(r)
+    if si is None:
+        continue
+    ri.add(si)
+    second_by_idx[si] = r
+    if 0 <= si < len(final):
+        m = dict(final[si])
+        m["first_pass"] = dict(final[si])
+        m["second_pass"] = dict(r)
+        m["prompt"] = r.get("prompt", m.get("prompt", ""))
+        m["model_output"] = r.get("model_output", m.get("model_output", ""))
+        m["gold_answer"] = r.get("gold_answer", m.get("gold_answer"))
+        m["is_correct"] = r.get("is_correct")
+        m["category"] = r.get("category")
+        m["detail"] = r.get("detail")
+        m["retry_applied"] = True
+        final[si] = m
+
+for i, r in enumerate(final):
+    r.setdefault("retry_applied", i in ri)
+
+ev = [r for r in final if r.get("is_correct") is not None]
+cor = sum(1 for r in ev if r.get("is_correct"))
+acc = round(cor / len(ev) * 100, 2) if ev else 0.0
+imp = sum(
+    1
+    for i in ri
+    if 0 <= i < len(frc)
+    and 0 <= i < len(final)
+    and frc[i].get("is_correct") is not True
+    and final[i].get("is_correct") is True
+)
+stw = sum(1 for i in ri if 0 <= i < len(final) and final[i].get("is_correct") is not True)
+
+oracle_union_evaluated = 0
+oracle_both_correct = 0
+oracle_stage1_only_correct = 0
+oracle_stage2_only_correct = 0
+for i in range(len(final)):
+    first_correct = frc[i].get("is_correct") if i < len(frc) else None
+    second_record = second_by_idx.get(i)
+    second_correct = None if second_record is None else second_record.get("is_correct")
+    if first_correct is not None or second_correct is not None:
+        oracle_union_evaluated += 1
+    if first_correct is True and second_correct is True:
+        oracle_both_correct += 1
+    elif first_correct is True and second_correct is not True:
+        oracle_stage1_only_correct += 1
+    elif second_correct is True and first_correct is not True:
+        oracle_stage2_only_correct += 1
+
+oracle_union_correct = (
+    oracle_both_correct
+    + oracle_stage1_only_correct
+    + oracle_stage2_only_correct
+)
+oracle_union_accuracy_pct = (
+    round(oracle_union_correct / oracle_union_evaluated * 100, 2)
+    if oracle_union_evaluated
+    else 0.0
+)
+
+summary = {
+    "total_predictions": len(final),
+    "evaluated": len(ev),
+    "correct": cor,
+    "accuracy_pct": acc,
+    "first_pass_correct": fr.get("summary", {}).get("correct"),
+    "first_pass_accuracy_pct": fr.get("summary", {}).get("accuracy_pct"),
+    "second_pass_retry_count": rm.get("retry_count", len(ri)),
+    "retry_improved_to_correct": imp,
+    "retry_still_incorrect": stw,
+    "oracle_union_evaluated": oracle_union_evaluated,
+    "oracle_union_correct": oracle_union_correct,
+    "oracle_union_accuracy_pct": oracle_union_accuracy_pct,
+    "oracle_both_correct": oracle_both_correct,
+    "oracle_stage1_only_correct": oracle_stage1_only_correct,
+    "oracle_stage2_only_correct": oracle_stage2_only_correct,
+}
+out = {
+    "summary": summary,
+    "first_pass_report_path": fp,
+    "second_pass_report_path": sp,
+    "retry_metadata": rm,
+    "records": final,
+}
+os.makedirs(os.path.dirname(os.path.abspath(op)), exist_ok=True)
+with open(op, "w", encoding="utf-8") as f:
+    json.dump(out, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+
+print("======================================================================")
+print("  Final Merged Report")
+print("======================================================================")
+print(f"  Total predictions:      {summary['total_predictions']}")
+print(f"  Evaluated:              {summary['evaluated']}")
+print(f"  Correct:                {summary['correct']}")
+print(f"  Accuracy:               {summary['accuracy_pct']}%")
+print(f"  First pass correct:     {summary['first_pass_correct']}")
+print(f"  First pass accuracy:    {summary['first_pass_accuracy_pct']}%")
+print(f"  Second pass retry cnt:  {summary['second_pass_retry_count']}")
+print(f"  Retry improved correct: {summary['retry_improved_to_correct']}")
+print(f"  Retry still incorrect:  {summary['retry_still_incorrect']}")
+print(f"  Oracle union eval:      {summary['oracle_union_evaluated']}")
+print(f"  Oracle union correct:   {summary['oracle_union_correct']}")
+print(f"  Oracle union accuracy:  {summary['oracle_union_accuracy_pct']}%")
+print(f"  Oracle both correct:    {summary['oracle_both_correct']}")
+print(f"  Oracle stage1 only:     {summary['oracle_stage1_only_correct']}")
+print(f"  Oracle stage2 only:     {summary['oracle_stage2_only_correct']}")
+print("")
 PY
 }
 
-echo "========== baseline0.8B Two-Round vLLM Eval =========="
+echo "========== G2 Two-Round vLLM Eval =========="
 echo "RUN_DIR:                      ${RUN_DIR}"
-echo "LOG_DIR:                      ${LOG_DIR}"
 echo "MODEL_PATH:                   ${MODEL_PATH}"
 echo "EVAL_DATA:                    ${EVAL_DATA}"
 echo "FIRST_PASS_MAX_NEW_TOKENS:    ${FIRST_PASS_MAX_NEW_TOKENS}"
@@ -217,8 +324,7 @@ echo "MODEL_CUDA_VISIBLE_DEVICES:   ${MODEL_CUDA_VISIBLE_DEVICES}"
 echo "VLLM_TP_SIZE:                 ${VLLM_TP_SIZE}"
 echo "VLLM_MAX_NUM_SEQS:            ${VLLM_MAX_NUM_SEQS}"
 echo "POST_EVAL_MAX_SAMPLES:        ${POST_EVAL_MAX_SAMPLES}"
-echo "==============================================="
-echo "[control] Literal baseline experiment: single vLLM process with TP=${VLLM_TP_SIZE}."
+echo "============================================="
 
 echo ""
 echo "===== Stage 1: Full eval at ${FIRST_PASS_MAX_NEW_TOKENS} tokens ====="
@@ -250,8 +356,6 @@ echo "===== Building final merged report ====="
 
 echo ""
 echo "========== Done =========="
-echo "Output folder:      ${RUN_DIR}"
-echo "Log dir:            ${LOG_DIR}"
 echo "First pass report:  ${FIRST_PASS_ANALYSIS_REPORT_PATH}"
 echo "Retry report:       ${SECOND_PASS_ANALYSIS_REPORT_PATH}"
 echo "Final report:       ${FINAL_ANALYSIS_REPORT_PATH}"
