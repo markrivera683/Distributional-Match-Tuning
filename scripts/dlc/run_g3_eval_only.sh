@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+RUN_DIR="${EVAL_RUN_DIR:-${RUN_DIR:-}}"
+if [[ -z "${RUN_DIR}" ]]; then
+  echo "[ERROR] Please set EVAL_RUN_DIR or RUN_DIR for eval-only rerun." >&2
+  exit 1
+fi
+
+export RUN_DIR
+export EVAL_TAG="${EVAL_TAG:-post_train_retry}"
+export POST_EVAL_NNODES="${POST_EVAL_NNODES:-2}"
+export POST_EVAL_NPROC="${POST_EVAL_NPROC:-16}"
+export POST_EVAL_NPROC_PER_NODE="${POST_EVAL_NPROC_PER_NODE:-8}"
+export POST_EVAL_HEAD_CUDA_VISIBLE_DEVICES="${POST_EVAL_HEAD_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
+export POST_EVAL_WORKER_CUDA_VISIBLE_DEVICES="${POST_EVAL_WORKER_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
+export POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
+export POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-512}"
+export POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-8192}"
+export POST_EVAL_TEMPERATURE="${POST_EVAL_TEMPERATURE:-0.6}"
+export POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
+export POST_EVAL_MICRO_BATCH_SIZE="${POST_EVAL_MICRO_BATCH_SIZE:-64}"
+export POST_EVAL_MASTER_PORT="${POST_EVAL_MASTER_PORT:-29501}"
+export LOG_DIR="${LOG_DIR:-${RUN_DIR}/supplement_logs}"
+
+cd "${REPO_ROOT:-/root/code/Distributional-Matching-Tuning}"
+exec bash scripts/supplement/G3_eval.sh "${RUN_DIR}"

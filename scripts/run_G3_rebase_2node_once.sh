@@ -207,6 +207,9 @@ ARCHIVE_OUTPUTS_AFTER_RUN="${ARCHIVE_OUTPUTS_AFTER_RUN:-true}"
 ARCHIVE_OUTPUT_ROOT="${ARCHIVE_OUTPUT_ROOT:-/mnt/data/ebft-teacher-distribution/outputs_g3_0.99}"
 ARCHIVE_SHARED_TEACHER_CACHE_MODE="${ARCHIVE_SHARED_TEACHER_CACHE_MODE:-copy}"
 ARCHIVE_SHARED_TEACHER_CACHE_DIR="${ARCHIVE_SHARED_TEACHER_CACHE_DIR:-${TEACHER_CACHE_DIR}}"
+ARCHIVE_VERIFY_WEIGHTS="${ARCHIVE_VERIFY_WEIGHTS:-true}"
+REQUIRE_FINAL_MODEL_WEIGHTS="${REQUIRE_FINAL_MODEL_WEIGHTS:-true}"
+WARN_ON_MISSING_INTERMEDIATE_WEIGHTS="${WARN_ON_MISSING_INTERMEDIATE_WEIGHTS:-true}"
 
 FEATURE_ADAPTER_RANK="${FEATURE_ADAPTER_RANK:-64}"
 FEATURE_ADAPTER_DROPOUT="${FEATURE_ADAPTER_DROPOUT:-0.0}"
@@ -227,7 +230,7 @@ RAY_DASHBOARD_PORT="${RAY_DASHBOARD_PORT:-8265}"
 RAY_WAIT_SECONDS="${RAY_WAIT_SECONDS:-120}"
 
 RUN_NAME="${RUN_NAME:-g3_rebase_2node_once_$(date +%m%d_%H%M)}"
-OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-${ARCHIVE_OUTPUT_ROOT}}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
 SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
@@ -279,13 +282,154 @@ if [[ ! -e "${EVAL_DATA}" ]]; then
   exit 1
 fi
 
+count_direct_weight_files() {
+  local dir="$1"
+  local count=0
+  local file
+
+  if [[ ! -d "${dir}" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  shopt -s nullglob
+  local files=(
+    "${dir}"/*.safetensors
+    "${dir}"/*.bin
+    "${dir}"/*.pt
+  )
+  shopt -u nullglob
+
+  for file in "${files[@]}"; do
+    [[ -f "${file}" ]] || continue
+    count=$((count + 1))
+  done
+
+  printf '%s\n' "${count}"
+}
+
+verify_final_model_weights() {
+  local save_dir="$1"
+  local count
+
+  count="$(count_direct_weight_files "${save_dir}")"
+  if (( count == 0 )); then
+    echo "[ERROR] final model weights missing under SAVE_PATH: ${save_dir}"
+    echo "[ERROR] expected at least one direct weight file (*.safetensors, *.bin, *.pt)."
+    return 1
+  fi
+
+  echo "[verify] final model weight files: ${count} in ${save_dir}"
+}
+
+warn_on_missing_intermediate_weights() {
+  local ckpt_root="$1"
+  local ckpt_dir
+  local count
+
+  if [[ ! -d "${ckpt_root}" ]]; then
+    return 0
+  fi
+
+  shopt -s nullglob
+  local ckpt_dirs=( "${ckpt_root}"/global_step*_hf )
+  shopt -u nullglob
+
+  for ckpt_dir in "${ckpt_dirs[@]}"; do
+    [[ -d "${ckpt_dir}" ]] || continue
+    count="$(count_direct_weight_files "${ckpt_dir}")"
+    if (( count == 0 )); then
+      echo "[warn] no direct weight files found in intermediate checkpoint: ${ckpt_dir}"
+    fi
+  done
+}
+
+build_weight_manifest() {
+  local root="$1"
+  local output_path="$2"
+  local file
+  local rel
+  local size
+  local entries=()
+
+  if [[ ! -d "${root}" ]]; then
+    : > "${output_path}"
+    return 0
+  fi
+
+  shopt -s nullglob globstar
+  local files=(
+    "${root}"/**/*.safetensors
+    "${root}"/**/*.bin
+    "${root}"/**/*.pt
+  )
+  shopt -u nullglob globstar
+
+  for file in "${files[@]}"; do
+    [[ -f "${file}" ]] || continue
+    rel="${file#${root}/}"
+    size="$(stat -c '%s' "${file}" 2>/dev/null || wc -c < "${file}")"
+    entries+=( "${rel}"$'\t'"${size}" )
+  done
+
+  if (( ${#entries[@]} == 0 )); then
+    : > "${output_path}"
+  else
+    printf '%s\n' "${entries[@]}" | LC_ALL=C sort > "${output_path}"
+  fi
+}
+
+copy_directory_tree() {
+  local src="$1"
+  local dst="$2"
+
+  mkdir -p "${dst}"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a "${src}/" "${dst}/"
+  else
+    (
+      cd "${src}" && tar -cf - .
+    ) | (
+      cd "${dst}" && tar -xf -
+    )
+  fi
+}
+
 archive_run_outputs() {
   local target_root="$1"
   local target_dir
   local old_run_dir="${RUN_DIR}"
+  local run_dir_real=""
+  local target_root_real=""
+  local verify_rc=0
+  local copy_rc=0
+  local manifest_dir=""
+  local source_manifest=""
+  local target_manifest=""
 
   if [[ ! -d "${RUN_DIR}" ]]; then
     echo "[archive] skip: RUN_DIR not found: ${RUN_DIR}"
+    return 0
+  fi
+
+  if (( ${TRAIN_RC:-1} == 0 )) && [[ "${REQUIRE_FINAL_MODEL_WEIGHTS}" == "true" ]]; then
+    if ! verify_final_model_weights "${SAVE_PATH}"; then
+      return 1
+    fi
+  fi
+
+  if [[ "${WARN_ON_MISSING_INTERMEDIATE_WEIGHTS}" == "true" ]]; then
+    warn_on_missing_intermediate_weights "${SAVE_PATH}/ckpt"
+  fi
+
+  run_dir_real="$(readlink -f "${RUN_DIR}")"
+  target_root_real="$(readlink -f "${target_root}")"
+  if [[ -n "${run_dir_real}" && -n "${target_root_real}" && "${run_dir_real}" == "${target_root_real}/"* ]]; then
+    echo "[archive] skip copy: RUN_DIR already lives under archive root: ${RUN_DIR}"
+    write_run_metadata
+    if (( ${TRAIN_RC:-1} == 0 )) && [[ "${REQUIRE_FINAL_MODEL_WEIGHTS}" == "true" ]]; then
+      verify_final_model_weights "${SAVE_PATH}" || return 1
+    fi
     return 0
   fi
 
@@ -295,8 +439,34 @@ archive_run_outputs() {
     target_dir="${target_dir}_$(date +%m%d_%H%M%S)"
   fi
 
-  echo "[archive] moving run outputs to: ${target_dir}"
-  mv "${RUN_DIR}" "${target_dir}"
+  if [[ "${ARCHIVE_VERIFY_WEIGHTS}" == "true" ]]; then
+    manifest_dir="$(mktemp -d)"
+    source_manifest="${manifest_dir}/source_weights.tsv"
+    target_manifest="${manifest_dir}/target_weights.tsv"
+    build_weight_manifest "${RUN_DIR}" "${source_manifest}"
+  fi
+
+  echo "[archive] copying run outputs to: ${target_dir}"
+  copy_directory_tree "${RUN_DIR}" "${target_dir}" || copy_rc=$?
+  if (( copy_rc != 0 )); then
+    echo "[ERROR] copying run outputs failed with exit code ${copy_rc}"
+    return "${copy_rc}"
+  fi
+
+  if [[ "${ARCHIVE_VERIFY_WEIGHTS}" == "true" ]]; then
+    build_weight_manifest "${target_dir}" "${target_manifest}"
+    if ! cmp -s "${source_manifest}" "${target_manifest}"; then
+      echo "[ERROR] archived weight manifest mismatch between local run dir and archive target."
+      echo "[ERROR] local:  ${RUN_DIR}"
+      echo "[ERROR] target: ${target_dir}"
+      diff -u "${source_manifest}" "${target_manifest}" || true
+      verify_rc=1
+    else
+      echo "[verify] archived weight manifest matches local run dir."
+    fi
+    rm -rf "${manifest_dir}"
+  fi
+
   RUN_DIR="${target_dir}"
   SAVE_PATH="${RUN_DIR}/model"
   TB_DIR="${RUN_DIR}/tensorboard"
@@ -312,6 +482,12 @@ archive_run_outputs() {
   TRAIN_CONFIG_SUMMARY_PATH="${RUN_DIR}/run_summary.txt"
   LAUNCHER_SNAPSHOT_PATH="${RUN_DIR}/launcher_snapshot.sh"
   write_run_metadata
+
+  if (( ${TRAIN_RC:-1} == 0 )) && [[ "${REQUIRE_FINAL_MODEL_WEIGHTS}" == "true" ]]; then
+    verify_final_model_weights "${SAVE_PATH}" || verify_rc=1
+  fi
+
+  return "${verify_rc}"
 }
 
 archive_shared_teacher_cache() {
@@ -375,6 +551,7 @@ write_run_metadata() {
     POST_EVAL_MAX_SAMPLES POST_EVAL_PROMPT_MAX_LEN POST_EVAL_MAX_NEW_TOKENS POST_EVAL_TEMPERATURE
     POST_EVAL_TOP_P POST_EVAL_MICRO_BATCH_SIZE POST_EVAL_MASTER_PORT POST_EVAL_TAG POST_EVAL_LOG_DIR
     ARCHIVE_OUTPUTS_AFTER_RUN ARCHIVE_OUTPUT_ROOT ARCHIVE_SHARED_TEACHER_CACHE_MODE ARCHIVE_SHARED_TEACHER_CACHE_DIR
+    ARCHIVE_VERIFY_WEIGHTS REQUIRE_FINAL_MODEL_WEIGHTS WARN_ON_MISSING_INTERMEDIATE_WEIGHTS
   )
 
   mkdir -p "${RUN_DIR}"
@@ -814,6 +991,17 @@ if (( TRAIN_RC != 0 )); then
   echo "[ERROR] training failed with exit code ${TRAIN_RC}"
 fi
 
+if (( TRAIN_RC == 0 )) && [[ "${REQUIRE_FINAL_MODEL_WEIGHTS}" == "true" ]]; then
+  if ! verify_final_model_weights "${SAVE_PATH}"; then
+    TRAIN_RC=86
+    echo "[ERROR] training finished but final model weights are missing; skip eval/archive validation failure."
+  fi
+fi
+
+if [[ "${WARN_ON_MISSING_INTERMEDIATE_WEIGHTS}" == "true" ]]; then
+  warn_on_missing_intermediate_weights "${SAVE_PATH}/ckpt"
+fi
+
 echo "[post-run] stopping teacher/ray processes before eval/archive ..."
 stop_runtime_processes
 
@@ -823,6 +1011,8 @@ if [[ "${EVAL_AFTER_TRAIN}" == "true" ]]; then
     set +e
     EVAL_DATA="${EVAL_DATA}" \
     REPO_ROOT="${REPO_ROOT}" \
+    RUN_DIR="${RUN_DIR}" \
+    SAVE_PATH="${SAVE_PATH}" \
     STUDENT_VENV="${STUDENT_VENV}" \
     STUDENT_PYTHON_BIN="${STUDENT_PYTHON_BIN}" \
     STUDENT_CUDA_VISIBLE_DEVICES="${POST_EVAL_HEAD_CUDA_VISIBLE_DEVICES}" \
@@ -830,6 +1020,7 @@ if [[ "${EVAL_AFTER_TRAIN}" == "true" ]]; then
     HEAD_NODE_IP="${HEAD_NODE_IP}" \
     WORKER_NODE="${WORKER_NODE}" \
     WORKER_NODE_IP="${WORKER_NODE_IP}" \
+    WORKER_SSH_HOST="${WORKER_SSH_HOST:-}" \
     SSH_USER="${SSH_USER}" \
     SSH_OPTS="${SSH_OPTS}" \
     POST_EVAL_NNODES="${POST_EVAL_NNODES}" \

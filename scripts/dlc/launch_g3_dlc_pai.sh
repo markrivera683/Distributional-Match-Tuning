@@ -30,6 +30,31 @@ if [[ -z "${RANK:-}" ]]; then
   exit 1
 fi
 
+write_sync_text() {
+  local dest="$1"
+  local value="$2"
+  local tmp_file
+  tmp_file="$(mktemp)"
+  printf '%s\n' "${value}" > "${tmp_file}"
+  cp -f "${tmp_file}" "${dest}"
+  rm -f "${tmp_file}"
+}
+
+copy_sync_file() {
+  local src="$1"
+  local dest="$2"
+  cp -f "${src}" "${dest}"
+}
+
+touch_sync_file() {
+  local dest="$1"
+  local tmp_file
+  tmp_file="$(mktemp)"
+  : > "${tmp_file}"
+  cp -f "${tmp_file}" "${dest}"
+  rm -f "${tmp_file}"
+}
+
 env \
   SNAPSHOT_REPO_DIR="${SNAPSHOT_REPO_DIR}" \
   SOURCE_TEACHER_CACHE_DIR="${SOURCE_TEACHER_CACHE_DIR}" \
@@ -65,8 +90,8 @@ if [[ -z "${HOST_IP}" ]]; then
   exit 1
 fi
 
-printf '%s\n' "${HOST_NAME}" > "${SYNC_DIR}/node_${RANK}.host"
-printf '%s\n' "${HOST_IP}" > "${SYNC_DIR}/node_${RANK}.ip"
+write_sync_text "${SYNC_DIR}/node_${RANK}.host" "${HOST_NAME}"
+write_sync_text "${SYNC_DIR}/node_${RANK}.ip" "${HOST_IP}"
 
 if [[ "${RANK}" == "0" ]]; then
   rm -f "${SYNC_DIR}/head.pub" "${SYNC_DIR}/worker.ready" "${SYNC_DIR}/done" "${SYNC_DIR}/final.rc"
@@ -74,7 +99,7 @@ if [[ "${RANK}" == "0" ]]; then
   if [[ ! -f /root/.ssh/dlc_id_ed25519 ]]; then
     ssh-keygen -t ed25519 -N "" -f /root/.ssh/dlc_id_ed25519 >/dev/null
   fi
-  cp /root/.ssh/dlc_id_ed25519.pub "${SYNC_DIR}/head.pub"
+  copy_sync_file /root/.ssh/dlc_id_ed25519.pub "${SYNC_DIR}/head.pub"
 
   while [[ ! -f "${SYNC_DIR}/node_1.host" || ! -f "${SYNC_DIR}/node_1.ip" ]]; do
     sleep 2
@@ -87,6 +112,8 @@ if [[ "${RANK}" == "0" ]]; then
   export STUDENT_VENV="${TARGET_REPO_DIR}/.venv"
   export TEACHER_VENV="${TARGET_REPO_DIR}/.teacherVenv"
   export TEACHER_CACHE_DIR="${TARGET_TEACHER_CACHE_DIR}"
+  export ARCHIVE_OUTPUT_ROOT="${ARCHIVE_OUTPUT_ROOT:-/mnt/data/ebft-teacher-distribution/outputs_g3_0.99}"
+  export OUTPUT_ROOT="${OUTPUT_ROOT:-${ARCHIVE_OUTPUT_ROOT}}"
   export HEAD_NODE="$(cat "${SYNC_DIR}/node_0.host")"
   export HEAD_NODE_IP="$(cat "${SYNC_DIR}/node_0.ip")"
   export WORKER_NODE="$(cat "${SYNC_DIR}/node_1.host")"
@@ -99,8 +126,8 @@ if [[ "${RANK}" == "0" ]]; then
   rc=0
   bash "${TRAIN_LAUNCH_SCRIPT}" || rc=$?
 
-  echo "${rc}" > "${SYNC_DIR}/final.rc"
-  touch "${SYNC_DIR}/done"
+  write_sync_text "${SYNC_DIR}/final.rc" "${rc}"
+  touch_sync_file "${SYNC_DIR}/done"
   exit "${rc}"
 fi
 
@@ -109,7 +136,7 @@ while [[ ! -f "${SYNC_DIR}/head.pub" ]]; do
 done
 cat "${SYNC_DIR}/head.pub" >> /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
-touch "${SYNC_DIR}/worker.ready"
+touch_sync_file "${SYNC_DIR}/worker.ready"
 
 while [[ ! -f "${SYNC_DIR}/done" ]]; do
   sleep 30
