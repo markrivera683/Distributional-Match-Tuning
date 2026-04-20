@@ -513,6 +513,24 @@ def fail_fast_on_qwen35_tp_incompatibility(
     )
 
 
+def detect_qwen35_text_only_checkpoint(model_path: str) -> dict[str, Any] | None:
+    """Detect local qwen3_5_text checkpoints that should always use the shim."""
+    config = load_local_model_config(model_path)
+    if config is None:
+        return None
+
+    model_type = str(config.get("model_type") or "")
+    if model_type != "qwen3_5_text":
+        return None
+
+    architectures = [str(arch) for arch in (config.get("architectures") or []) if arch]
+    return {
+        "architectures": architectures,
+        "model_type": model_type,
+        "reason": "local checkpoint config is qwen3_5_text",
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Chunked vLLM generator with progress")
     parser.add_argument("--pretrain", required=True, help="Model path or HF id")
@@ -623,9 +641,12 @@ def main() -> None:
             write_json_atomic(args.progress_json_path, progress_state)
 
         ensure_qwen35_config_registered()
-        qwen35_text_only_shim = fail_fast_on_qwen35_tp_incompatibility(
+        qwen35_text_only_shim = detect_qwen35_text_only_checkpoint(args.pretrain)
+        tp_incompat_text_only_shim = fail_fast_on_qwen35_tp_incompatibility(
             args.pretrain, args.tp_size, enable_text_only_shim=True
         )
+        if tp_incompat_text_only_shim:
+            qwen35_text_only_shim = tp_incompat_text_only_shim
         if qwen35_text_only_shim:
             prepare_qwen35_text_only_shim_env()
             progress_state["compat_mode"] = "qwen35_text_only_shim"
@@ -639,10 +660,13 @@ def main() -> None:
                     f"[compat] detected load path: model_type={qwen35_text_only_shim['model_type']}, "
                     f"architectures={arch_hint}"
                 )
-                print(
-                    f"[compat] visual heads={qwen35_text_only_shim['vision_heads']}, "
-                    f"tp_size={qwen35_text_only_shim['tp_size']}"
-                )
+                if "reason" in qwen35_text_only_shim:
+                    print(f"[compat] reason: {qwen35_text_only_shim['reason']}")
+                if "vision_heads" in qwen35_text_only_shim:
+                    print(
+                        f"[compat] visual heads={qwen35_text_only_shim['vision_heads']}, "
+                        f"tp_size={qwen35_text_only_shim['tp_size']}"
+                    )
         ensure_qwen35_preprocessor_files(args.pretrain)
         llm_kwargs: dict[str, Any] = dict(
             model=args.pretrain,

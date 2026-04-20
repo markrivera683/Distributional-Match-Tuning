@@ -11,7 +11,7 @@ EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"
 STUDENT_PYTHON_BIN="${STUDENT_PYTHON_BIN:-${STUDENT_VENV}/bin/python}"
 
-RUN_DIR="${RUN_DIR:-${1:-}}"
+RUN_DIR="${1:-${RUN_DIR:-}}"
 if [[ -z "${RUN_DIR}" ]]; then
   echo "Usage: RUN_DIR=/path/to/run bash scripts/supplement/G3_eval.sh"
   echo "   or: bash scripts/supplement/G3_eval.sh /path/to/run"
