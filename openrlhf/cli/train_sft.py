@@ -5,12 +5,19 @@ from datetime import datetime
 
 from transformers.trainer import get_scheduler
 
-from datatrove.utils.dataset import DatatroveFolderDataset
+try:
+    from datatrove.utils.dataset import DatatroveFolderDataset
+except ImportError:
+    DatatroveFolderDataset = None
 from openrlhf.datasets import SFTDataset, DatatroveSFTDataset, PromptDataset
 from openrlhf.datasets.utils import blending_datasets
 from openrlhf.models import OriginalActor
 from openrlhf.trainer.sft_trainer import SFTTrainer
 from openrlhf.utils import get_strategy, get_tokenizer
+
+
+def identity_collate(batch):
+    return batch
 
 
 def train(args):
@@ -46,38 +53,84 @@ def train(args):
     # configure optimizer
     optim = strategy.create_optimizer(model, lr=args.learning_rate, betas=args.adam_betas, weight_decay=args.l2)
 
-    # prepare for data and dataset
-    if args.dataset.count("/") > 1:
-        train_data = DatatroveFolderDataset(
-                folder_path=args.dataset,
+    def load_sft_source(dataset_path, dataset_probs, dataset_split, max_samples, split_label):
+        if os.path.isdir(dataset_path):
+            from datasets import DatasetDict, load_from_disk
+
+            hf_local_data = None
+            hf_load_error = None
+            try:
+                hf_local_data = load_from_disk(dataset_path)
+            except Exception as e:
+                hf_load_error = e
+
+            if hf_local_data is not None:
+                if isinstance(hf_local_data, DatasetDict):
+                    if dataset_split in hf_local_data:
+                        data = hf_local_data[dataset_split]
+                    elif "train" in hf_local_data:
+                        strategy.print(
+                            f"[Warning] {split_label} split '{dataset_split}' not found in local DatasetDict at "
+                            f"{dataset_path}; falling back to 'train'."
+                        )
+                        data = hf_local_data["train"]
+                    else:
+                        raise ValueError(
+                            f"Local DatasetDict at {dataset_path} does not contain split '{dataset_split}' "
+                            f"or 'train'. Available splits: {list(hf_local_data.keys())}"
+                        )
+                else:
+                    data = hf_local_data
+
+                data = data.select(range(min(max_samples, len(data))))
+                return "hf", data
+
+            if DatatroveFolderDataset is None:
+                raise RuntimeError(
+                    f"{split_label} directory '{dataset_path}' is not a HuggingFace dataset loadable via "
+                    f"load_from_disk, and datatrove is not installed. Original load_from_disk error: {hf_load_error}"
+                )
+
+            data = DatatroveFolderDataset(
+                folder_path=dataset_path,
                 seq_len=args.max_len,
                 token_size=(2 if tokenizer.vocab_size < 65535 else 4),
                 shuffle=True,
                 seed=args.seed,
-                return_positions=False,      # we don’t need them
+                return_positions=False,
             )
-        train_dataset = DatatroveSFTDataset(
-                    train_data,
-                    tokenizer,
-                    args.max_len,
-                    args.max_samples,
-                    strategy,
-                    pretrain_mode=args.pretrain_mode,
-                )
-                   # args.prompt_max_len,
-                    #     args.generate_max_len,
-                
+            return "datatrove", data
 
-    else:
-        train_data = blending_datasets(
-            args.dataset,
-            args.dataset_probs,
+        data = blending_datasets(
+            dataset_path,
+            dataset_probs,
             strategy,
             args.seed,
-            max_count=args.max_samples,
-            dataset_split=args.dataset_split,
+            max_count=max_samples,
+            dataset_split=dataset_split,
         )
-        train_data = train_data.select(range(min(args.max_samples, len(train_data))))
+        if max_samples and max_samples > 0:
+            data = data.select(range(min(max_samples, len(data))))
+        return "hf", data
+
+    # prepare for data and dataset
+    train_data_kind, train_data = load_sft_source(
+        args.dataset,
+        args.dataset_probs,
+        args.dataset_split,
+        args.max_samples,
+        "dataset",
+    )
+    if train_data_kind == "datatrove":
+        train_dataset = DatatroveSFTDataset(
+            train_data,
+            tokenizer,
+            args.max_len,
+            args.max_samples,
+            strategy,
+            pretrain_mode=args.pretrain_mode,
+        )
+    else:
         train_dataset = SFTDataset(
             train_data,
             tokenizer,
@@ -99,38 +152,28 @@ def train(args):
 
     eval_dataloader = None
     eval_perplexity_dataloader = None
-    if getattr(args, "eval_dataset", None):
-
-
-        if args.dataset.count("/") > 1:
-            eval_data = DatatroveFolderDataset(
-                    folder_path=args.eval_dataset,
-                    seq_len=args.max_len,
-                    token_size=(2 if tokenizer.vocab_size < 65535 else 4),
-                    shuffle=True,
-                    seed=args.seed,
-                    return_positions=False,      # we don’t need them
-                )
+    humaneval_dataloader = None
+    mbpp_dataloader = None
+    multipl_dataloader = None
+    _eval_max = getattr(args, "eval_max_samples", 1)
+    if getattr(args, "eval_dataset", None) and _eval_max != 0:
+        eval_data_kind, eval_data = load_sft_source(
+            args.eval_dataset,
+            None,
+            args.eval_split,
+            args.eval_max_samples,
+            "eval_dataset",
+        )
+        if eval_data_kind == "datatrove":
             eval_perplexity_dataset = DatatroveSFTDataset(
-                        eval_data,
-                        tokenizer,
-                        args.max_len,
-                        args.eval_max_samples,
-                        strategy,
-                        pretrain_mode=args.pretrain_mode,
-                    )
-
-                    # args.prompt_max_len,
-                    #     args.generate_max_len,
-        else:
-            eval_data = blending_datasets(
-                args.eval_dataset,
-                None,  # No probability sampling for eval datasets
+                eval_data,
+                tokenizer,
+                args.max_len,
+                args.eval_max_samples,
                 strategy,
-                dataset_split=args.eval_split,
+                pretrain_mode=args.pretrain_mode,
             )
-            
-            eval_data = eval_data.select(range(min(args.eval_max_samples, len(eval_data))))
+        else:
             eval_perplexity_dataset = SFTDataset(
                 eval_data,
                 tokenizer,
@@ -149,6 +192,158 @@ def train(args):
             True,
             False,
             eval_perplexity_dataset.collate_fn,
+        )
+
+    def load_benchmark_source(dataset_path, dataset_split, max_samples, split_label, config_name=None):
+        from datasets import DatasetDict, load_dataset, load_from_disk
+
+        ext = os.path.splitext(dataset_path)[-1].lower()
+        data = None
+
+        if os.path.isdir(dataset_path):
+            try:
+                data = load_from_disk(dataset_path)
+            except Exception:
+                load_kwargs = {}
+                if config_name:
+                    load_kwargs["name"] = config_name
+                data = load_dataset(dataset_path, **load_kwargs)
+        elif ext in [".json", ".jsonl", ".csv", ".parquet", ".arrow"]:
+            file_type = ext.strip(".")
+            if file_type == "jsonl":
+                file_type = "json"
+            data = load_dataset(file_type, data_files=dataset_path)
+        else:
+            load_kwargs = {}
+            if config_name:
+                load_kwargs["name"] = config_name
+            try:
+                data = load_dataset(dataset_path, split=dataset_split, **load_kwargs)
+            except Exception:
+                data = load_dataset(dataset_path, **load_kwargs)
+
+        if isinstance(data, DatasetDict):
+            if dataset_split in data:
+                data = data[dataset_split]
+            elif "train" in data:
+                strategy.print(
+                    f"[Warning] {split_label} split '{dataset_split}' not found; falling back to 'train'."
+                )
+                data = data["train"]
+            else:
+                data = data[next(iter(data.keys()))]
+
+        if max_samples and max_samples > 0:
+            data = data.select(range(min(max_samples, len(data))))
+        return data
+
+    _eval_down_max = getattr(args, "eval_down_max_samples", 1)
+    if getattr(args, "humaneval_dataset", None) and _eval_down_max != 0:
+        humaneval_data = load_benchmark_source(
+            args.humaneval_dataset,
+            args.humaneval_split,
+            args.eval_down_max_samples,
+            "humaneval_dataset",
+            args.humaneval_config,
+        )
+        humaneval_data = humaneval_data.map(
+            lambda row: {
+                "prompt": row["prompt"],
+                "label": row.get("canonical_solution", ""),
+                "unit_test": row["test"],
+                "entry_point": row.get("entry_point"),
+            }
+        )
+        humaneval_dataloader = strategy.setup_dataloader(
+            humaneval_data,
+            args.eval_down_batch_size,
+            False,
+            False,
+            collate_fn=identity_collate,
+        )
+
+    if getattr(args, "mbpp_dataset", None) and _eval_down_max != 0:
+        mbpp_data = load_benchmark_source(
+            args.mbpp_dataset,
+            args.mbpp_split,
+            args.eval_down_max_samples,
+            "mbpp_dataset",
+            args.mbpp_config,
+        )
+
+        def _normalize_mbpp_row(row):
+            prompt = row.get("prompt") or row.get("text") or ""
+            tests = row.get("test_list") or row.get("unit_tests") or []
+            test_imports = row.get("test_imports") or []
+            test_setup_code = row.get("test_setup_code") or ""
+            helper_parts = []
+            if isinstance(test_imports, list):
+                helper_parts.extend(str(item) for item in test_imports if item)
+            elif test_imports:
+                helper_parts.append(str(test_imports))
+            if test_setup_code:
+                helper_parts.append(str(test_setup_code))
+            helper_code = "\n".join(part.strip("\n") for part in helper_parts if part).strip()
+
+            function_name = None
+            function_signature = None
+            for line in str(row.get("code", "")).splitlines():
+                stripped = line.strip()
+                if stripped.startswith("def "):
+                    function_signature = stripped
+                    function_name = stripped[4:].split("(", 1)[0].strip()
+                    break
+
+            return {
+                "prompt": prompt,
+                "unit_test": tests,
+                "code_context": {
+                    "helper_code": helper_code,
+                    "function_name": function_name,
+                    "function_signature": function_signature,
+                },
+            }
+
+        mbpp_data = mbpp_data.map(_normalize_mbpp_row)
+        mbpp_dataloader = strategy.setup_dataloader(
+            mbpp_data,
+            args.eval_down_batch_size,
+            False,
+            False,
+            collate_fn=identity_collate,
+        )
+
+    if getattr(args, "multipl_dataset", None) and _eval_down_max != 0:
+        multipl_data = load_benchmark_source(
+            args.multipl_dataset,
+            args.multipl_split,
+            args.eval_down_max_samples,
+            "multipl_dataset",
+            args.multipl_config,
+        )
+
+        def _normalize_multipl_row(row):
+            entry_point = None
+            for line in str(row.get("prompt", "")).splitlines():
+                stripped = line.strip()
+                if stripped.startswith("def "):
+                    entry_point = stripped[4:].split("(", 1)[0].strip()
+                    break
+
+            return {
+                "prompt": row.get("prompt", ""),
+                "label": "",
+                "unit_test": row.get("tests", ""),
+                "entry_point": entry_point,
+            }
+
+        multipl_data = multipl_data.map(_normalize_multipl_row)
+        multipl_dataloader = strategy.setup_dataloader(
+            multipl_data,
+            args.eval_down_batch_size,
+            False,
+            False,
+            collate_fn=identity_collate,
         )
 
 
@@ -199,12 +394,18 @@ def train(args):
         top_p=args.top_p,
         max_tokens=args.max_tokens,
         temperature=args.temperature,
+        humaneval_dataloader=humaneval_dataloader,
+        mbpp_dataloader=mbpp_dataloader,
+        multipl_dataloader=multipl_dataloader,
     )
 
-    trainer.fit(args, consumed_samples, num_update_steps_per_epoch)
+    try:
+        trainer.fit(args, consumed_samples, num_update_steps_per_epoch)
 
-    # save model checkpoint after fitting on only rank0
-    strategy.save_model(model, tokenizer, args.save_path)
+        # save model checkpoint after fitting on only rank0
+        strategy.save_model(model, tokenizer, args.save_path)
+    finally:
+        trainer.shutdown()
 
 
 if __name__ == "__main__":
@@ -226,6 +427,7 @@ if __name__ == "__main__":
     parser.add_argument("--micro_train_batch_size", type=int, default=8, help="batch size per GPU")
     parser.add_argument("--train_batch_size", type=int, default=128, help="Global training batch size")
     parser.add_argument("--eval_batch_size", type=int, default=128, help="Global training batch size")
+    parser.add_argument("--eval_down_batch_size", type=int, default=128, help="Global downstream eval batch size")
     parser.add_argument("--max_norm", type=float, default=1.0, help="Gradient clipping")
     parser.add_argument("--gradient_checkpointing", action="store_true", default=False)
     parser.add_argument("--deepcompile", action="store_true", default=False)
@@ -305,8 +507,18 @@ if __name__ == "__main__":
     parser.add_argument("--eval_split", type=str, default="train")
     parser.add_argument("--max_samples", type=int, default=1000000, help="Maximum number of samples to use")
     parser.add_argument("--eval_max_samples", type=int, default=1e8, help="Max number of eval samples")
+    parser.add_argument("--eval_down_max_samples", type=int, default=1e8, help="Max prompts for downstream eval")
     parser.add_argument("--train_split", type=str, default="train", help="train split of the HF dataset")
     parser.add_argument("--multiturn", action="store_true", default=False, help="Use compacted multiturn dataset")
+    parser.add_argument("--humaneval_dataset", type=str, default=None, help="HumanEval dataset name or path")
+    parser.add_argument("--humaneval_config", type=str, default=None, help="Optional HumanEval config name")
+    parser.add_argument("--humaneval_split", type=str, default="test", help="HumanEval split")
+    parser.add_argument("--mbpp_dataset", type=str, default=None, help="MBPP dataset name or path")
+    parser.add_argument("--mbpp_config", type=str, default="sanitized", help="Optional MBPP config name")
+    parser.add_argument("--mbpp_split", type=str, default="test", help="MBPP split")
+    parser.add_argument("--multipl_dataset", type=str, default=None, help="MultiPL-E dataset name or path")
+    parser.add_argument("--multipl_config", type=str, default="humaneval-py", help="MultiPL-E config name")
+    parser.add_argument("--multipl_split", type=str, default="test", help="MultiPL-E split")
 
     parser.add_argument("--input_key", type=str, default="input", help="JSON dataset key")
     parser.add_argument("--output_key", type=str, default=None, help="JSON dataset key")

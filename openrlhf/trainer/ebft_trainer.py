@@ -332,6 +332,10 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
             doc_ids_list = [s.doc_ids[:self.args.prompt_max_len] if s.doc_ids.dim() == 1 else s.doc_ids[:,:self.args.prompt_max_len] for s in eval_samples_list]
             qa_masks_list = [s.qa_masks for s in eval_samples_list]
 
+            if not prompts_list:
+                logger.info("Evaluation skipped: eval dataloader is empty")
+                return
+
             # Calculate sequence lengths
             prompt_length = prompts_list[0].shape[1]  # Length of original prompt
             num_blocks = (prompt_length - generate_length - context_length) // stride + 1  # Number of prediction blocks
@@ -842,9 +846,16 @@ class EBFTTrainer(BaseEBFTTrainer):
             self.args.eval_steps = float("inf")  # do not evaluate
         if self.args.eval_down_steps == -1:
             self.args.eval_down_steps = float("inf")  # do not evaluate
-        steps_to_save = None
         if self.args.save_steps == -1:
-            self.args.save_steps = float("inf")  # do not save ckpt
+            self.args.save_steps = float("inf")  # do not save ckpt unless another trigger is configured
+
+        steps_to_save = None
+        save_epoch_fractions = getattr(self.args, "save_epoch_fractions", None) or []
+        stop_after_epoch_fraction = getattr(self.args, "stop_after_epoch_fraction", None)
+
+        if save_epoch_fractions:
+            steps_to_save = self._build_fractional_save_steps(self.max_steps, save_epoch_fractions)
+        elif math.isinf(self.args.save_steps):
             if self.args.save_log_scale_count != -1:
                 total_steps = self.args.num_episodes * self.prompts_dataloader.__len__()
                 logspace = np.logspace(-2.1, 0, self.args.save_log_scale_count) * total_steps
@@ -854,10 +865,19 @@ class EBFTTrainer(BaseEBFTTrainer):
                 if save_even_count and save_even_count > 0:
                     steps_to_save = self._build_evenly_spaced_save_steps(self.max_steps, save_even_count)
 
+        stop_after_steps = None
+        if stop_after_epoch_fraction is not None:
+            stop_after_steps = self._fraction_to_step(self.max_steps, stop_after_epoch_fraction)
+            if steps_to_save is not None:
+                steps_to_save = [step for step in steps_to_save if step <= stop_after_steps]
+                steps_to_save = sorted(set(steps_to_save + [stop_after_steps]))
+
         self.args.steps_to_save = steps_to_save
+        self.args.stop_after_steps = stop_after_steps
 
         logger.info(f"max steps: {self.max_steps}")
         logger.info(f"save steps: {self.args.steps_to_save}")
+        logger.info(f"stop after steps: {self.args.stop_after_steps}")
 
 
 
@@ -865,6 +885,16 @@ class EBFTTrainer(BaseEBFTTrainer):
         if total_steps <= 0 or count <= 0:
             return []
         return [max(1, math.floor(i * total_steps / count)) for i in range(1, count + 1)]
+
+    def _fraction_to_step(self, total_steps: int, fraction: float) -> int:
+        if total_steps <= 0:
+            return 0
+        return max(1, min(total_steps, math.floor(total_steps * fraction)))
+
+    def _build_fractional_save_steps(self, total_steps: int, fractions: List[float]) -> List[int]:
+        if total_steps <= 0 or not fractions:
+            return []
+        return sorted({self._fraction_to_step(total_steps, fraction) for fraction in fractions if 0 < fraction <= 1})
 
     def fit( 
         self,
@@ -916,6 +946,7 @@ class EBFTTrainer(BaseEBFTTrainer):
 
 
 
+        stop_training = False
         for episode in range(episode, args.num_episodes):
             pbar = tqdm(
                 range(self.prompts_dataloader.__len__()),
@@ -1070,8 +1101,19 @@ class EBFTTrainer(BaseEBFTTrainer):
                 }
                 self.save_logs_and_checkpoints(args, steps, pbar, status, client_states)
 
+                if getattr(args, "stop_after_steps", None) is not None and steps >= args.stop_after_steps:
+                    logger.info(
+                        "Reached stop_after_steps=%s (epoch fraction=%s); stopping training early.",
+                        args.stop_after_steps,
+                        getattr(args, "stop_after_epoch_fraction", None),
+                    )
+                    stop_training = True
+                    break
+
                 steps = steps + 1
 
+            if stop_training:
+                break
 
         if self._wandb is not None:
             self._wandb.finish()

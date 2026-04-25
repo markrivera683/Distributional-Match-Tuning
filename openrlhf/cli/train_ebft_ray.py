@@ -21,6 +21,27 @@ def nullable_int(value):
         return None
     return int(value)
 
+
+def fraction_arg(value):
+    fraction = float(value)
+    if not (0 < fraction <= 1):
+        raise argparse.ArgumentTypeError(f"Expected fraction in (0, 1], got {value}")
+    return fraction
+
+
+def fraction_list_arg(value):
+    if value is None:
+        return None
+    fractions = []
+    for item in str(value).split(","):
+        item = item.strip()
+        if not item:
+            continue
+        fractions.append(fraction_arg(item))
+    if not fractions:
+        raise argparse.ArgumentTypeError("Expected at least one comma-separated fraction")
+    return fractions
+
 from openrlhf.trainer.ray import create_vllm_engines
 from openrlhf.trainer.ray.launcher import (
     RayActorGroup,
@@ -697,6 +718,18 @@ if __name__ == "__main__":
     parser.add_argument("--save_steps", type=int, default=-1, help="Save checkpoint every N steps (-1 = disabled)")
     parser.add_argument("--save_log_scale_count", type=int, default=-1, help="Number of log-scale checkpoints (-1 = disabled)")
     parser.add_argument("--save_even_count", type=int, default=10, help="Number of evenly spaced checkpoints when other save triggers are disabled")
+    parser.add_argument(
+        "--save_epoch_fractions",
+        type=fraction_list_arg,
+        default=None,
+        help="Comma-separated epoch fractions whose checkpoints should be saved exactly (e.g. 0.02,0.05,0.1)",
+    )
+    parser.add_argument(
+        "--stop_after_epoch_fraction",
+        type=fraction_arg,
+        default=None,
+        help="Stop training after reaching this fraction of the configured total epoch budget",
+    )
     parser.add_argument("--ckpt_path", type=str, default="./ckpt/checkpoints_ppo_ray")
     parser.add_argument("--save_hf_ckpt", action="store_true", default=False)
     parser.add_argument("--disable_ds_ckpt", action="store_true", default=False)
@@ -739,6 +772,17 @@ if __name__ == "__main__":
 
     if args.remote_rm_url:
         args.remote_rm_url = args.remote_rm_url.split(",")
+
+    if args.save_epoch_fractions:
+        args.save_epoch_fractions = sorted(set(args.save_epoch_fractions))
+        if args.stop_after_epoch_fraction is not None:
+            args.save_epoch_fractions = [
+                fraction for fraction in args.save_epoch_fractions if fraction <= args.stop_after_epoch_fraction
+            ]
+            if not args.save_epoch_fractions:
+                raise ValueError(
+                    "All save_epoch_fractions are larger than stop_after_epoch_fraction; nothing would be saved."
+                )
 
     if args.input_template and "{}" not in args.input_template:
         print("[Warning] {} not in args.input_template, set to None")

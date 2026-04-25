@@ -39,20 +39,21 @@ def blending_datasets(
         data_dir = dataset.split("@")[1].strip() if "@" in dataset else None
         dataset = dataset.split("@")[0].strip()
         dataset_basename = os.path.basename(dataset)
+        split_spec = dataset_split if dataset_split else None
 
         ext = os.path.splitext(dataset)[-1]
         # local python script
         if ext == ".py" or (
             os.path.isdir(dataset) and os.path.exists(os.path.join(dataset, f"{dataset_basename}.py"))
         ):
-            data = load_dataset(dataset, trust_remote_code=True)
+            data = load_dataset(dataset, trust_remote_code=True, split=split_spec)
             strategy.print(f"loaded {dataset} with python script")
         # local text file
         elif ext in [".json", ".jsonl", ".csv", ".parquet", ".arrow"]:
             ext = ext.lower().strip(".")
             if ext == "jsonl":
                 ext = "json"
-            data = load_dataset(ext, data_files=dataset)
+            data = load_dataset(ext, data_files=dataset, split=split_spec)
             strategy.print(f"loaded {dataset} with data_files={dataset}")
         # local dataset saved with `datasets.Dataset.save_to_disk`
         elif os.path.isdir(dataset):
@@ -61,7 +62,7 @@ def blending_datasets(
                 strategy.print(f"loaded {dataset} from disk")
             except Exception as e:
                 strategy.print(f"failed to load {dataset} from disk: {e}")
-                data = load_dataset(dataset, data_dir=data_dir)
+                data = load_dataset(dataset, data_dir=data_dir, split=split_spec)
                 strategy.print(f"loaded {dataset} from files")
         # remote/local folder or common file
         elif strategy.args.use_ms: 
@@ -71,9 +72,9 @@ def blending_datasets(
             data = MsDataset.load(dataset, namespace=namespace)
         else:
             if dataset == "openai/gsm8k":
-                data = load_dataset(dataset, data_dir=data_dir, name='main')
+                data = load_dataset(dataset, data_dir=data_dir, name='main', split=split_spec)
             else:
-                data = load_dataset(dataset, data_dir=data_dir)
+                data = load_dataset(dataset, data_dir=data_dir, split=split_spec)
             strategy.print(f"loaded {dataset} from files")
 
         # Select dataset
