@@ -19,7 +19,19 @@ pull, so anywhere except `/mnt/data` is treated as ephemeral. The git
 repo itself lives on OSS at `/mnt/data/ebft-distribution-new/code`, which
 is why these helper scripts are checked into the repo — they survive too.
 
-## After every DSW restart
+## Workflow
+
+### Before you stop / restart (recommended)
+
+```bash
+bash scripts/dsw/archive_cursor_state.sh
+```
+
+Mirrors `~/.cursor/projects/` (chat transcripts, terminal scrollback, MCP
+state, etc.) and `~/.cursor/ide_state.json` to OSS, plus a timestamped
+snapshot. Idempotent; safe to run any time you want a checkpoint.
+
+### After every DSW restart
 
 ```bash
 cd /mnt/data/ebft-distribution-new/code
@@ -39,7 +51,9 @@ The bootstrap is idempotent and:
    user to run `scripts/setup_env.sh`.
 5. Symlinks the per-repo `.venv` / `.teacherVenv` to the local-ext4 venv
    roots.
-6. Runs `ssh -T git@github.com` as a health check.
+6. Calls `restore_cursor_state.sh` to pull archived chat/terminal state
+   back into `~/.cursor/projects/` (skip with `BOOTSTRAP_RESTORE_CURSOR_STATE=0`).
+7. Runs `ssh -T git@github.com` as a health check.
 
 ## Persistent secrets layout (on OSS)
 
@@ -49,9 +63,16 @@ The bootstrap is idempotent and:
 ├── .ssh/
 │   ├── id_ed25519_github          (GitHub auth, ed25519, in use)
 │   └── id_ed25519_github.pub
-└── venv-snapshots/                (optional; speeds up venv recovery)
-    ├── .venv.tar.zst              (tar --zstd of /mnt/workspace/venvs/.venv)
-    └── .teacherVenv.tar.zst
+├── venv-snapshots/                (optional; speeds up venv recovery)
+│   ├── .venv.tar.zst              (tar --zstd of /mnt/workspace/venvs/.venv)
+│   └── .teacherVenv.tar.zst
+└── cursor-archive/                (managed by archive/restore scripts)
+    ├── projects/                  (live mirror of ~/.cursor/projects)
+    ├── ide_state.json             (live mirror)
+    ├── snapshots/                 (timestamped point-in-time copies)
+    │   ├── 20260427-105948/
+    │   └── ...                    (newest 20 retained, KEEP_SNAPSHOTS knob)
+    └── emergency-snapshots/       (manual one-off dumps, never pruned)
 ```
 
 Provisioning a new DSW (or rotating the key) is just:
@@ -90,3 +111,33 @@ OpenSSH refuses keys whose POSIX permissions are looser than `0600`. OSS-fuse
 ignores `chmod` and reports its own default mode, so a key sitting on OSS will
 appear `0777` to OpenSSH and get rejected. The bootstrap copies the key onto
 local ext4 (`~/.ssh/`) where `chmod 0600` actually sticks.
+
+## Why archive the Cursor state instead of symlinking it to OSS?
+
+Three reasons against making `~/.cursor/projects/` itself live on OSS:
+
+1. **Cursor agent holds open fds** on active jsonl files. A `mv` or symlink
+   redirect can race with the writer and corrupt the tail.
+2. **OSS-fuse stat latency** is ~1000× ext4. Cursor reads tens of small files
+   on startup (plugins, skills, MCP descriptors); making them all FUSE round
+   trips noticeably degrades IDE responsiveness.
+3. **Append-write semantics** on ossfs2 are weaker than ext4; partial writes
+   may not flush the way Cursor expects.
+
+The archive/restore pair sidesteps all three: Cursor always writes to local
+ext4 like normal, OSS only sees rsync-mirrored snapshots produced when YOU
+say "save now". Cold boot reads back from OSS once and is then identical to
+fresh local state.
+
+## Switching workspaces
+
+Cursor keys workspace state by absolute path with `/` replaced by `-`:
+
+| absolute path                                   | workspace key                          |
+|-------------------------------------------------|----------------------------------------|
+| `/root/code/Distributional-Match-Tuning`        | `root-code-Distributional-Match-Tuning`|
+| `/mnt/data/ebft-distribution-new/code`          | `mnt-data-ebft-distribution-new-code`  |
+
+Switching workspaces creates a NEW workspace key — chats from the old key are
+not auto-imported. The archive directory keeps both, and `restore_cursor_state.sh`
+restores all of them so you can always look back.

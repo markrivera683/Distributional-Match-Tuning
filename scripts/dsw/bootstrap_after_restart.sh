@@ -164,10 +164,27 @@ for v in .venv .teacherVenv; do
 done
 
 # ────────────────────────────────────────────────────────────────────
-# 5) Health check (informational; never fails the script).
+# 5) Restore archived Cursor agent state (transcripts / terminals /
+#    mcps / ide_state.json) from OSS so past chats survive image pulls.
+#    Set BOOTSTRAP_RESTORE_CURSOR_STATE=0 to skip.
+# ────────────────────────────────────────────────────────────────────
+BOOTSTRAP_RESTORE_CURSOR_STATE="${BOOTSTRAP_RESTORE_CURSOR_STATE:-1}"
+if [[ "${BOOTSTRAP_RESTORE_CURSOR_STATE}" == "1" \
+      && -x "${SCRIPT_DIR}/restore_cursor_state.sh" ]]; then
+  log "restoring Cursor state from OSS archive..."
+  "${SCRIPT_DIR}/restore_cursor_state.sh" || \
+    warn "restore_cursor_state.sh exited non-zero (continuing)"
+else
+  log "skipping cursor state restore (BOOTSTRAP_RESTORE_CURSOR_STATE=${BOOTSTRAP_RESTORE_CURSOR_STATE})"
+fi
+
+# ────────────────────────────────────────────────────────────────────
+# 6) Health check (informational; never fails the script).
 #    Expected output: 'Hi <user>! You've successfully authenticated...'
 # ────────────────────────────────────────────────────────────────────
 log "self-test: ssh -T git@github.com"
 ( ssh -T -o BatchMode=yes -o ConnectTimeout=8 git@github.com 2>&1 || true ) | head -3
 
 log "done. cd ${REPO_ROOT} && git pull / push should work now."
+log "tip: bash ${SCRIPT_DIR}/archive_cursor_state.sh  before the next restart"
+log "     to push your latest chat/terminal state up to OSS."
