@@ -299,18 +299,16 @@ def log_probs_from_logits(
         Log probabilities [batch_size, seq_len]
     """
 
-    # Apply temperature scaling selectively if requested
-    if temperature != 1.0:
-        if prompt_len is not None and prompt_len > 0:
-            # Only apply temperature to generated tokens (after prompt)
-            # Note: Make a copy to avoid modifying the input
-            logits = logits.clone()
-            logits[:, prompt_len:] = logits[:, prompt_len:] / temperature
-        else:
-            # Apply temperature to all tokens
-            logits = logits / temperature
     # https://github.com/OpenRLHF/OpenRLHF/pull/718#issuecomment-2641081881
     if logits.dtype in [torch.float32, torch.float64]:
+        # fp32 / fp64 path: full-tensor temperature scaling is fine because we
+        # then compute logsumexp over the full tensor anyway.
+        if temperature != 1.0:
+            if prompt_len is not None and prompt_len > 0:
+                logits = logits.clone()
+                logits[:, prompt_len:] = logits[:, prompt_len:] / temperature
+            else:
+                logits = logits / temperature
         batch_dim = logits.shape[:-1]
         last_dim = logits.shape[-1]
         try:
@@ -323,11 +321,37 @@ def log_probs_from_logits(
             logsumexp_values = logsumexp_values.view(*batch_dim)
             log_probs_labels = logits_labels - logsumexp_values  # log_softmax(x_i) = x_i - logsumexp(x)
     else:
+        # bf16 / fp16 path: process each row in seq-length chunks so the
+        # F.log_softmax buffer is (chunk_size, V) instead of (S, V).
+        # F.log_softmax internally promotes bf16 to fp32 for numerical
+        # accuracy and casts back, which we MUST preserve -- naive bf16
+        # logsumexp accumulation across V=262144 produces ~0.06 errors in
+        # log_probs that destabilize PPO importance ratios (verified
+        # offline). On Gemma-4 (V=262144, S~1015), chunk_size=128 caps
+        # the per-chunk buffer at ~64 MiB vs ~508 MiB for full-row, while
+        # keeping bit-exact agreement with F.log_softmax(full_row).
+        _LOG_SOFTMAX_CHUNK = 128
         log_probs_labels = []
         for row_logits, row_labels in zip(logits, labels):  # loop to reduce peak mem consumption
-            row_log_probs = F.log_softmax(row_logits, dim=-1)
-            row_log_probs_labels = row_log_probs.gather(dim=-1, index=row_labels.unsqueeze(-1)).squeeze(-1)
-            log_probs_labels.append(row_log_probs_labels)
+            if temperature != 1.0:
+                if prompt_len is not None and prompt_len > 0:
+                    row_logits = row_logits.clone()
+                    row_logits[prompt_len:] = row_logits[prompt_len:] / temperature
+                else:
+                    row_logits = row_logits / temperature
+            row_S = row_logits.shape[0]
+            row_pieces = []
+            for s_idx in range(0, row_S, _LOG_SOFTMAX_CHUNK):
+                e_idx = min(s_idx + _LOG_SOFTMAX_CHUNK, row_S)
+                chunk_logits = row_logits[s_idx:e_idx]  # (chunk, V) view
+                chunk_labels = row_labels[s_idx:e_idx]
+                chunk_log_probs = F.log_softmax(chunk_logits, dim=-1)  # (chunk, V) buffer
+                chunk_at_labels = chunk_log_probs.gather(
+                    dim=-1, index=chunk_labels.unsqueeze(-1)
+                ).squeeze(-1)
+                row_pieces.append(chunk_at_labels)
+                del chunk_log_probs  # release before next chunk
+            log_probs_labels.append(torch.cat(row_pieces, dim=0))
         log_probs_labels = torch.stack(log_probs_labels)
     return log_probs_labels
 

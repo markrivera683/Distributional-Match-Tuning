@@ -41,7 +41,7 @@ REWARD_GPUS="${CRITIC_GPUS}"
 # ====================================================================
 # 1) TRAINING DATA / MODEL PATHS
 # ====================================================================
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/mnt/data/ebft-distribution-new/code}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/models/gemma-4-E4B/}"
 DEFAULT_TRAIN_DATA="/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
@@ -50,7 +50,28 @@ TRAIN_DATA="${TRAIN_DATA:-${DEFAULT_TRAIN_DATA}}"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 PROMPT_SPLIT="${PROMPT_SPLIT:-train}"
 EVAL_SPLIT="${EVAL_SPLIT:-train}"
-STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"
+
+# Venvs live on local ext4 (ossfs2 can't host venv symlinks). See
+# scripts/setup_env.sh for the bootstrap that creates and snapshots them.
+STUDENT_VENV="${STUDENT_VENV:-/mnt/workspace/venvs/.venv}"
+
+# HF blobs go on persistent OSS (model weights survive container restart;
+# downloads are tmp+rename, OSS-safe).
+export HF_HOME="${HF_HOME:-/mnt/data/ebft-distribution-new/caches/hf}"
+# Compile caches MUST be on local ext4: ossfs2 rejects "seek + write into
+# existing file" with EINVAL, which fuse mis-reports as 'No space left on
+# device'. That kills g++/nvcc when emitting .o (FusedAdam, fused_adan,
+# ...) and triton when emitting .cubin/.so. Cost of being on local ext4:
+# ~30-60s recompile after a container restart.
+export TORCH_EXTENSIONS_DIR="${TORCH_EXTENSIONS_DIR:-/mnt/workspace/.torch_extensions}"
+export TRITON_CACHE_DIR="${TRITON_CACHE_DIR:-/mnt/workspace/.triton_cache}"
+
+# Reduce CUDA OOM under tight memory budgets. RLHF batches reshape every
+# PPO step (rollout vs train, variable seq lens), so PyTorch's default
+# fixed-size segments fragment fast. expandable_segments lets the
+# allocator grow segments on demand and typically frees 1-2 GiB of
+# headroom on an 80GB A100. PyTorch suggests this in the OOM message.
+export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 
 # ====================================================================
 # 2) TRAINING KNOBS — IDENTICAL to G2
@@ -58,11 +79,29 @@ STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"
 N_SAMPLES_PER_PROMPT="${N_SAMPLES_PER_PROMPT:-4}"
 ROLLOUT_BATCH_SIZE="${ROLLOUT_BATCH_SIZE:-32}"
 TRAIN_BATCH_SIZE="${TRAIN_BATCH_SIZE:-$((N_SAMPLES_PER_PROMPT * ROLLOUT_BATCH_SIZE))}"
+# Constraint enforced below at section 6: MICRO_TRAIN_BATCH_SIZE must be
+# >= N_SAMPLES_PER_PROMPT and divisible by it (RLOO needs every micro-batch
+# to contain a full set of samples per prompt for valid advantage estimation).
+# So with N_SAMPLES_PER_PROMPT=4, the smallest legal value is 4. Memory is
+# instead reclaimed by switching ZeRO stage 2 -> 3 below.
 MICRO_TRAIN_BATCH_SIZE="${MICRO_TRAIN_BATCH_SIZE:-4}"
 MICRO_ROLLOUT_BATCH_SIZE="${MICRO_ROLLOUT_BATCH_SIZE:-4}"
 MICRO_REWARD_BATCH_SIZE="${MICRO_REWARD_BATCH_SIZE:-4}"
 
-PROMPT_MAX_LEN="${PROMPT_MAX_LEN:-512}"
+# PROMPT_MAX_LEN was 512 originally but the AOPS dataset's prompt token
+# length distribution is concentrated low (median=78, p75=116, p90=160,
+# p95=202; only 2.4% > 256, 0.9% > 512). Forward sequence length is
+# (prompt + num_blocks*GENERATE_MAX_LEN), so prompt=512 -> S=1016 and
+# prompt=256 -> S=504. Memory cost on Gemma-4 E4B (V=262144, 80G A100):
+#   - logits buffer (B, S, V) bf16:    2 GiB   -> 1 GiB
+#   - eager attention scores B*H*S^2:  ~5 GiB  -> ~1 GiB (S^2 scales)
+#   - hidden states across 42 layers:  ~3 GiB  -> ~1.5 GiB
+#   - total saved per actor rank:      ~7-9 GiB
+# This is the difference between hitting the 80G OOM ceiling and having
+# ~15 GiB headroom. Tradeoff: 2.4% of prompts get truncated mid-sequence;
+# at p99=459 that's still ~256 tokens kept, sufficient for math problem
+# context. Override to 512 if needed: PROMPT_MAX_LEN=512 bash run_G1...sh
+PROMPT_MAX_LEN="${PROMPT_MAX_LEN:-384}"
 CONTEXT_MAX_LEN="${CONTEXT_MAX_LEN:-8}"
 GENERATE_MAX_LEN="${GENERATE_MAX_LEN:-8}"
 STRIDE="${STRIDE:-8}"
@@ -110,7 +149,9 @@ MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-${CUDA_VISIBLE_DEVICES
 # ====================================================================
 # 4) ENV / RUN DIR
 # ====================================================================
-export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
+# HF_HOME and PYTORCH_CUDA_ALLOC_CONF are exported above (section 1) with
+# DSW-specific defaults; do not redeclare here or the upper values would be
+# silently shadowed if a user pre-exported only one of the two.
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export HF_DATASETS_OFFLINE="${HF_DATASETS_OFFLINE:-1}"
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
@@ -118,7 +159,6 @@ export TOKENIZERS_PARALLELISM=false
 export RAY_DISABLE_DOCKER_CPU_WARNING=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
-export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-max_split_size_mb:128,garbage_collection_threshold:0.6,roundup_power2_divisions:8}"
 export PYTHONUNBUFFERED=1
 
 
@@ -132,7 +172,7 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1   # 减少 stream 数，降 driver 压力�
 
 
 RUN_NAME="${RUN_NAME:-g1_rebase_$(date +%m%d_%H%M)}"
-OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/ebft-distribution-new/outputs}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
 SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
@@ -304,7 +344,29 @@ CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES}" \
   \
   --advantage_estimator rloo --init_kl_coef 0.0 --kl_estimator k2 \
   --temperature 0.6 --top_p 1.0 --actor_learning_rate 1e-6 \
-  --zero_stage 1 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
+  `# Memory layout for Gemma-4 E4B (Gemma4ForConditionalGeneration: ~7.5B text` \
+  `# params + vision_tower, vocab=262144) on 8x80G A100. Tried in sequence:` \
+  `#   stage 1                                 -> 73.84 GiB, OOM (no sharding)` \
+  `#   stage 2                                 -> 73.84 GiB, OOM (logits cast)` \
+  `#   stage 2 + adam_offload                  -> 71.64 GiB, OOM (still tight)` \
+  `#   stage 3 + adam_offload                  -> CRASH: AttributeError on` \
+  `#       deepspeed/runtime/utils.py:1461 count_used_parameters_in_backward,` \
+  `#       NoneType has no .next_functions. ZeRO-3 walks every module.parameters()` \
+  `#       at backward time and demands a grad_fn; Gemma-4's vision_tower is not` \
+  `#       used in pure-text PPO forward, so its params have no grad graph -> bug.` \
+  `#       This is a known ZeRO-3 incompatibility with frozen / unused submodules` \
+  `#       in conditional-generation / multimodal models.` \
+  `#` \
+  `# Final: stage 2 + adam_offload + ref_reward_offload. The ref model is the` \
+  `# largest residual on each actor rank because of --colocate_actor_ref (~16` \
+  `# GiB of frozen weights piggy-backing on the actor GPU). Offloading it to` \
+  `# host RAM (915 GiB free) frees that 16 GiB. New per-rank budget:` \
+  `#   71.64 GiB - 16 GiB (ref offload) = 55.64 GiB allocated` \
+  `#   + ~4 GiB fp32 logits cast at actor.py:438 = ~60 GiB peak` \
+  `#   80 GiB cap - 60 GiB peak = ~20 GiB headroom.` \
+  `# Trade-off: ref forward each PPO step now reads weights from pinned host` \
+  `# memory; ~5-10s/step extra vs on-GPU ref. Bit-exact equivalent.` \
+  --zero_stage 2 --adam_offload --ref_reward_offload --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
   --seed 43 \
   "${ONLINE_EVAL_ARGS[@]}" \
   --logging_steps 10 \

@@ -35,14 +35,34 @@ count_csv_items() {
 # 1) MODEL / DATA PATHS  (kept identical to G1/G2/G3 defaults so the
 #    baseline number drops into the same comparison table)
 # ====================================================================
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/mnt/data/ebft-distribution-new/code}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/models/gemma-4-E4B/}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
 FALLBACK_LOCAL_DATA="${FALLBACK_LOCAL_DATA:-}"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 
-STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"
-TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
+# Venvs live on local ext4 (ossfs2 can't host venv symlinks). See
+# scripts/setup_env.sh for the bootstrap that creates and snapshots them.
+STUDENT_VENV="${STUDENT_VENV:-/mnt/workspace/venvs/.venv}"
+TEACHER_VENV="${TEACHER_VENV:-/mnt/workspace/venvs/.teacherVenv}"
+
+# HF blobs go on persistent OSS (model weights survive container restart;
+# downloads are tmp+rename, OSS-safe).
+export HF_HOME="${HF_HOME:-/mnt/data/ebft-distribution-new/caches/hf}"
+# Compile caches MUST be on local ext4: ossfs2 rejects "seek + write into
+# existing file" with EINVAL, which fuse mis-reports as 'No space left on
+# device'. That kills g++/nvcc when emitting .o (FusedAdam, fused_adan,
+# ...) and triton when emitting .cubin/.so. Cost of being on local ext4:
+# ~30-60s recompile after a container restart.
+export TORCH_EXTENSIONS_DIR="${TORCH_EXTENSIONS_DIR:-/mnt/workspace/.torch_extensions}"
+export TRITON_CACHE_DIR="${TRITON_CACHE_DIR:-/mnt/workspace/.triton_cache}"
+
+# Reduce CUDA OOM under tight memory budgets. RLHF batches reshape every
+# PPO step (rollout vs train, variable seq lens), so PyTorch's default
+# fixed-size segments fragment fast. expandable_segments lets the
+# allocator grow segments on demand and typically frees 1-2 GiB of
+# headroom on an 80GB A100. PyTorch suggests this in the OOM message.
+export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 ANALYSIS_VENV="${ANALYSIS_VENV:-${STUDENT_VENV}}"
 TEACHER_PYTHON_BIN="${TEACHER_PYTHON_BIN:-${TEACHER_VENV}/bin/python}"
 ANALYSIS_PYTHON_BIN="${ANALYSIS_PYTHON_BIN:-${ANALYSIS_VENV}/bin/python}"
@@ -74,7 +94,9 @@ INPUT_TEMPLATE="${INPUT_TEMPLATE:-}"
 # ====================================================================
 # 4) ENV / RUN DIR
 # ====================================================================
-export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
+# HF_HOME is exported above (section 1) with DSW-specific defaults; do not
+# redeclare here or the upper value would be silently shadowed if a user
+# pre-exported it.
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export HF_DATASETS_OFFLINE="${HF_DATASETS_OFFLINE:-1}"
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
@@ -83,7 +105,10 @@ export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
 export PYTHONUNBUFFERED=1
 
 RUN_NAME="${RUN_NAME:-baseline_$(date +%m%d_%H%M)}"
-OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
+# Outputs go on persistent OSS so eval artifacts survive container restart
+# (matches G1/G2/G3 scripts; previously /root/outputs was rootfs and lost on
+# rebuild).
+OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/ebft-distribution-new/outputs}"
 RUN_DIR="${RUN_DIR:-${OUTPUT_ROOT}/${RUN_NAME}}"
 mkdir -p "${RUN_DIR}"
 

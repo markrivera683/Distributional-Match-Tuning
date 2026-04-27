@@ -78,14 +78,35 @@ TEACHER_API_BASE="${TEACHER_API_BASE:-${_DEFAULT_API_URLS}}"
 # --------------------------------------------------------------------
 # 2) TRAINING DATA / MODEL PATHS — identical to G2
 # --------------------------------------------------------------------
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+REPO_ROOT="${REPO_ROOT:-/mnt/data/ebft-distribution-new/code}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/teacher_model/models/Qwen3.5-0.8B}"
 DEFAULT_TRAIN_DATA="/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
 TRAIN_DATA="${TRAIN_DATA:-${DEFAULT_TRAIN_DATA}}"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
-TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
-STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"
+
+# Venvs live on local ext4 (ossfs2 can't host venv symlinks). See
+# scripts/setup_env.sh for the bootstrap that creates and snapshots them.
+TEACHER_VENV="${TEACHER_VENV:-/mnt/workspace/venvs/.teacherVenv}"
+STUDENT_VENV="${STUDENT_VENV:-/mnt/workspace/venvs/.venv}"
+
+# HF blobs go on persistent OSS (model weights survive container restart;
+# downloads are tmp+rename, OSS-safe).
+export HF_HOME="${HF_HOME:-/mnt/data/ebft-distribution-new/caches/hf}"
+# Compile caches MUST be on local ext4: ossfs2 rejects "seek + write into
+# existing file" with EINVAL, which fuse mis-reports as 'No space left on
+# device'. That kills g++/nvcc when emitting .o (FusedAdam, fused_adan,
+# ...) and triton when emitting .cubin/.so. Cost of being on local ext4:
+# ~30-60s recompile after a container restart.
+export TORCH_EXTENSIONS_DIR="${TORCH_EXTENSIONS_DIR:-/mnt/workspace/.torch_extensions}"
+export TRITON_CACHE_DIR="${TRITON_CACHE_DIR:-/mnt/workspace/.triton_cache}"
+
+# Reduce CUDA OOM under tight memory budgets. RLHF batches reshape every
+# PPO step (rollout vs train, variable seq lens), so PyTorch's default
+# fixed-size segments fragment fast. expandable_segments lets the
+# allocator grow segments on demand and typically frees 1-2 GiB of
+# headroom on an 80GB A100. PyTorch suggests this in the OOM message.
+export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 
 # --------------------------------------------------------------------
 # 3) TRAINING KNOBS — identical to G2
@@ -149,7 +170,9 @@ POST_EVAL_MASTER_PORT="${POST_EVAL_MASTER_PORT:-29501}"
 # --------------------------------------------------------------------
 # 4) ENV / RUN DIR
 # --------------------------------------------------------------------
-export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
+# HF_HOME and PYTORCH_CUDA_ALLOC_CONF are exported above (section 1) with
+# DSW-specific defaults; do not redeclare here or the upper values would be
+# silently shadowed if a user pre-exported only one of the two.
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export HF_DATASETS_OFFLINE="${HF_DATASETS_OFFLINE:-1}"
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
@@ -157,11 +180,10 @@ export TOKENIZERS_PARALLELISM=false
 export RAY_DISABLE_DOCKER_CPU_WARNING=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
-export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 export PYTHONUNBUFFERED=1
 
 RUN_NAME="${RUN_NAME:-ablation_teacher_pointwise_rebase_$(date +%m%d_%H%M)}"
-OUTPUT_ROOT="${OUTPUT_ROOT:-/root/outputs}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/ebft-distribution-new/outputs}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
 SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
@@ -412,7 +434,7 @@ CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
   \
   --advantage_estimator rloo --init_kl_coef 0.0 --kl_estimator k2 \
   --temperature 0.6 --top_p 1.0 --actor_learning_rate 1e-6 \
-  --zero_stage 2 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
+  --zero_stage 3 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
   --seed 43 \
   --eval_steps "${EVAL_STEPS}" \
   --eval_max_samples "${EVAL_MAX_SAMPLES}" \

@@ -12,7 +12,7 @@
 8. 常见问题（FAQ）
 9. 与历史文档的关系
 
-> 训练 / 评测脚本本身的用法见 [`docs/SCRIPTS_OVERVIEW.md`](./SCRIPTS_OVERVIEW.md)，G2 阶段的设计背景见 [`docs/G2/`](./G2)。
+> 训练 / 评测脚本本身的用法见 `[docs/SCRIPTS_OVERVIEW.md](./SCRIPTS_OVERVIEW.md)`，G2 阶段的设计背景见 `[docs/G2/](./G2)`。
 
 ---
 
@@ -40,15 +40,17 @@ TARGET_STEPS=20 bash scripts/run_G1_rebase.sh
 
 ## 1. 系统先决条件
 
-| 项 | 推荐 | 必要 | 说明 |
-|---|---|---|---|
-| OS | Linux x86_64（kernel 5.10+） | ✓ | macOS / WSL 仅支持 CPU 调试，不能跑 vLLM 教师 |
-| Python | 3.12.12 | ✓ | `setup_env.sh` 默认值；可通过 `PYTHON_VERSION` 覆盖 |
-| CUDA driver | 12.4+ | ✓ | 学生侧 PyTorch 锁定 `2.5.1+cu124`；教师侧 PyTorch 2.10 与 vLLM 0.19 已在 cu126 驱动上验证 |
-| GPU | 8×A100/A800 80GB（G2 主线） | — | G1 / G2 消融可以 4 卡；G3 主线需要 2 节点 × 8 卡 = 16 卡 |
-| 系统内存 | ≥ 128GB | ✓ | Ray object store 默认 8GB；vLLM kv-cache 还会占据相当显存 |
-| 磁盘 | ≥ 500GB SSD（含模型 + 数据 + 输出 + teacher cache） | ✓ | Qwen3.5-27B bf16 ≈ 55GB；teacher_cache_shared 单次 100k prompt 训练可达 10–30GB |
-| 工具 | `git` / `curl` / `tmux` / `ssh`（多节点）/ `tar` | ✓ | `setup_env.sh` 在缺 `uv` 时会用 `curl` 自动安装 |
+
+| 项           | 推荐                                          | 必要  | 说明                                                                       |
+| ----------- | ------------------------------------------- | --- | ------------------------------------------------------------------------ |
+| OS          | Linux x86_64（kernel 5.10+）                  | ✓   | macOS / WSL 仅支持 CPU 调试，不能跑 vLLM 教师                                       |
+| Python      | 3.12.12                                     | ✓   | `setup_env.sh` 默认值；可通过 `PYTHON_VERSION` 覆盖                               |
+| CUDA driver | 12.4+                                       | ✓   | 学生侧 PyTorch 锁定 `2.5.1+cu124`；教师侧 PyTorch 2.10 与 vLLM 0.19 已在 cu126 驱动上验证 |
+| GPU         | 8×A100/A800 80GB（G2 主线）                     | —   | G1 / G2 消融可以 4 卡；G3 主线需要 2 节点 × 8 卡 = 16 卡                               |
+| 系统内存        | ≥ 128GB                                     | ✓   | Ray object store 默认 8GB；vLLM kv-cache 还会占据相当显存                           |
+| 磁盘          | ≥ 500GB SSD（含模型 + 数据 + 输出 + teacher cache）  | ✓   | Qwen3.5-27B bf16 ≈ 55GB；teacher_cache_shared 单次 100k prompt 训练可达 10–30GB |
+| 工具          | `git` / `curl` / `tmux` / `ssh`（多节点）/ `tar` | ✓   | `setup_env.sh` 在缺 `uv` 时会用 `curl` 自动安装                                   |
+
 
 ---
 
@@ -56,10 +58,12 @@ TARGET_STEPS=20 bash scripts/run_G1_rebase.sh
 
 仓库内的 **每一个** 训练 / 评测 / 论文复现脚本都按下面两个固定路径硬编码：
 
-| Venv | 路径（可被 `STUDENT_VENV` / `TEACHER_VENV` 覆盖） | 角色 |
-|---|---|---|
-| 学生 | `${REPO_ROOT}/.venv/bin/python` | OpenRLHF / Ray / DeepSpeed 训练；本仓库 editable 安装目标 |
-| 教师 | `${REPO_ROOT}/.teacherVenv/bin/vllm` | 远程 / 本地 vLLM 教师服务 |
+
+| Venv | 路径（可被 `STUDENT_VENV` / `TEACHER_VENV` 覆盖） | 角色                                              |
+| ---- | ----------------------------------------- | ----------------------------------------------- |
+| 学生   | `${REPO_ROOT}/.venv/bin/python`           | OpenRLHF / Ray / DeepSpeed 训练；本仓库 editable 安装目标 |
+| 教师   | `${REPO_ROOT}/.teacherVenv/bin/vllm`      | 远程 / 本地 vLLM 教师服务                               |
+
 
 ### 2.1 一键安装（推荐）
 
@@ -76,27 +80,31 @@ bash scripts/setup_env.sh
 
 **学生环境（`.venv`）锁定版本**
 
-| 包 | 版本 | 备注 |
-|---|---|---|
-| `python` | 3.12.12 | `PYTHON_VERSION` 可覆盖 |
-| `torch` / `torchvision` / `torchaudio` | 2.5.1 / 0.20.1 / 2.5.1（`+cu124`） | 来自 `https://download.pytorch.org/whl/cu124`；可改 `STUDENT_TORCH_INDEX_URL` |
-| `transformers` | git ref `db9f18c3…` | 来自 `huggingface/transformers`；可改 `STUDENT_TRANSFORMERS_REF` 切到任意 commit / tag |
-| `deepspeed` | 0.18.9 | ZeRO Stage 2 训练 |
-| `ray[default]` | 2.48.0 | actor / critic / ref / reward 编排 |
-| `flash-attn` | 2.8.3 | 失败时自动 `--no-build-isolation` 重试一次 |
-| `accelerate` / `datasets` / `peft` / `tokenizers` / `safetensors` … | 见 `setup_env.sh` | 全部按 `scripts/stash/recreate_current_env.sh` 快照锁定 |
-| 本仓库 `openrlhf` | editable | `pip install -e .` |
+
+| 包                                                                   | 版本                               | 备注                                                                            |
+| ------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------- |
+| `python`                                                            | 3.12.12                          | `PYTHON_VERSION` 可覆盖                                                          |
+| `torch` / `torchvision` / `torchaudio`                              | 2.5.1 / 0.20.1 / 2.5.1（`+cu124`） | 来自 `https://download.pytorch.org/whl/cu124`；可改 `STUDENT_TORCH_INDEX_URL`      |
+| `transformers`                                                      | git ref `db9f18c3…`              | 来自 `huggingface/transformers`；可改 `STUDENT_TRANSFORMERS_REF` 切到任意 commit / tag |
+| `deepspeed`                                                         | 0.18.9                           | ZeRO Stage 2 训练                                                               |
+| `ray[default]`                                                      | 2.48.0                           | actor / critic / ref / reward 编排                                              |
+| `flash-attn`                                                        | 2.8.3                            | 失败时自动 `--no-build-isolation` 重试一次                                             |
+| `accelerate` / `datasets` / `peft` / `tokenizers` / `safetensors` … | 见 `setup_env.sh`                 | 全部按 `scripts/stash/recreate_current_env.sh` 快照锁定                              |
+| 本仓库 `openrlhf`                                                      | editable                         | `pip install -e .`                                                            |
+
 
 **教师环境（`.teacherVenv`）锁定版本**
 
-| 包 | 版本 | 备注 |
-|---|---|---|
-| `python` | 3.12.12 | 与学生侧同 |
-| `torch` / `torchvision` / `torchaudio` | 2.10.0 / 0.25.0 / 2.10.0 | vLLM 0.19 的硬依赖 |
-| `vllm` | 0.19.0 | OpenAI-compatible HTTP server |
-| `flashinfer-python` | 0.6.6 | vLLM kv-cache attention backend |
-| `huggingface_hub` | 1.9.0 | 显式装在 vllm 之后避免被降级 |
-| `transformers` | 5.5.0（`--no-deps`） | vLLM 0.19 的兼容版本，`--no-deps` 防止覆盖 torch |
+
+| 包                                      | 版本                       | 备注                                     |
+| -------------------------------------- | ------------------------ | -------------------------------------- |
+| `python`                               | 3.12.12                  | 与学生侧同                                  |
+| `torch` / `torchvision` / `torchaudio` | 2.10.0 / 0.25.0 / 2.10.0 | vLLM 0.19 的硬依赖                         |
+| `vllm`                                 | 0.19.0                   | OpenAI-compatible HTTP server          |
+| `flashinfer-python`                    | 0.6.6                    | vLLM kv-cache attention backend        |
+| `huggingface_hub`                      | 1.9.0                    | 显式装在 vllm 之后避免被降级                      |
+| `transformers`                         | 5.5.0（`--no-deps`）       | vLLM 0.19 的兼容版本，`--no-deps` 防止覆盖 torch |
+
 
 ### 2.2 部分安装
 
@@ -133,9 +141,11 @@ bash scripts/stash/recreate_current_env.sh --help
 
 ### 3.1 学生模型（必装）
 
-| 默认路径 | 说明 | 谁会用 |
-|---|---|---|
-| `/mnt/data/teacher_model/models/Qwen3.5-0.8B`（大小写均接受 `qwen3.5-0.8b`） | bf16 权重，约 1.6GB；本仓库内部命名 "Qwen3.5"，对应 HF 上的 Qwen2.5-0.8B-Base 系列 | 全部 `run_G{1,2,3}_*.sh`、`smoketests/*`、`supplement*/*.sh` |
+
+| 默认路径                                                                 | 说明                                                              | 谁会用                                                      |
+| -------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- |
+| `/mnt/data/teacher_model/models/Qwen3.5-0.8B`（大小写均接受 `qwen3.5-0.8b`） | bf16 权重，约 1.6GB；本仓库内部命名 "Qwen3.5"，对应 HF 上的 Qwen2.5-0.8B-Base 系列 | 全部 `run_G{1,2,3}_*.sh`、`smoketests/`*、`supplement*/*.sh` |
+
 
 下载示例（HuggingFace 在线 + 显式 cache 目录）：
 
@@ -167,15 +177,18 @@ ls /mnt/data/teacher_model/models/Qwen3.5-0.8B/*.safetensors
 ```
 
 > 论文复现脚本（`reproduction_sftEbft.sh` / `reproduction_ebft_100k.sh` / `run_paper_qa_ebft_trend.sh`）默认 `MODEL_PATH=/root/model`，可通过 `MODEL_PATH=...` 覆盖到上面的真实路径，或者把权重做软链：
+>
 > ```bash
 > ln -sfn /mnt/data/teacher_model/models/Qwen3.5-0.8B /root/model
 > ```
 
 ### 3.2 教师模型（仅 G2 / G3 主线需要）
 
-| 默认路径 | 说明 | 谁会用 |
-|---|---|---|
+
+| 默认路径                                                 | 说明                                                                    | 谁会用                                                                                                                                                     |
+| ---------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/mnt/data/models/qwen3.5-27b`（大小写均接受 `Qwen3.5-27B`） | bf16 权重，约 55GB；本仓库内部命名 "Qwen3.5-27B"，对应 HF 上的 Qwen2.5-32B-Instruct 系列 | `run_G2_rebase.sh`、`run_G2_rebase_pointwise.sh`、`run_G3_rebase_2node_once.sh`、`smoketests/launch_teacher_*.sh`、`supplement/teacher_qwen35_vllm_eval.sh` |
+
 
 下载示例：
 
@@ -210,10 +223,12 @@ huggingface-cli download Qwen/Qwen2.5-32B-Instruct \
 
 ### 4.1 主线 AOPS 数据（G1 / G2 / G3 全部消融）
 
-| 默认路径 | 类型 | 说明 |
-|---|---|---|
+
+| 默认路径                                                            | 类型                                                                           | 说明                                                                             |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict` | HuggingFace `DatasetDict`（目录里含 `dataset_info.json`、`state.json`、各 split 子目录） | 训练用，由 `DeepStudentLlama/AoPS-Instruct` 切分预处理而来，键为 `input` / `output` / `label` |
-| `/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl` | JSONL，单行一个样本 | 评测用；`run_G*` 训练完成后自动调用 `batch_inference` 跑这份评测集 |
+| `/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl`   | JSONL，单行一个样本                                                                 | 评测用；`run_G*` 训练完成后自动调用 `batch_inference` 跑这份评测集                                |
+
 
 **从 HuggingFace 重新生成 AOPS DatasetDict**：
 
@@ -238,13 +253,15 @@ PY
 
 ### 4.2 论文复现数据（`reproduction_*.sh` / `run_paper_qa_ebft_trend.sh`）
 
-| 默认路径 / 名称 | 默认值 | 说明 |
-|---|---|---|
-| `TRAIN_DATA` (sftEbft / ebft_100k) | `/root/OpenCode` | 任意磁盘上的 OpenCode 100k 子集，要求字段 `input` / `output` |
+
+| 默认路径 / 名称                          | 默认值                                      | 说明                                                  |
+| ---------------------------------- | ---------------------------------------- | --------------------------------------------------- |
+| `TRAIN_DATA` (sftEbft / ebft_100k) | `/root/OpenCode`                         | 任意磁盘上的 OpenCode 100k 子集，要求字段 `input` / `output`     |
 | `TRAIN_DATA` (paper_qa_ebft_trend) | `sjelassi/opencode-instruct_100k_200tok` | HuggingFace Hub 上的官方版本，会被 `resolve_dataset_spec` 解析 |
-| `DOWNSTREAM_HUMANEVAL_DATASET` | `openai/openai_humaneval` | 下游 benchmark |
-| `DOWNSTREAM_MBPP_DATASET` | `google-research-datasets/mbpp` | 下游 benchmark |
-| `DOWNSTREAM_MULTIPLE_DATASET` | `nuprl/MultiPL-E` | 下游 benchmark（多语言 humaneval） |
+| `DOWNSTREAM_HUMANEVAL_DATASET`     | `openai/openai_humaneval`                | 下游 benchmark                                        |
+| `DOWNSTREAM_MBPP_DATASET`          | `google-research-datasets/mbpp`          | 下游 benchmark                                        |
+| `DOWNSTREAM_MULTIPLE_DATASET`      | `nuprl/MultiPL-E`                        | 下游 benchmark（多语言 humaneval）                         |
+
 
 最小预热（首次需要联网）：
 
@@ -277,18 +294,20 @@ bash scripts/run_G2_rebase.sh
 
 训练 / 评测脚本均默认 **离线**，因此首次跑之前必须把模型 / 数据 / tokenizer 全部缓存好。
 
-| 变量 | 默认 | 用途 |
-|---|---|---|
-| `HF_HOME` | `${HOME}/.cache/huggingface` | 缓存根 |
-| `HF_HUB_CACHE` | `${HF_HOME}/hub` | 模型 / tokenizer 缓存 |
-| `HF_DATASETS_CACHE` | `${HF_HOME}/datasets` | 数据集缓存 |
-| `HF_HUB_OFFLINE` | `1` | 训练脚本 export，强制不访问 HF Hub |
-| `HF_DATASETS_OFFLINE` | `1` | 同上 |
-| `HF_HUB_DISABLE_XET` | `1` | 关闭 Xet 协议，避开 LFS 带宽限制 |
-| `TOKENIZERS_PARALLELISM` | `false` | 避免 fork 警告 |
-| `RAY_memory_usage_threshold` | `0.995` | Ray 内存溢出阈值 |
-| `PYTORCH_CUDA_ALLOC_CONF` | `expandable_segments:True` | 减少 CUDA OOM 碎片 |
-| `OPENRLHF_RAY_OBJECT_STORE_MEMORY_BYTES` | `8589934592`（8GB） | Ray object store 上限 |
+
+| 变量                                       | 默认                           | 用途                       |
+| ---------------------------------------- | ---------------------------- | ------------------------ |
+| `HF_HOME`                                | `${HOME}/.cache/huggingface` | 缓存根                      |
+| `HF_HUB_CACHE`                           | `${HF_HOME}/hub`             | 模型 / tokenizer 缓存        |
+| `HF_DATASETS_CACHE`                      | `${HF_HOME}/datasets`        | 数据集缓存                    |
+| `HF_HUB_OFFLINE`                         | `1`                          | 训练脚本 export，强制不访问 HF Hub |
+| `HF_DATASETS_OFFLINE`                    | `1`                          | 同上                       |
+| `HF_HUB_DISABLE_XET`                     | `1`                          | 关闭 Xet 协议，避开 LFS 带宽限制    |
+| `TOKENIZERS_PARALLELISM`                 | `false`                      | 避免 fork 警告               |
+| `RAY_memory_usage_threshold`             | `0.995`                      | Ray 内存溢出阈值               |
+| `PYTORCH_CUDA_ALLOC_CONF`                | `expandable_segments:True`   | 减少 CUDA OOM 碎片           |
+| `OPENRLHF_RAY_OBJECT_STORE_MEMORY_BYTES` | `8589934592`（8GB）            | Ray object store 上限      |
+
 
 首次预热阶段建议：
 
@@ -381,19 +400,21 @@ bash scripts/smoketests/smoketest_teacher_qwen35_1gpu.sh
 
 所有可被环境变量覆盖的关键路径：
 
-| 变量 | 默认 | 影响 |
-|---|---|---|
-| `REPO_ROOT` | `/root/code/Distributional-Match-Tuning` | 解析 `.venv` / `.teacherVenv` / 输出根 |
-| `STUDENT_VENV` | `${REPO_ROOT}/.venv` | 学生 Python 解释器目录 |
-| `TEACHER_VENV` | `${REPO_ROOT}/.teacherVenv` | 教师 vLLM CLI 目录 |
-| `STUDENT_PYTHON_BIN` | `${STUDENT_VENV}/bin/python` | 部分 reproduction 脚本显式引用 |
-| `TEACHER_VLLM_BIN` | `${TEACHER_VENV}/bin/vllm` | G2/G3 启动教师 |
-| `MODEL_PATH` | `/mnt/data/teacher_model/models/Qwen3.5-0.8B`（主线）/ `/root/model`（论文复现） | 学生模型 |
-| `TEACHER_MODEL_PATH` | `/mnt/data/models/qwen3.5-27b` | 教师模型 |
-| `TRAIN_DATA` | `/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict`（主线）/ `/root/OpenCode`（论文复现） | 训练集 |
-| `EVAL_DATA` | `/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl` | 训练后评测集 |
-| `OUTPUT_ROOT` | `/root/outputs`（主线）/ 各脚本自定义 | 输出根 |
-| `RUN_NAME` | 各脚本自定义 | 子目录名 |
+
+| 变量                   | 默认                                                                                          | 影响                                |
+| -------------------- | ------------------------------------------------------------------------------------------- | --------------------------------- |
+| `REPO_ROOT`          | `/root/code/Distributional-Match-Tuning`                                                    | 解析 `.venv` / `.teacherVenv` / 输出根 |
+| `STUDENT_VENV`       | `${REPO_ROOT}/.venv`                                                                        | 学生 Python 解释器目录                   |
+| `TEACHER_VENV`       | `${REPO_ROOT}/.teacherVenv`                                                                 | 教师 vLLM CLI 目录                    |
+| `STUDENT_PYTHON_BIN` | `${STUDENT_VENV}/bin/python`                                                                | 部分 reproduction 脚本显式引用            |
+| `TEACHER_VLLM_BIN`   | `${TEACHER_VENV}/bin/vllm`                                                                  | G2/G3 启动教师                        |
+| `MODEL_PATH`         | `/mnt/data/teacher_model/models/Qwen3.5-0.8B`（主线）/ `/root/model`（论文复现）                      | 学生模型                              |
+| `TEACHER_MODEL_PATH` | `/mnt/data/models/qwen3.5-27b`                                                              | 教师模型                              |
+| `TRAIN_DATA`         | `/mnt/data/ebft-teacher-distribution/data/aops/aops_qa_hf_dict`（主线）/ `/root/OpenCode`（论文复现） | 训练集                               |
+| `EVAL_DATA`          | `/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl`                               | 训练后评测集                            |
+| `OUTPUT_ROOT`        | `/root/outputs`（主线）/ 各脚本自定义                                                                 | 输出根                               |
+| `RUN_NAME`           | 各脚本自定义                                                                                      | 子目录名                              |
+
 
 ---
 
@@ -441,18 +462,21 @@ bash -n scripts/run_G2_rebase.sh                       # 语法检查
 sed -n '1,150p' scripts/run_G2_rebase.sh               # 看顶部 100 多行的所有默认配置
 ```
 
-或直接读 [`docs/SCRIPTS_OVERVIEW.md`](./SCRIPTS_OVERVIEW.md) 的"GPU 布局 / 教师 / 数据"列。
+或直接读 `[docs/SCRIPTS_OVERVIEW.md](./SCRIPTS_OVERVIEW.md)` 的"GPU 布局 / 教师 / 数据"列。
 
 ---
 
 ## 9. 与历史文档的关系
 
-| 文档 | 状态 | 说明 |
-|---|---|---|
-| [`docs/INSTALL.md`](./INSTALL.md) | **当前权威** | 本文 |
-| [`docs/SCRIPTS_OVERVIEW.md`](./SCRIPTS_OVERVIEW.md) | 当前 | 安装完成后看这里挑脚本 |
-| [`docs/G2/ENVIRONMENT_AND_DEPENDENCIES.md`](./G2/ENVIRONMENT_AND_DEPENDENCIES.md) | 历史（G2 阶段） | 写于"单 conda env"年代，包名版本可参考但目录布局已被本文取代 |
-| [`docs/previous/ENVIRONMENT_SETUP.md`](./previous/ENVIRONMENT_SETUP.md) | 历史（早期） | 路径指向 `/root/autodl-tmp/Energy/...`，与当前仓库无关，仅作历史快照参考 |
-| `scripts/setup_env.sh` | **当前权威** | 双 venv 一键安装 |
-| `scripts/setup_env_deprecated.sh` | **已废弃** | 旧版单 conda env，已不可用 |
-| `scripts/stash/recreate_current_env.sh` | 高级参考 | 完整可参数化版本，含 apt deps、git checkout、snapshot 还原 |
+
+| 文档                                                                                | 状态        | 说明                                                  |
+| --------------------------------------------------------------------------------- | --------- | --------------------------------------------------- |
+| `[docs/INSTALL.md](./INSTALL.md)`                                                 | **当前权威**  | 本文                                                  |
+| `[docs/SCRIPTS_OVERVIEW.md](./SCRIPTS_OVERVIEW.md)`                               | 当前        | 安装完成后看这里挑脚本                                         |
+| `[docs/G2/ENVIRONMENT_AND_DEPENDENCIES.md](./G2/ENVIRONMENT_AND_DEPENDENCIES.md)` | 历史（G2 阶段） | 写于"单 conda env"年代，包名版本可参考但目录布局已被本文取代                |
+| `[docs/previous/ENVIRONMENT_SETUP.md](./previous/ENVIRONMENT_SETUP.md)`           | 历史（早期）    | 路径指向 `/root/autodl-tmp/Energy/...`，与当前仓库无关，仅作历史快照参考 |
+| `scripts/setup_env.sh`                                                            | **当前权威**  | 双 venv 一键安装                                         |
+| `scripts/setup_env_deprecated.sh`                                                 | **已废弃**   | 旧版单 conda env，已不可用                                  |
+| `scripts/stash/recreate_current_env.sh`                                           | 高级参考      | 完整可参数化版本，含 apt deps、git checkout、snapshot 还原        |
+
+
