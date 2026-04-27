@@ -10,6 +10,7 @@ from transformers.integrations.deepspeed import HfDeepSpeedConfig
 import torch.nn.functional as F
 
 from openrlhf.utils.logging_utils import init_logger
+from openrlhf.utils.model_config import resolve_text_hidden_size
 
 logger = init_logger(__name__)
 
@@ -249,10 +250,11 @@ class Critic(nn.Module):
             else:
                 raise ValueError(f"Invalid hidden_state_method: {hidden_state_method}")
 
+            text_hidden_size = resolve_text_hidden_size(self.model.config)
             if hidden_state_method in {"middle_concat", "concat"} or hidden_state_method.startswith("concat_layers_"):
-                feature_hidden_dim = num_layers * self.model.config.hidden_size
+                feature_hidden_dim = num_layers * text_hidden_size
             else:
-                feature_hidden_dim = self.model.config.hidden_size
+                feature_hidden_dim = text_hidden_size
 
             if self.feature_adapter_enable:
                 if self.feature_adapter_type != "residual_bottleneck":
@@ -268,10 +270,10 @@ class Critic(nn.Module):
             # Determine classifier head input dimension
             if self.critic_sequence_level == "concat":
                 assert gen_len is not None, "gen_len must be provided for 'concat'"
-                d_in = gen_len * num_layers * self.model.config.hidden_size
+                d_in = gen_len * num_layers * text_hidden_size
 
             elif self.critic_sequence_level in ["token", "mean_pooling", "last_token"]:
-                d_in = num_layers * self.model.config.hidden_size
+                d_in = num_layers * text_hidden_size
 
             else:
                 raise ValueError(f"Unknown critic_sequence_level: {self.critic_sequence_level}")

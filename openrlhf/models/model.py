@@ -10,6 +10,7 @@ from transformers import AutoConfig, AutoModel, AutoModelForTokenClassification,
 from transformers.integrations.deepspeed import HfDeepSpeedConfig
 import torch.nn.functional as F
 from openrlhf.utils.logging_utils import init_logger
+from openrlhf.utils.model_config import resolve_text_hidden_size
 
 from .ring_attn_utils import gather_and_pad_tensor, unpad_and_slice_tensor
 
@@ -342,13 +343,14 @@ def get_llm_for_sequence_regression(
     # TODO: Find a better way to clarify reward model training.
     if init_value_head:
         value_head = getattr(model, value_head_prefix)
+        text_hidden_size = resolve_text_hidden_size(config)
         if dschf is not None:
             logger.info("initialize value_head for ZeRO-3 reward model training.")
             with deepspeed.zero.GatheredParameters([value_head.weight], modifier_rank=0):
                 if torch.distributed.get_rank() == 0:
-                    value_head.weight.data.normal_(mean=0.0, std=1 / (config.hidden_size + 1))
+                    value_head.weight.data.normal_(mean=0.0, std=1 / (text_hidden_size + 1))
         else:
-            value_head.weight.data.normal_(mean=0.0, std=1 / (config.hidden_size + 1))
+            value_head.weight.data.normal_(mean=0.0, std=1 / (text_hidden_size + 1))
 
     return model
 
@@ -362,7 +364,7 @@ def _get_reward_model(base_pretrained_model, base_llm_model, value_head_prefix="
             setattr(self, self.base_model_prefix, base_llm_model.from_config(config))
 
             self.value_head_prefix = value_head_prefix
-            setattr(self, value_head_prefix, nn.Linear(config.hidden_size, 1, bias=False))
+            setattr(self, value_head_prefix, nn.Linear(resolve_text_hidden_size(config), 1, bias=False))
 
             self.packing_samples = packing_samples
 
@@ -426,7 +428,7 @@ def _get_critic_model(base_pretrained_model, base_llm_model, value_head_prefix="
             setattr(self, self.base_model_prefix, base_llm_model.from_config(config))
 
             self.value_head_prefix = value_head_prefix
-            setattr(self, value_head_prefix, nn.Linear(config.hidden_size, 1, bias=False))
+            setattr(self, value_head_prefix, nn.Linear(resolve_text_hidden_size(config), 1, bias=False))
 
             self.packing_samples = packing_samples
 

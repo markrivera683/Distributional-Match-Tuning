@@ -12,6 +12,7 @@
 |---|---|---|---|---|---|
 | 环境 | `setup_env.sh` | — | — | — | — |
 | 环境（已废弃） | `setup_env_deprecated.sh` | — | — | — | — |
+| **Baseline** | `run_baseline.sh` | 否（不训练） | — | — | — |
 | Baseline / G1 | `run_G1_rebase.sh` | 否 | `pointwise` | `single` | 否 |
 | **G2 主** | `run_G2_rebase.sh` | **在线 vLLM teacher** | `cf_l1oo` | `teacher` | 否 |
 | G2 消融 | `run_G2_rebase_pointwise.sh` | 在线 vLLM teacher | `pointwise` | （未传 `cf_*`） | 否 |
@@ -88,7 +89,23 @@ G3 = G2 + enable_ema + feature_adapter + trainable critic-head + direct discrepa
 
 ## 3. Baseline / G1 系列
 
-### 3.1 `run_G1_rebase.sh` —— 严格消融基线
+### 3.1 `run_baseline.sh` —— 纯基线（未训练模型 + 16k/32k 二轮评测）
+
+| 项目 | 内容 |
+|---|---|
+| 路径 | `scripts/run_baseline.sh` |
+| 定位 | **不训练**，直接对预训练 / 基线模型跑 G1/G2/G3 同口径的 16k → 32k 二轮 vLLM 评测，给出对照表里的"未训练基线"那一行 |
+| GPU 布局 | 全部可见 GPU 都给 vLLM（`MODEL_CUDA_VISIBLE_DEVICES`，默认 `0..7`，`VLLM_TP_SIZE` 默认等于可见 GPU 数） |
+| 教师 | 无（与"baseline = 无 RL 介入"语义一致） |
+| 评测协议 | 委托 `scripts/supplement_2rounds/baseline.sh`：第一轮 `FIRST_PASS_MAX_NEW_TOKENS=16384` 全量跑 → 抽取错题 → 第二轮 `SECOND_PASS_MAX_NEW_TOKENS=32768` 复跑 → 合并出 final report 与 oracle-union 统计 |
+| 默认数据 / 模型 | 与 `run_G1_rebase.sh` 完全一致：`MODEL_PATH=/mnt/data/models/gemma-4-E4B/`、`EVAL_DATA=/mnt/data/.../test_qa.jsonl`，便于直接对齐对比 |
+| 输出 | `/root/outputs/baseline_<MMDD_HHMM>/supplement_logs/`（含 `eval_results_*_stage{1,2}_*.jsonl`、`eval_analysis_*_final_*.json`、`status.txt`） |
+| 启动 | `bash scripts/run_baseline.sh` |
+| 常用覆盖 | `MODEL_PATH=/mnt/data/models/qwen3.5-0.8b bash scripts/run_baseline.sh`<br>`POST_EVAL_MAX_SAMPLES=512 bash scripts/run_baseline.sh`<br>`MODEL_CUDA_VISIBLE_DEVICES=0,1,2,3 bash scripts/run_baseline.sh` |
+
+> 与 `run_G1_rebase.sh` 的关系：两者**评测段完全同口径**（同 worker、同 16k/32k、同 prompt、同 oracle-union 统计），区别只在前者"不训练 + 模型即原样"，后者"先训 G1 → 再用同协议评测"。所以 `baseline / G1 / G2 / G3` 四个数字可以放在同一张表里。
+
+### 3.2 `run_G1_rebase.sh` —— 严格消融基线
 
 | 项目 | 内容 |
 |---|---|
@@ -333,6 +350,7 @@ bash scripts/supplement_2rounds/G1.sh /root/outputs/g1_rebase_0405_2259
 | 场景 | 推荐脚本 |
 |---|---|
 | 首次安装训练环境 | `setup_env.sh` |
+| 拿"未训练基线"那一格的数字（直接评测预训练模型，不做 RL） | `run_baseline.sh` |
 | 跑严格消融基线（无教师 / pointwise / 单 GT） | `run_G1_rebase.sh` |
 | 跑 G2 主线（在线教师 + cf_l1oo） | `run_G2_rebase.sh` |
 | 测"分布级奖励 vs pointwise 奖励"在有教师下的差异 | `run_G2_rebase_pointwise.sh` |
