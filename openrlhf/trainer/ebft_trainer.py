@@ -13,6 +13,7 @@ from collections import Counter
 
 from openrlhf.datasets import SequenceDataset, QADataset, CodePromptDataset, HumanEvalDataset
 from openrlhf.datasets.utils import blending_datasets
+from openrlhf.datasets.prompt_lookahead import PromptLookahead
 from openrlhf.models import EmbeddingLoss
 from openrlhf.trainer.ebft_eval_mixin import EBFTEvalMixin
 from openrlhf.trainer.ppo_utils import AdaptiveKLController, FixedKLController, AdaptiveCEController, AdaptiveRLController, FixedCEController, FixedRLController
@@ -331,6 +332,10 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
             full_sequences_list = [s.full_sequences for s in eval_samples_list]  # Full sequences (prompt + generated)
             doc_ids_list = [s.doc_ids[:self.args.prompt_max_len] if s.doc_ids.dim() == 1 else s.doc_ids[:,:self.args.prompt_max_len] for s in eval_samples_list]
             qa_masks_list = [s.qa_masks for s in eval_samples_list]
+
+            if not prompts_list:
+                logger.info("Evaluation skipped: eval dataloader is empty")
+                return
 
             # Calculate sequence lengths
             prompt_length = prompts_list[0].shape[1]  # Length of original prompt
@@ -699,6 +704,30 @@ class BaseEBFTTrainer(EBFTEvalMixin, ABC):
         self.eval_dataloader = eval_dataloader
         self.eval_downstream_dataloader = eval_downstream_dataloader
         self.humaneval_dataloader = humaneval_dataloader
+
+        # Lookahead helper for the teacher prefetch path. Computes the
+        # next-K-batches' unique doc_ids without consuming the dataloader,
+        # so background threads can prefetch teacher answers during
+        # ppo_train(). Cheap to construct (no work done until first peek).
+        # Only useful when the dataset path populated `.doc_ids` and
+        # `.prompts` (QADataset packed mode). For SequenceDataset / other
+        # paths PromptLookahead.peek_prompts_at_offset() will return [].
+        try:
+            self.prompt_lookahead = PromptLookahead(
+                dataset=prompts_dataset,
+                sampler=self.prompts_dataloader.sampler,
+                batch_size=args.rollout_batch_size,
+                drop_last=True,
+            )
+            logger.info(
+                "[PromptLookahead] init OK: %d total prompts indexed by doc_id",
+                self.prompt_lookahead.total_prompts(),
+            )
+        except Exception as exc:
+            # Don't fail trainer init just because lookahead can't be built;
+            # prefetch will gracefully degrade to no-op.
+            logger.warning("[PromptLookahead] init failed: %s — prefetch disabled", exc)
+            self.prompt_lookahead = None
         self.max_steps = (
             len(prompts_dataset)
             * args.n_samples_per_prompt
@@ -842,9 +871,16 @@ class EBFTTrainer(BaseEBFTTrainer):
             self.args.eval_steps = float("inf")  # do not evaluate
         if self.args.eval_down_steps == -1:
             self.args.eval_down_steps = float("inf")  # do not evaluate
-        steps_to_save = None
         if self.args.save_steps == -1:
-            self.args.save_steps = float("inf")  # do not save ckpt
+            self.args.save_steps = float("inf")  # do not save ckpt unless another trigger is configured
+
+        steps_to_save = None
+        save_epoch_fractions = getattr(self.args, "save_epoch_fractions", None) or []
+        stop_after_epoch_fraction = getattr(self.args, "stop_after_epoch_fraction", None)
+
+        if save_epoch_fractions:
+            steps_to_save = self._build_fractional_save_steps(self.max_steps, save_epoch_fractions)
+        elif math.isinf(self.args.save_steps):
             if self.args.save_log_scale_count != -1:
                 total_steps = self.args.num_episodes * self.prompts_dataloader.__len__()
                 logspace = np.logspace(-2.1, 0, self.args.save_log_scale_count) * total_steps
@@ -854,10 +890,19 @@ class EBFTTrainer(BaseEBFTTrainer):
                 if save_even_count and save_even_count > 0:
                     steps_to_save = self._build_evenly_spaced_save_steps(self.max_steps, save_even_count)
 
+        stop_after_steps = None
+        if stop_after_epoch_fraction is not None:
+            stop_after_steps = self._fraction_to_step(self.max_steps, stop_after_epoch_fraction)
+            if steps_to_save is not None:
+                steps_to_save = [step for step in steps_to_save if step <= stop_after_steps]
+                steps_to_save = sorted(set(steps_to_save + [stop_after_steps]))
+
         self.args.steps_to_save = steps_to_save
+        self.args.stop_after_steps = stop_after_steps
 
         logger.info(f"max steps: {self.max_steps}")
         logger.info(f"save steps: {self.args.steps_to_save}")
+        logger.info(f"stop after steps: {self.args.stop_after_steps}")
 
 
 
@@ -865,6 +910,16 @@ class EBFTTrainer(BaseEBFTTrainer):
         if total_steps <= 0 or count <= 0:
             return []
         return [max(1, math.floor(i * total_steps / count)) for i in range(1, count + 1)]
+
+    def _fraction_to_step(self, total_steps: int, fraction: float) -> int:
+        if total_steps <= 0:
+            return 0
+        return max(1, min(total_steps, math.floor(total_steps * fraction)))
+
+    def _build_fractional_save_steps(self, total_steps: int, fractions: List[float]) -> List[int]:
+        if total_steps <= 0 or not fractions:
+            return []
+        return sorted({self._fraction_to_step(total_steps, fraction) for fraction in fractions if 0 < fraction <= 1})
 
     def fit( 
         self,
@@ -892,8 +947,38 @@ class EBFTTrainer(BaseEBFTTrainer):
 
 
         # Perform initial evaluation at step 0 (before training starts)
+        #
+        # Gating contract: only run the step-0 initial eval if the user has
+        # configured at least one in-training eval to actually fire during
+        # this run. The check is:
+        #   (1) eval_steps must not be the "disabled" sentinel (inf, set by
+        #       the eval_steps == -1 normalization above), AND
+        #   (2) eval_steps must be a positive int (defensive against 0 /
+        #       negative values that would never trigger the modulo check
+        #       at line 269), AND
+        #   (3) eval_steps must be <= self.max_steps; otherwise the user
+        #       has effectively disabled in-training eval by setting a value
+        #       larger than the total training steps (e.g. EVAL_STEPS=999999
+        #       with TARGET_STEPS=500), and we should NOT silently run a
+        #       full step-0 eval anyway.
+        #
+        # Why the max_steps guard matters: under ZeRO-3 colocate_actor_ref
+        # the step-0 evaluate() funnels samples through SamplesGenerator
+        # which round-robins one Ray RPC per micro-batch across actor ranks
+        # that share an NCCL world. If the per-actor RPC count is uneven
+        # (e.g. eval_max_samples * eval_n_samples_per_prompt /
+        # micro_rollout_batch_size not divisible by actor_gpus), the actors
+        # with extra RPCs hang inside _ALLGATHER_BASE waiting for actors
+        # that already returned, and watchdog kills the run after 1h.
+        # Treating "big finite eval_steps" as disabled keeps that footgun
+        # out of misconfigured launchers (see scripts/run_G2_rebase*.sh).
         if steps == 1:
-            if (not math.isinf(self.args.eval_down_steps)):  # steps starts at 1, so this is before any training
+            run_initial_down_eval = (
+                not math.isinf(self.args.eval_down_steps)
+                and self.args.eval_down_steps > 0
+                and self.args.eval_down_steps <= self.max_steps
+            )
+            if run_initial_down_eval:
                 logger.info("🔍 Running initial evaluation at step 0...")
                 eval_ds = str(getattr(self.args, "eval_dataset", "") or "").lower()
                 if "swallow_code" in eval_ds:
@@ -910,18 +995,54 @@ class EBFTTrainer(BaseEBFTTrainer):
                     self.evaluate_downstream_opencode(self.eval_downstream_dataloader, 0, args.eval_generate_max_len, args.eval_temperature_down, args.eval_n_samples_per_prompt_down)
                 else:
                      self.evaluate_downstream_translation(self.eval_downstream_dataloader, 0, args.eval_generate_max_len, args.eval_temperature_down, args.eval_n_samples_per_prompt_down)
-            if (not math.isinf(self.args.eval_steps)):  # steps starts at 1, so this is before any training
+            run_initial_eval = (
+                not math.isinf(self.args.eval_steps)
+                and self.args.eval_steps > 0
+                and self.args.eval_steps <= self.max_steps
+            )
+            if run_initial_eval:
                 logger.info("🔍 Running initial evaluation at step 0...")
                 self.evaluate(self.eval_dataloader, 0, args.eval_temperature, args.eval_n_samples_per_prompt)
+            elif not math.isinf(self.args.eval_steps):
+                logger.info(
+                    "Skipping step-0 initial eval: eval_steps=%s is outside (0, max_steps=%s]; "
+                    "treating as disabled. Pass --eval_steps -1 to silence this message.",
+                    self.args.eval_steps, self.max_steps,
+                )
 
 
 
+        stop_training = False
         for episode in range(episode, args.num_episodes):
             pbar = tqdm(
                 range(self.prompts_dataloader.__len__()),
                 desc=f"Episode [{episode + 1}/{args.num_episodes}]",
                 disable=False,
             )
+
+            # Make sure the sampler reseeds for this epoch (re-shuffles).
+            # Trainer's previous behaviour relied on the implicit `epoch=0`
+            # never advancing; we now explicitly call set_epoch so
+            # PromptLookahead picks up the new permutation.
+            try:
+                self.prompts_dataloader.sampler.set_epoch(episode)
+            except Exception:
+                pass
+
+            # Counter for "how many batches have we consumed in THIS
+            # episode on this rank so far". Used by the teacher prefetch
+            # lookahead to peek the next batch's prompts without
+            # consuming the dataloader. Resets to 0 each episode.
+            #
+            # NOTE: on a checkpoint resume mid-epoch, the dataloader
+            # restores via state_dict and yields only the remaining
+            # batches, but this counter starts at 0. That means for the
+            # first few resumed steps the lookahead will look at the
+            # WRONG slice of the index list (off by `pre_resume_batches`).
+            # Side effect: a handful of wasted prefetches that get cached
+            # but never consumed. Not a correctness bug — sample_targets
+            # always falls back to the synchronous path on cache miss.
+            _within_epoch_batch_idx = 0
 
             filtered_samples = []
             number_of_samples = 0
@@ -980,40 +1101,47 @@ class EBFTTrainer(BaseEBFTTrainer):
                 # make experience batch with the updated critic model
                 experiences = self.experience_maker.make_experience_batch(rollout_samples)
 
-                # ── Teacher prefetch: schedule next batch while GPU trains ──
-                # Fire-and-forget: background threads pre-fetch teacher completions
-                # for the prompts we just used (they may repeat across episodes)
-                # and for lookahead into raw_question_texts if available.
-                # Guarded by --enable_teacher_prefetch; zero cost when disabled.
+                # ── Teacher prefetch: lookahead into NEXT K batches ──
+                # While GPU runs ppo_train below (~10s on 0.8B student),
+                # background threads fetch teacher completions for the
+                # prompts of step t+1 .. t+prefetch_depth. Then those
+                # prompts are already in the mem queue / SQLite cache
+                # when next step's make_experience_batch calls
+                # sample_targets, hiding teacher latency.
+                #
+                # The PREVIOUS implementation (pre 2026-04-29) scheduled
+                # the CURRENT step's prompts (which sample_targets above
+                # had just queried), so the mem-queue hit rate was ~0%
+                # and only SQLite cross-episode hits were saved. Fixed
+                # by going through PromptLookahead.peek_prompts_at_offset.
+                #
+                # Guarded by --enable_teacher_prefetch; zero cost when off.
                 _tp = self.teacher_provider
                 if (
                     getattr(args, "enable_teacher_prefetch", False)
                     and _tp is not None
                     and hasattr(_tp, "schedule_prefetch")
+                    and getattr(self, "prompt_lookahead", None) is not None
                 ):
-                    from openrlhf.utils.teacher_prefetch import TeacherPrefetchScheduler
-                    # Collect unique question texts from raw_question_texts using
-                    # doc_ids from the current batch (zero-copy: uses indices only).
-                    _prefetch_prompts = []
-                    _raw_q = getattr(self, "raw_question_texts", None) or []
-                    if _raw_q:
-                        _seen_dids = set()
-                        for _exp in rollout_samples:
-                            if not hasattr(_exp, "doc_ids") or _exp.doc_ids is None:
-                                continue
-                            _dids = _exp.doc_ids.unique().tolist()
-                            for _did in _dids:
-                                _did = int(_did)
-                                if _did >= 0 and _did not in _seen_dids:
-                                    _seen_dids.add(_did)
-                                    if _did < len(_raw_q):
-                                        _prefetch_prompts.append(_raw_q[_did])
+                    _depth = int(getattr(args, "prefetch_depth", 4))
+                    # Number of sampler indices consumed on this rank
+                    # AFTER processing this current step (we just finished
+                    # iter (_within_epoch_batch_idx + 1) of the inner loop).
+                    _consumed_so_far = (_within_epoch_batch_idx + 1) * args.rollout_batch_size
+                    _prefetch_prompts = self.prompt_lookahead.peek_prompts_at_offset(
+                        num_consumed_in_epoch_on_this_rank=_consumed_so_far,
+                        num_steps=_depth,
+                    )
                     if _prefetch_prompts:
                         _n_submitted = _tp.schedule_prefetch(_prefetch_prompts)
                         _pf_status = _tp.status() if hasattr(_tp, "status") else {}
-                        logger.debug(
-                            "[Prefetch] step=%d submitted=%d %s",
-                            steps, _n_submitted, _pf_status,
+                        logger.info(
+                            "[Prefetch] step=%d depth=%d unique_prompts=%d submitted=%d "
+                            "(mem_q=%d sqlite_h=%d fallback=%d)",
+                            steps, _depth, len(_prefetch_prompts), _n_submitted,
+                            _pf_status.get("prefetch_mem_hits", 0),
+                            _pf_status.get("prefetch_sqlite_hits", 0),
+                            _pf_status.get("prefetch_fallback", 0),
                         )
 
 
@@ -1070,8 +1198,20 @@ class EBFTTrainer(BaseEBFTTrainer):
                 }
                 self.save_logs_and_checkpoints(args, steps, pbar, status, client_states)
 
-                steps = steps + 1
+                if getattr(args, "stop_after_steps", None) is not None and steps >= args.stop_after_steps:
+                    logger.info(
+                        "Reached stop_after_steps=%s (epoch fraction=%s); stopping training early.",
+                        args.stop_after_steps,
+                        getattr(args, "stop_after_epoch_fraction", None),
+                    )
+                    stop_training = True
+                    break
 
+                steps = steps + 1
+                _within_epoch_batch_idx += 1
+
+            if stop_training:
+                break
 
         if self._wandb is not None:
             self._wandb.finish()

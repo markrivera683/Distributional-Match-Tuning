@@ -12,6 +12,8 @@ from transformers.integrations.deepspeed import HfDeepSpeedConfig
 
 from .utils import compute_entropy, log_probs_from_logits, compute_squared_loss
 from openrlhf.utils.logging_utils import init_logger
+from openrlhf.utils.model_config import freeze_unused_multimodal_modules
+from openrlhf.utils.model_config import freeze_unused_multimodal_modules
 
 logger = init_logger(__name__)
 
@@ -120,6 +122,15 @@ class Actor(nn.Module):
                 torch_dtype=torch.bfloat16 if bf16 else "auto",
                 device_map=device_map,
             )
+
+            if os.environ.get("OPENRLHF_FREEZE_MM_TOWERS", "1") != "0":
+                frozen = freeze_unused_multimodal_modules(self.model)
+                if frozen:
+                    paths = ", ".join(f"{k}={v}" for k, v in frozen.items())
+                    logger.info(
+                        "[multimodal] froze %d unused tower(s), total=%d params: %s",
+                        len(frozen), sum(frozen.values()), paths,
+                    )
 
             # LoRA
             if lora_rank > 0:
@@ -433,9 +444,19 @@ class Actor(nn.Module):
         with attention_impl_context:
             output = self.model(sequences, attention_mask=forward_attention_mask, position_ids=position_ids)
 
-        # Convert logits to float32 for numerical stability
-        # https://github.com/OpenRLHF/OpenRLHF/pull/634
-        output["logits"] = output["logits"].to(torch.float32)
+        # Logits dtype handling for log_softmax numerical stability.
+        # https://github.com/OpenRLHF/OpenRLHF/pull/634 introduced an
+        # unconditional cast to fp32 here to avoid log_softmax overflow on
+        # fp16 (5-bit exponent). On bf16 (8-bit exponent, identical range
+        # to fp32) the cast wastes 2x the buffer and is unnecessary --
+        # downstream log_probs_from_logits already takes a row-by-row
+        # path for non-fp32 dtypes (see openrlhf/models/utils.py:325-331,
+        # comment "loop to reduce peak mem consumption"). Skipping the
+        # cast for bf16 saves ~4 GiB on Gemma-4 (V=262144, S~1016, B=4),
+        # which is the difference between OOMing and not OOMing on 80G
+        # A100 with EBFT's dense 4D attention mask (forces eager attn).
+        if output["logits"].dtype == torch.float16:
+            output["logits"] = output["logits"].to(torch.float32)
 
         # Compute entropy if requested
         if return_entropy:
@@ -472,8 +493,18 @@ class Actor(nn.Module):
             stride,
         )
         
-        # Compute log probabilities from logits and target labels
-        log_probs = log_probs_from_logits(processed_logits, target_labels, temperature=self.temperature, prompt_len=prompt_len-1)
+        # Compute log probabilities from logits and target labels.
+        # processed_logits is owned (returned by prepare_logprobs as a fresh
+        # cat() result), so we can apply temperature scaling in-place here.
+        # That avoids a (B,S,V) clone or a per-row clone inside
+        # log_probs_from_logits, which on Gemma-4 (V=262144) is the
+        # difference between OOMing and not OOMing on an 80G A100.
+        if self.temperature != 1.0:
+            # Generated tokens start after the prompt: prepare_logprobs has
+            # already dropped the last prompt token, so the boundary is
+            # prompt_len - 1.
+            processed_logits[:, prompt_len - 1:].div_(self.temperature)
+        log_probs = log_probs_from_logits(processed_logits, target_labels, temperature=1.0)
     
         if eval_full_ppl_mode:
             log_probs = log_probs[:, :-1]

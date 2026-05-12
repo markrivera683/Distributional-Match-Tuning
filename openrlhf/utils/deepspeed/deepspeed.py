@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 
 import deepspeed
 import torch
+import torch.autograd.graph as _autograd_graph
 import torch.nn as nn
 import torch.optim as optim
 import transformers
@@ -22,6 +23,7 @@ from openrlhf.models import Actor, OriginalActor
 from openrlhf.models.ring_attn_utils import get_ring_attn_group, set_ring_attn_group
 from openrlhf.utils.distributed_sampler import DistributedSampler
 from openrlhf.utils.distributed_util import torch_dist_barrier_and_cuda_sync
+from openrlhf.utils.logging_utils import init_logger
 from .deepspeed_utils import (
     _z3_params_to_fetch,
     get_eval_ds_config,
@@ -29,6 +31,106 @@ from .deepspeed_utils import (
     get_optimizer_grouped_parameters_head,
     get_train_ds_config,
 )
+
+_logger = init_logger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Defensive monkey-patch: torch.autograd.graph._get_grad_fn_or_grad_acc
+#
+# DeepSpeed >= 0.18.x calls this PyTorch internal in
+# ``count_used_parameters_in_backward`` (deepspeed/runtime/utils.py:1461) for
+# every ``requires_grad=True`` non-leaf parameter to find its ``AccumulateGrad``
+# node. The PyTorch helper is::
+#
+#     def _get_grad_fn_or_grad_acc(t):
+#         node = t.view_as(t).grad_fn.next_functions[0][0]
+#
+# When ``t`` did NOT participate in the forward pass (e.g. ZeRO-3-partitioned
+# params that ``count_used_parameters_in_backward`` is *checking*, where
+# ``param.view_as(param)`` may not have a grad_fn because the param was never
+# unsharded for the current backward), ``grad_fn`` is ``None`` and the next
+# attribute access blows up with::
+#
+#     AttributeError: 'NoneType' object has no attribute 'next_functions'
+#
+# DeepSpeed's *own* loop already has ``if grad_fn is None: continue`` right
+# after the call, but that branch is dead because the helper itself raises
+# before returning. The fix that DeepSpeed shipped in 0.18.x assumed the
+# helper would gracefully return None.
+#
+# Monkey-patching the helper to swallow AttributeError and return None makes
+# DeepSpeed's existing fallback work as intended. We log the offending param
+# (only on first occurrence per process) so any *real* unused-param bug is
+# still visible for diagnosis.
+# ---------------------------------------------------------------------------
+_orig_get_grad_fn_or_grad_acc = getattr(
+    _autograd_graph, "_get_grad_fn_or_grad_acc", None
+)
+_grad_fn_patch_seen_ids: set = set()
+_GRAD_FN_PATCH_ENV = "OPENRLHF_DISABLE_GRAD_FN_PATCH"
+
+
+def _patched_get_grad_fn_or_grad_acc(t):
+    if _orig_get_grad_fn_or_grad_acc is None:
+        return None
+    try:
+        return _orig_get_grad_fn_or_grad_acc(t)
+    except (AttributeError, AssertionError) as exc:
+        # The PyTorch helper (torch/autograd/graph.py, line ~185) can raise
+        # in two ways for a tensor that did not participate in the current
+        # backward graph:
+        #   - AttributeError: when ``t.view_as(t).grad_fn`` is None (leaf
+        #     param with requires_grad=True but no in-graph view yet).
+        #   - AssertionError: when the resolved ``node`` ends up None and
+        #     PyTorch's ``assert node is not None`` trips.
+        # DS's count_used_parameters_in_backward already has
+        # ``if grad_fn is None: continue`` after the call, so returning None
+        # is semantically what DS expected from the helper. Log once per
+        # tensor id so a real bug stays visible without log spam.
+        try:
+            tid = id(t)
+            if tid not in _grad_fn_patch_seen_ids:
+                _grad_fn_patch_seen_ids.add(tid)
+                ds_id = getattr(t, "ds_id", None)
+                ds_status = getattr(t, "ds_status", None)
+                ds_shape = getattr(t, "ds_shape", None)
+                _logger.warning(
+                    "[grad-fn-patch] _get_grad_fn_or_grad_acc raised %s for "
+                    "tensor: shape=%s requires_grad=%s is_leaf=%s "
+                    "ds_id=%s ds_status=%s ds_shape=%s -- returning None "
+                    "(DS will skip this param in count_used_parameters).",
+                    type(exc).__name__,
+                    tuple(t.shape) if hasattr(t, "shape") else None,
+                    bool(getattr(t, "requires_grad", False)),
+                    bool(getattr(t, "is_leaf", False)),
+                    ds_id,
+                    ds_status,
+                    ds_shape,
+                )
+        except Exception:
+            pass
+        return None
+
+
+if (
+    _orig_get_grad_fn_or_grad_acc is not None
+    and os.environ.get(_GRAD_FN_PATCH_ENV, "0") != "1"
+    and getattr(
+        _autograd_graph._get_grad_fn_or_grad_acc, "__name__", ""
+    ) != "_patched_get_grad_fn_or_grad_acc"
+):
+    _autograd_graph._get_grad_fn_or_grad_acc = _patched_get_grad_fn_or_grad_acc
+    # DeepSpeed has already done ``from torch.autograd.graph import
+    # _get_grad_fn_or_grad_acc`` at module load time, but the call inside
+    # count_used_parameters_in_backward uses ``from ... import ...`` *inside
+    # the function*, so it picks up the patched symbol on each invocation.
+    # See deepspeed/runtime/utils.py:1449 for the inner import.
+    _logger.info(
+        "[grad-fn-patch] installed defensive wrapper around "
+        "torch.autograd.graph._get_grad_fn_or_grad_acc (set %s=1 to disable).",
+        _GRAD_FN_PATCH_ENV,
+    )
 
 ModelOptimPair = Tuple[nn.Module, Optimizer]
 ModelOrModelOptimPair = Union[nn.Module, ModelOptimPair]

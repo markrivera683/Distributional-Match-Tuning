@@ -1,6 +1,7 @@
 from contextlib import nullcontext
 from typing import Optional
 import math
+import os
 import torch
 import torch.nn as nn
 from peft import LoraConfig, TaskType, get_peft_model
@@ -10,6 +11,8 @@ from transformers.integrations.deepspeed import HfDeepSpeedConfig
 import torch.nn.functional as F
 
 from openrlhf.utils.logging_utils import init_logger
+from openrlhf.utils.model_config import freeze_unused_multimodal_modules
+from openrlhf.utils.model_config import resolve_text_hidden_size
 
 logger = init_logger(__name__)
 
@@ -212,6 +215,15 @@ class Critic(nn.Module):
                 device_map=device_map,
             )
 
+            if os.environ.get("OPENRLHF_FREEZE_MM_TOWERS", "1") != "0":
+                frozen = freeze_unused_multimodal_modules(self.model)
+                if frozen:
+                    paths = ", ".join(f"{k}={v}" for k, v in frozen.items())
+                    logger.info(
+                        "[multimodal] froze %d unused tower(s), total=%d params: %s",
+                        len(frozen), sum(frozen.values()), paths,
+                    )
+
             if hidden_state_method == "last_only":
                 num_layers = 1
             elif hidden_state_method == "mean":
@@ -249,10 +261,11 @@ class Critic(nn.Module):
             else:
                 raise ValueError(f"Invalid hidden_state_method: {hidden_state_method}")
 
+            text_hidden_size = resolve_text_hidden_size(self.model.config)
             if hidden_state_method in {"middle_concat", "concat"} or hidden_state_method.startswith("concat_layers_"):
-                feature_hidden_dim = num_layers * self.model.config.hidden_size
+                feature_hidden_dim = num_layers * text_hidden_size
             else:
-                feature_hidden_dim = self.model.config.hidden_size
+                feature_hidden_dim = text_hidden_size
 
             if self.feature_adapter_enable:
                 if self.feature_adapter_type != "residual_bottleneck":
@@ -268,10 +281,10 @@ class Critic(nn.Module):
             # Determine classifier head input dimension
             if self.critic_sequence_level == "concat":
                 assert gen_len is not None, "gen_len must be provided for 'concat'"
-                d_in = gen_len * num_layers * self.model.config.hidden_size
+                d_in = gen_len * num_layers * text_hidden_size
 
             elif self.critic_sequence_level in ["token", "mean_pooling", "last_token"]:
-                d_in = num_layers * self.model.config.hidden_size
+                d_in = num_layers * text_hidden_size
 
             else:
                 raise ValueError(f"Unknown critic_sequence_level: {self.critic_sequence_level}")

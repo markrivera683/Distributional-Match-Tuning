@@ -3,6 +3,7 @@ import os
 import time
 import signal
 import re
+import gc
 from abc import ABC
 from contextlib import contextmanager
 from datetime import timedelta
@@ -16,17 +17,35 @@ from openrlhf.utils.distributed_sampler import DistributedSampler
 from openrlhf.utils.logging_utils import init_logger
 from openrlhf.utils.math_verifier import verify_llm_answer
 from openrlhf.utils.utils import zero_pad_sequences
-from vllm import LLM, SamplingParams
+try:
+    from vllm import LLM, SamplingParams
+except ImportError:
+    LLM = None
+    SamplingParams = None
 from transformers import AutoConfig
 
-from sacrebleu import sentence_bleu
-from comet import download_model, load_from_checkpoint
+try:
+    from sacrebleu import sentence_bleu
+except ImportError:
+    sentence_bleu = None
+
+try:
+    from comet import download_model, load_from_checkpoint
+except ImportError:
+    download_model = None
+    load_from_checkpoint = None
 import numpy as np
 
 
 
 
 logger = init_logger(__name__)
+
+
+def _dataset_name_lower(value):
+    if isinstance(value, str):
+        return value.lower()
+    return ""
 
 
 MBPP_FEWSHOT_PREFIX = '''"""
@@ -556,6 +575,7 @@ class SFTTrainer(ABC):
         temperature: float = 0.6,
         humaneval_dataloader=None,
         mbpp_dataloader=None,
+        multipl_dataloader=None,
         gsm8k_dataloader=None,
         math_dataloader=None,
         mmlu_dataloader=None,
@@ -573,6 +593,7 @@ class SFTTrainer(ABC):
         self.eval_perplexity_dataloader = eval_perplexity_dataloader
         self.humaneval_dataloader = humaneval_dataloader
         self.mbpp_dataloader = mbpp_dataloader
+        self.multipl_dataloader = multipl_dataloader
         self.gsm8k_dataloader = gsm8k_dataloader
         self.math_dataloader = math_dataloader
         self.mmlu_dataloader = mmlu_dataloader
@@ -630,12 +651,107 @@ class SFTTrainer(ABC):
             log_dir = os.path.join(self.strategy.args.use_tensorboard, strategy.args.wandb_run_name)
             self._tensorboard = SummaryWriter(log_dir=log_dir)
 
-        # Initialize vLLM engine once for evaluation
+        # Initialize optional evaluation backends only when they are needed.
         self.vllm_engine = None
-        # Don't initialize vLLM at startup - we'll create it fresh during evaluation
+        self.vllm_disabled_reason = None
+        self._vllm_skip_warnings = set()
+        self.comet_model = None
+        self.semantic_sim_model = None
+        self.semantic_sim_tokenizer = None
+        self.rff_transform = None
+        eval_dataset_name = _dataset_name_lower(getattr(self.args, "eval_dataset", ""))
+        has_code_benchmark_eval = any(
+            dataloader is not None for dataloader in (self.humaneval_dataloader, self.mbpp_dataloader, self.multipl_dataloader)
+        )
+        eval_steps_enabled = getattr(self.args, "eval_steps", -1) != -1
+        eval_enabled = eval_steps_enabled and (bool(eval_dataset_name) or has_code_benchmark_eval)
+        skip_generation_eval = "opencode" in eval_dataset_name or "omi_code" in eval_dataset_name
+        needs_vllm = eval_steps_enabled and ((eval_enabled and not skip_generation_eval) or has_code_benchmark_eval)
+        needs_translation_metrics = (
+            eval_enabled
+            and not has_code_benchmark_eval
+            and not skip_generation_eval
+            and not any(
+                token in eval_dataset_name
+                for token in ("gsm8k", "math", "aops", "swallow_code", "fineweb", "finepdf")
+            )
+        )
+
         if self.strategy.is_rank_0():
-            self._initialize_vllm()
-            self._initialize_translation_metrics()
+            if needs_vllm:
+                self._initialize_vllm()
+            if needs_translation_metrics:
+                self._initialize_translation_metrics()
+
+
+    def _shutdown_vllm_engine(self):
+        if self.vllm_engine is None:
+            return
+
+        logger.info("🧹 Shutting down vLLM engine")
+        vllm_engine = self.vllm_engine
+        self.vllm_engine = None
+
+        try:
+            llm_engine = getattr(vllm_engine, "llm_engine", None)
+            shutdown = getattr(llm_engine, "shutdown", None)
+            if callable(shutdown):
+                try:
+                    shutdown()
+                except TypeError:
+                    shutdown(timeout=5)
+        except Exception as exc:
+            logger.warning(f"Failed to cleanly shutdown vLLM engine: {exc}")
+        finally:
+            del vllm_engine
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
+    def shutdown(self):
+        self._shutdown_vllm_engine()
+
+    def _mark_vllm_unavailable(self, reason):
+        if self.vllm_engine is not None:
+            self._shutdown_vllm_engine()
+        self.vllm_disabled_reason = reason
+
+    def _warn_vllm_eval_skipped(self, eval_name):
+        reason = self.vllm_disabled_reason or "vLLM is unavailable"
+        warning_key = (eval_name, reason)
+        if warning_key in self._vllm_skip_warnings:
+            return
+        logger.warning("Skipping %s because %s.", eval_name, reason)
+        self._vllm_skip_warnings.add(warning_key)
+
+    def _can_run_vllm_eval(self, eval_name):
+        if self.vllm_disabled_reason and self.vllm_engine is None:
+            self._warn_vllm_eval_skipped(eval_name)
+            return False
+        if LLM is None or SamplingParams is None:
+            self._mark_vllm_unavailable("vLLM is not installed in the current environment")
+            self._warn_vllm_eval_skipped(eval_name)
+            return False
+        return True
+
+    def _has_code_benchmark_eval(self):
+        return any(
+            dataloader is not None and len(dataloader) > 0
+            for dataloader in (self.humaneval_dataloader, self.mbpp_dataloader, self.multipl_dataloader)
+        )
+
+    def _run_code_benchmark_eval(self, global_step):
+        if not self._can_run_vllm_eval("code benchmark evaluation"):
+            return
+        if self.humaneval_dataloader is not None and len(self.humaneval_dataloader) > 0:
+            logger.info(f"🔍 Running HumanEval eval on {len(self.humaneval_dataloader)} batches")
+            self.evaluate_downstream_humaneval(self.humaneval_dataloader, global_step)
+        if self.mbpp_dataloader is not None and len(self.mbpp_dataloader) > 0:
+            logger.info(f"🔍 Running MBPP eval on {len(self.mbpp_dataloader)} batches")
+            self.evaluate_downstream_mbpp(self.mbpp_dataloader, global_step)
+        if self.multipl_dataloader is not None and len(self.multipl_dataloader) > 0:
+            logger.info(f"🔍 Running MultiPL-E eval on {len(self.multipl_dataloader)} batches")
+            self.evaluate_downstream_humaneval(self.multipl_dataloader, global_step, metric_prefix="multipl_e")
 
 
     def fit(self, args, consumed_samples=0, num_update_steps_per_epoch=None):
@@ -664,12 +780,10 @@ class SFTTrainer(ABC):
         # Perform initial evaluation at step 0 (before training starts)
         if step == 1 and start_epoch == 0 and (not math.isinf(args.eval_steps)):
             has_eval_data = self.eval_dataloader is not None and len(self.eval_dataloader) > 0
-            has_swallow_code_eval = "swallow_code" in self.args.eval_dataset and (
-                (self.humaneval_dataloader is not None and len(self.humaneval_dataloader) > 0)
-                or (self.mbpp_dataloader is not None and len(self.mbpp_dataloader) > 0)
-            )
-            has_setting3_math = "sjelassi/setting3_math" in self.args.eval_dataset
-            if has_eval_data or has_swallow_code_eval or has_setting3_math:
+            has_code_benchmark_eval = self._has_code_benchmark_eval()
+            eval_dataset_name = str(self.args.eval_dataset or "")
+            has_setting3_math = "sjelassi/setting3_math" in eval_dataset_name
+            if has_eval_data or has_code_benchmark_eval or has_setting3_math:
                 logger.info("🔍 Running initial evaluation at step 0...")
                 if has_setting3_math:
                     if self.gsm8k_dataloader is not None:
@@ -682,9 +796,9 @@ class SFTTrainer(ABC):
                             f"🔍 Running MATH eval on {len(self.math_dataloader)} batches"
                         )
                         self.evaluate_gsm8k_math(self.math_dataloader, 0)
-                elif "gsm8k" in self.args.eval_dataset or "math" in self.args.eval_dataset or "aops" in self.args.eval_dataset.lower():
+                elif "gsm8k" in eval_dataset_name or "math" in eval_dataset_name or "aops" in eval_dataset_name.lower():
                     self.evaluate_gsm8k_math(self.eval_dataloader, 0)
-                elif "fineweb" in self.args.eval_dataset or "finepdf" in self.args.eval_dataset:
+                elif "fineweb" in eval_dataset_name or "finepdf" in eval_dataset_name:
                     # if self.mmlu_dataloader is not None:
                     logger.info(f"🔍 Running MMLU eval on {len(self.mmlu_dataloader)} batches")
                     self.evaluate_downstream_mmlu(self.mmlu_dataloader, 0)
@@ -697,16 +811,9 @@ class SFTTrainer(ABC):
                 # if self.obqa_dataloader is not None:
                     logger.info(f"🔍 Running OBQA eval on {len(self.obqa_dataloader)} batches")
                     self.evaluate_downstream_obqa(self.obqa_dataloader, 0)
-                elif "swallow_code" in self.args.eval_dataset:
-                    if self.humaneval_dataloader is not None:
-                        logger.info(
-                            f"🔍 Running HumanEval eval on {len(self.humaneval_dataloader)} batches"
-                        )
-                        self.evaluate_downstream_humaneval(self.humaneval_dataloader, 0)
-                    if self.mbpp_dataloader is not None:
-                        logger.info(f"🔍 Running MBPP eval on {len(self.mbpp_dataloader)} batches")
-                        self.evaluate_downstream_mbpp(self.mbpp_dataloader, 0)
-                elif "opencode" in self.args.eval_dataset or "omi_code" in self.args.eval_dataset:
+                elif has_code_benchmark_eval:
+                    self._run_code_benchmark_eval(0)
+                elif "opencode" in eval_dataset_name or "omi_code" in eval_dataset_name:
                     logger.info("🔍 Skipping evaluation for code dataset (use perplexity eval only)")
                 else:
                     self.evaluate_translation(self.eval_dataloader, 0)
@@ -808,12 +915,10 @@ class SFTTrainer(ABC):
         if global_step % args.eval_steps == 0:
             # do eval when eval data is available, avoid zero division in eval.
             has_eval_data = self.eval_dataloader is not None and len(self.eval_dataloader) > 0
-            has_swallow_code_eval = "swallow_code" in self.args.eval_dataset and (
-                (self.humaneval_dataloader is not None and len(self.humaneval_dataloader) > 0)
-                or (self.mbpp_dataloader is not None and len(self.mbpp_dataloader) > 0)
-            )
-            has_setting3_math = "sjelassi/setting3_math" in self.args.eval_dataset
-            if has_eval_data or has_swallow_code_eval or has_setting3_math:
+            has_code_benchmark_eval = self._has_code_benchmark_eval()
+            eval_dataset_name = str(self.args.eval_dataset or "")
+            has_setting3_math = "sjelassi/setting3_math" in eval_dataset_name
+            if has_eval_data or has_code_benchmark_eval or has_setting3_math:
                 logger.info(f"🔍 Running evaluation at step {global_step}...")
                 if has_setting3_math:
                     if self.gsm8k_dataloader is not None:
@@ -826,9 +931,9 @@ class SFTTrainer(ABC):
                             f"🔍 Running MATH eval on {len(self.math_dataloader)} batches"
                         )
                         self.evaluate_gsm8k_math(self.math_dataloader, global_step)
-                elif "gsm8k" in self.args.eval_dataset or "math" in self.args.eval_dataset or "aops" in self.args.eval_dataset.lower():
+                elif "gsm8k" in eval_dataset_name or "math" in eval_dataset_name or "aops" in eval_dataset_name.lower():
                     self.evaluate_gsm8k_math(self.eval_dataloader, global_step)
-                elif "fineweb" in self.args.eval_dataset or "finepdf" in self.args.eval_dataset:
+                elif "fineweb" in eval_dataset_name or "finepdf" in eval_dataset_name:
                     # if self.mmlu_dataloader is not None:
                     logger.info(f"🔍 Running MMLU eval on {len(self.mmlu_dataloader)} batches")
                     self.evaluate_downstream_mmlu(self.mmlu_dataloader, global_step)
@@ -841,16 +946,9 @@ class SFTTrainer(ABC):
                     # if self.obqa_dataloader is not None:
                     logger.info(f"🔍 Running OBQA eval on {len(self.obqa_dataloader)} batches")
                     self.evaluate_downstream_obqa(self.obqa_dataloader, global_step)
-                elif "swallow_code" in self.args.eval_dataset:
-                    if self.humaneval_dataloader is not None:
-                        logger.info(
-                            f"🔍 Running HumanEval eval on {len(self.humaneval_dataloader)} batches"
-                        )
-                        self.evaluate_downstream_humaneval(self.humaneval_dataloader, global_step)
-                    if self.mbpp_dataloader is not None:
-                        logger.info(f"🔍 Running MBPP eval on {len(self.mbpp_dataloader)} batches")
-                        self.evaluate_downstream_mbpp(self.mbpp_dataloader, global_step)
-                elif "opencode" in self.args.eval_dataset or "omi_code" in self.args.eval_dataset:
+                elif has_code_benchmark_eval:
+                    self._run_code_benchmark_eval(global_step)
+                elif "opencode" in eval_dataset_name or "omi_code" in eval_dataset_name:
                     logger.info(f"🔍 Skipping evaluation for code dataset at step {global_step} (use perplexity eval only)")
                 else:
                     self.evaluate_translation(self.eval_dataloader, global_step)
@@ -892,7 +990,11 @@ class SFTTrainer(ABC):
         start_time = time.time()
         logger.info(f"⏰ Evaluation start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        self._broadcast_to_vllm()
+        if not self._can_run_vllm_eval("GSM8K/MATH evaluation"):
+            return
+        if not self._broadcast_to_vllm():
+            self._warn_vllm_eval_skipped("GSM8K/MATH evaluation")
+            return
  
         with torch.no_grad():
             # First collect all prompts and labels
@@ -1064,12 +1166,18 @@ class SFTTrainer(ABC):
         logger.info(f"✨ GSM8K/MATH evaluation completed in {time_str}, global_step {global_step}, eval_metrics: {logs}")
 
 
-    def evaluate_downstream_humaneval(self, eval_dataloader, global_step):
-        """Evaluate HumanEval via unit tests."""
+    def evaluate_downstream_humaneval(self, eval_dataloader, global_step, metric_prefix="humaneval"):
+        """Evaluate HumanEval-style code generation via unit tests."""
         start_time = time.time()
-        logger.info(f"⏰ HumanEval evaluation start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        metric_name = metric_prefix.replace("_", "-")
+        logger.info(f"⏰ {metric_name} evaluation start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        self._broadcast_to_vllm()
+        eval_name = f"{metric_name} evaluation"
+        if not self._can_run_vllm_eval(eval_name):
+            return
+        if not self._broadcast_to_vllm():
+            self._warn_vllm_eval_skipped(eval_name)
+            return
 
         n_samples_per_prompt = max(1, getattr(self.args, "eval_n_samples_per_prompt", 1))
         sampling_params = SamplingParams(
@@ -1106,11 +1214,11 @@ class SFTTrainer(ABC):
                     all_entry_points.append(entry_point)
 
             if not all_prompts:
-                logger.warning("No prompts collected for HumanEval; skipping.")
+                logger.warning("No prompts collected for %s; skipping.", metric_name)
                 return
-            logger.info("HumanEval evaluation examples: %d", len(all_prompts))
+            logger.info("%s evaluation examples: %d", metric_name, len(all_prompts))
 
-            logger.info(f"🚀 Generating {len(all_prompts)} HumanEval solutions with vLLM...")
+            logger.info(f"🚀 Generating {len(all_prompts)} {metric_name} solutions with vLLM...")
             results = self.vllm_engine.generate(all_prompts, sampling_params)
 
             rewards_per_prompt = []
@@ -1168,11 +1276,11 @@ class SFTTrainer(ABC):
                 syntax_pct = fail_pct = timeout_pct = 0.0
 
             logs = {
-                "reward_humaneval_passk": passk,
-                "reward_humaneval_pass1": pass1,
-                "err_humaneval_syntax_pct": syntax_pct,
-                "err_humaneval_fail_pct": fail_pct,
-                "err_humaneval_timeout_pct": timeout_pct,
+                f"reward_{metric_prefix}_passk": passk,
+                f"reward_{metric_prefix}_pass1": pass1,
+                f"err_{metric_prefix}_syntax_pct": syntax_pct,
+                f"err_{metric_prefix}_fail_pct": fail_pct,
+                f"err_{metric_prefix}_timeout_pct": timeout_pct,
             }
 
             if self._wandb is not None:
@@ -1184,14 +1292,18 @@ class SFTTrainer(ABC):
 
         duration = time.time() - start_time
         time_str = str(timedelta(seconds=duration)).split(".")[0]
-        logger.info(f"✨ HumanEval evaluation completed in {time_str}, global_step {global_step}, eval_metrics: {logs}")
+        logger.info(f"✨ {metric_name} evaluation completed in {time_str}, global_step {global_step}, eval_metrics: {logs}")
 
     def evaluate_downstream_mbpp(self, eval_dataloader, global_step):
         """Evaluate MBPP via unit tests."""
         start_time = time.time()
         logger.info(f"⏰ MBPP evaluation start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        self._broadcast_to_vllm()
+        if not self._can_run_vllm_eval("MBPP evaluation"):
+            return
+        if not self._broadcast_to_vllm():
+            self._warn_vllm_eval_skipped("MBPP evaluation")
+            return
 
         prompt_style = getattr(self.args, "mbpp_prompt_style", "bigcode")
         logger.info("MBPP prompt style: %s", prompt_style)
@@ -2443,7 +2555,11 @@ class SFTTrainer(ABC):
         start_time = time.time()
         logger.info(f"⏰ Evaluation start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        self._broadcast_to_vllm()
+        if not self._can_run_vllm_eval("translation evaluation"):
+            return
+        if not self._broadcast_to_vllm():
+            self._warn_vllm_eval_skipped("translation evaluation")
+            return
 
         with torch.no_grad():
             # First collect all prompts and labels
@@ -2764,9 +2880,9 @@ class SFTTrainer(ABC):
 
     def _initialize_vllm(self):
         """Initialize vLLM engine once with the pretrained model."""
+        if not self._can_run_vllm_eval("vLLM initialization"):
+            return False
         try:
-            from vllm import LLM
-            
             logger.info("🚀 Initializing vLLM engine for fast evaluation...")
             
             # Initialize vLLM with the pretrained model
@@ -2779,17 +2895,18 @@ class SFTTrainer(ABC):
                 max_model_len=getattr(self.args, 'max_seq_len', 512),
                 enforce_eager=True,  # Disable CUDA graphs for weight updates
             )
+            self.vllm_disabled_reason = None
             logger.info("✅ vLLM engine initialized successfully")
-            
-        except ImportError:
-            logger.error("vLLM not installed. Please install vLLM for evaluation.")
-            raise
+            return True
         except Exception as e:
-            logger.error(f"Failed to initialize vLLM: {e}")
-            raise
+            self._mark_vllm_unavailable(f"vLLM initialization failed: {e}")
+            logger.warning("Failed to initialize vLLM; skipping vLLM-based evaluation for this run. %s", e)
+            return False
 
     def _broadcast_to_vllm(self):
         """Create or update vLLM engine with current model weights."""
+        if not self._can_run_vllm_eval("vLLM-backed evaluation"):
+            return False
         logger.info("🔄 Setting up vLLM engine with current model weights...")
         
         # Debug: Check what model we're working with
@@ -2829,8 +2946,7 @@ class SFTTrainer(ABC):
                 
                 # Clean up any existing vLLM engine
                 if self.vllm_engine is not None:
-                    del self.vllm_engine
-                    torch.cuda.empty_cache()
+                    self._shutdown_vllm_engine()
                 
                 logger.info(f"  Creating vLLM engine from {tmpdir}")
                 self.vllm_engine = LLM(
@@ -2843,12 +2959,15 @@ class SFTTrainer(ABC):
                     enforce_eager=True,
                     disable_log_stats=True,  # Reduce logging noise
                 )
+                self.vllm_disabled_reason = None
                 
                 logger.info("✅ vLLM engine created with current model weights")
+                return True
                 
         except Exception as e:
-            logger.error(f"Failed to update vLLM weights: {e}")
-            raise
+            self._mark_vllm_unavailable(f"vLLM weight sync failed: {e}")
+            logger.warning("Failed to update vLLM weights; skipping vLLM-based evaluation for this run. %s", e)
+            return False
 
     def _initialize_translation_metrics(self):
         """Initialize translation evaluation metrics (COMET, semantic similarity model)."""
