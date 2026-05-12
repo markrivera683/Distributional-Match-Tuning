@@ -5,7 +5,9 @@
 #   bash scripts/supplement/G3_eval.sh /root/outputs/g3_rebase_0407_1338
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+# REPO_ROOT auto-derived; portable across DSW symlink and DLC bare path.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 STUDENT_VENV="${STUDENT_VENV:-${REPO_ROOT}/.venv}"

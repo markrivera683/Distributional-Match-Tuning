@@ -22,7 +22,11 @@ from openrlhf.utils.embedding_utils import (
 from openrlhf.utils import get_tokenizer
 from openrlhf.utils.logging_utils import init_logger
 from openrlhf.utils.deepspeed import DeepspeedStrategy
-from openrlhf.utils.deepspeed.deepspeed_utils import offload_deepspeed_states, reload_deepspeed_states
+from openrlhf.utils.deepspeed.deepspeed_utils import (
+    _z3_params_to_fetch,
+    offload_deepspeed_states,
+    reload_deepspeed_states,
+)
 from openrlhf.utils.run_config_utils import write_run_config
 
 from ..ppo_utils import EBFTNaiveReplayBuffer
@@ -502,14 +506,45 @@ class CriticEBFTTrainer(ABC):
             name = name[len("module.") :]
         return name
 
+    def _zero3_gather_enabled(self) -> bool:
+        """Whether DeepSpeed ZeRO-3 parameter gathering should be used.
+
+        Under ZeRO-3, ``param.detach()`` only sees this rank's local shard
+        (which may even be an empty tensor when the parameter is fully
+        partitioned away). Comparing two such partial views across different
+        models (e.g. online critic vs offloaded EMA copy) leads to shape
+        mismatches like ``size of tensor a (0) must match the size of tensor
+        b (1024)``. Gathering the full parameter into every rank avoids this.
+        """
+        return getattr(self.strategy, "stage", None) == 3
+
+    @staticmethod
+    def _gathered_param_ctx(param, gather_enabled: bool):
+        if not gather_enabled:
+            return nullcontext()
+        # Mirror ``DeepspeedStrategy.moving_average``: only gather params that
+        # are currently NOT_AVAILABLE on this rank (i.e. partitioned away).
+        # Already-available params (incl. tensors that were never registered
+        # with ZeRO-3) skip the all-gather entirely.
+        params_to_fetch = _z3_params_to_fetch([param])
+        return deepspeed.zero.GatheredParameters(
+            params_to_fetch, enabled=len(params_to_fetch) > 0
+        )
+
     def _snapshot_named_params(self, model, needle: str) -> Dict[str, torch.Tensor]:
         snapshot: Dict[str, torch.Tensor] = {}
         if model is None:
             return snapshot
+        gather_enabled = self._zero3_gather_enabled()
         with torch.no_grad():
             for name, param in model.named_parameters():
                 norm_name = self._normalize_param_name(name)
-                if needle in norm_name:
+                if needle not in norm_name:
+                    continue
+                with self._gathered_param_ctx(param, gather_enabled):
+                    # Inside the gather ctx ``param.data`` holds the full
+                    # tensor on every rank, so the snapshot is a real copy
+                    # of the unsharded parameter.
                     snapshot[norm_name] = param.detach().float().cpu().clone()
         return snapshot
 
@@ -517,6 +552,7 @@ class CriticEBFTTrainer(ABC):
         if model is None or not snapshot:
             return 0.0, 0.0
 
+        gather_enabled = self._zero3_gather_enabled()
         delta_sq = 0.0
         base_sq = 0.0
         abs_mean_acc = 0.0
@@ -526,8 +562,17 @@ class CriticEBFTTrainer(ABC):
                 norm_name = self._normalize_param_name(name)
                 if needle not in norm_name or norm_name not in snapshot:
                     continue
-                current = param.detach().float().cpu()
+                with self._gathered_param_ctx(param, gather_enabled):
+                    current = param.detach().float().cpu()
                 base = snapshot[norm_name]
+                if current.shape != base.shape:
+                    # Defensive: snapshot was taken before ZeRO-3 partitioned
+                    # this param (or vice versa). Skip rather than crash.
+                    logger.warning(
+                        f"_compute_param_drift: shape mismatch for '{norm_name}' "
+                        f"(current={tuple(current.shape)}, base={tuple(base.shape)}); skipping."
+                    )
+                    continue
                 diff = current - base
                 delta_sq += float(diff.pow(2).sum().item())
                 base_sq += float(base.pow(2).sum().item())
@@ -555,6 +600,12 @@ class CriticEBFTTrainer(ABC):
             if name not in ema_params:
                 continue
             ema = ema_params[name]
+            if online.shape != ema.shape:
+                logger.warning(
+                    f"_compute_ema_gap: shape mismatch for '{name}' "
+                    f"(online={tuple(online.shape)}, ema={tuple(ema.shape)}); skipping."
+                )
+                continue
             diff = online - ema
             delta_sq += float(diff.pow(2).sum().item())
             online_sq += float(online.pow(2).sum().item())
@@ -809,7 +860,11 @@ class EBFTCriticModelActor(BaseModelActor):
                     continue
                 if requires_grad is not None and p.requires_grad != requires_grad:
                     continue
-                total += p.numel()
+                # Under ZeRO-3 ``p.numel()`` is the rank-local shard size
+                # (often 0 for fully-partitioned params on a given rank);
+                # ``ds_numel`` (set by deepspeed.zero.Init) holds the true
+                # global parameter count, which is what we want to report.
+                total += int(getattr(p, "ds_numel", p.numel()))
             return total
 
         critic_ref = self.critic
@@ -832,7 +887,8 @@ class EBFTCriticModelActor(BaseModelActor):
         strategy.print(f"  ema_model present      : {self.ema_model is not None}")
 
         for i, group in enumerate(getattr(self.critic_optim, "param_groups", [])):
-            n_params = sum(p.numel() for p in group["params"])
+            # Same ZeRO-3 caveat as ``_count_params`` above.
+            n_params = sum(int(getattr(p, "ds_numel", p.numel())) for p in group["params"])
             strategy.print(f"  optimizer group {i}: lr={group.get('lr', '?')}, params={n_params:,}")
         strategy.print("=" * 60)
 

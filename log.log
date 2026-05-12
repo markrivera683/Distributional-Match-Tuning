@@ -1,0 +1,1189 @@
+[2026-04-30 21:08:21] Collecting ml-dtypes (from tilelang==0.1.9->vllm==0.20.0)
+[2026-04-30 21:08:21]   Downloading ml_dtypes-0.5.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (5.0 MB)
+[2026-04-30 21:08:21]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 13.4 MB/s  0:00:00
+[2026-04-30 21:08:21] Collecting z3-solver<4.15.5,>=4.13.0 (from tilelang==0.1.9->vllm==0.20.0)
+[2026-04-30 21:08:22]   Downloading z3_solver-4.15.4.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (29.3 MB)
+[2026-04-30 21:08:23]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 29.3/29.3 MB 15.7 MB/s  0:00:01
+[2026-04-30 21:08:24] Requirement already satisfied: sympy>=1.13.3 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (1.14.0)
+[2026-04-30 21:08:24] Requirement already satisfied: networkx>=2.5.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (3.6.1)
+[2026-04-30 21:08:24] Requirement already satisfied: jinja2 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (3.1.6)
+[2026-04-30 21:08:24] Requirement already satisfied: fsspec>=0.8.5 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (2026.4.0)
+[2026-04-30 21:08:24] Collecting cuda-toolkit==13.0.2 (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:08:24]   Downloading cuda_toolkit-13.0.2-py2.py3-none-any.whl (2.4 kB)
+[2026-04-30 21:08:24] Collecting cuda-bindings<14,>=13.0.3 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:08:24]   Downloading cuda_bindings-13.2.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (6.3 MB)
+[2026-04-30 21:08:24]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 15.0 MB/s  0:00:00
+[2026-04-30 21:08:24] Collecting nvidia-cudnn-cu13==9.19.0.56 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:08:25]   Downloading nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl (366.1 MB)
+[2026-04-30 21:08:40] [2026-04-30 21:08:40,798 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:08:41] [2026-04-30 21:08:41,298 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:08:48]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 366.1/366.1 MB 15.2 MB/s  0:00:23
+[2026-04-30 21:08:49] Collecting nvidia-cusparselt-cu13==0.8.0 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:08:49]   Downloading nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl (169.9 MB)
+[2026-04-30 21:09:00]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 169.9/169.9 MB 15.3 MB/s  0:00:11
+[2026-04-30 21:09:00] Collecting nvidia-nccl-cu13==2.28.9 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:09:00]   Downloading nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl (196.5 MB)
+[2026-04-30 21:09:02] [2026-04-30 21:09:02,650 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:09:11] [2026-04-30 21:09:11,433 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:09:11] [2026-04-30 21:09:11,433 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:09:13]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 196.5/196.5 MB 15.3 MB/s  0:00:12
+[2026-04-30 21:09:13] Collecting nvidia-nvshmem-cu13==3.4.5 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:09:14]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 244.4/244.4 MB 5.3 MB/s  0:00:59
+[2026-04-30 21:09:14]   Downloading nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (60.4 MB)
+[2026-04-30 21:09:15] Collecting flashinfer-python==0.6.8.post1
+[2026-04-30 21:09:15]   Downloading flashinfer_python-0.6.8.post1-py3-none-any.whl (9.4 MB)
+[2026-04-30 21:09:15]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.4/9.4 MB 14.7 MB/s  0:00:00
+[2026-04-30 21:09:15] Collecting tqdm==4.67.3
+[2026-04-30 21:09:15]   Using cached tqdm-4.67.3-py3-none-any.whl (78 kB)
+[2026-04-30 21:09:15] Collecting flashinfer-cubin==0.6.8.post1
+[2026-04-30 21:09:16]   Downloading flashinfer_cubin-0.6.8.post1-py3-none-any.whl (295.2 MB)
+[2026-04-30 21:09:17]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 15.3 MB/s  0:00:03
+[2026-04-30 21:09:18] Requirement already satisfied: triton==3.6.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (3.6.0)
+[2026-04-30 21:09:18] Collecting nvidia-cublas==13.1.0.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:09:18]   Downloading nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl (423.1 MB)
+[2026-04-30 21:09:21] [2026-04-30 21:09:21,502 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:09:40]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 295.2/295.2 MB 13.9 MB/s  0:00:24
+[2026-04-30 21:09:40] [2026-04-30 21:09:40,836 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:09:41] Collecting regex (from vllm==0.20.0)
+[2026-04-30 21:09:41]   Using cached regex-2026.4.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+[2026-04-30 21:09:41] Collecting cachetools (from vllm==0.20.0)
+[2026-04-30 21:09:41]   Downloading cachetools-7.0.6-py3-none-any.whl (13 kB)
+[2026-04-30 21:09:41] Collecting psutil (from vllm==0.20.0)
+[2026-04-30 21:09:41]   Using cached psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
+[2026-04-30 21:09:41] Collecting sentencepiece (from vllm==0.20.0)
+[2026-04-30 21:09:41]   Using cached sentencepiece-0.2.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (1.4 MB)
+[2026-04-30 21:09:41] Requirement already satisfied: numpy in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from vllm==0.20.0) (2.4.4)
+[2026-04-30 21:09:41] Collecting requests>=2.26.0 (from vllm==0.20.0)
+[2026-04-30 21:09:41]   Using cached requests-2.33.1-py3-none-any.whl (64 kB)
+[2026-04-30 21:09:41] [2026-04-30 21:09:41,656 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:09:42] Collecting blake3 (from vllm==0.20.0)
+[2026-04-30 21:09:42]   Downloading blake3-1.0.8-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (388 kB)
+[2026-04-30 21:09:42] Collecting py-cpuinfo (from vllm==0.20.0)
+[2026-04-30 21:09:42]   Using cached py_cpuinfo-9.0.0-py3-none-any.whl (22 kB)
+[2026-04-30 21:09:42] Collecting transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0 (from vllm==0.20.0)
+[2026-04-30 21:09:42]   Using cached transformers-5.7.0-py3-none-any.whl (10.5 MB)
+[2026-04-30 21:09:42] Collecting tokenizers>=0.21.1 (from vllm==0.20.0)
+[2026-04-30 21:09:42]   Downloading tokenizers-0.23.1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+[2026-04-30 21:09:42]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 23.4 MB/s  0:00:00
+[2026-04-30 21:09:42] Collecting protobuf!=6.30.*,!=6.31.*,!=6.32.*,!=6.33.0.*,!=6.33.1.*,!=6.33.2.*,!=6.33.3.*,!=6.33.4.*,>=5.29.6 (from vllm==0.20.0)
+[2026-04-30 21:09:42]   Using cached protobuf-7.34.1-cp310-abi3-manylinux2014_x86_64.whl (324 kB)
+[2026-04-30 21:09:42] Collecting fastapi>=0.115.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:09:42]   Downloading fastapi-0.136.1-py3-none-any.whl (117 kB)
+[2026-04-30 21:09:43] Collecting aiohttp>=3.13.3 (from vllm==0.20.0)
+[2026-04-30 21:09:43]   Using cached aiohttp-3.13.5-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.8 MB)
+[2026-04-30 21:09:43] Collecting openai>=2.0.0 (from vllm==0.20.0)
+[2026-04-30 21:09:43]   Downloading openai-2.33.0-py3-none-any.whl (1.2 MB)
+[2026-04-30 21:09:43]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 15.0 MB/s  0:00:00
+[2026-04-30 21:09:43] Collecting pydantic>=2.12.0 (from vllm==0.20.0)
+[2026-04-30 21:09:43]   Downloading pydantic-2.13.3-py3-none-any.whl (471 kB)
+[2026-04-30 21:09:44] Collecting prometheus_client>=0.18.0 (from vllm==0.20.0)
+[2026-04-30 21:09:44]   Using cached prometheus_client-0.25.0-py3-none-any.whl (64 kB)
+[2026-04-30 21:09:44] Requirement already satisfied: pillow in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from vllm==0.20.0) (12.2.0)
+[2026-04-30 21:09:44] Collecting prometheus-fastapi-instrumentator>=7.0.0 (from vllm==0.20.0)
+[2026-04-30 21:09:44]   Downloading prometheus_fastapi_instrumentator-7.1.0-py3-none-any.whl (19 kB)
+[2026-04-30 21:09:44] Collecting tiktoken>=0.6.0 (from vllm==0.20.0)
+[2026-04-30 21:09:44]   Downloading tiktoken-0.12.0-cp312-cp312-manylinux_2_28_x86_64.whl (1.2 MB)
+[2026-04-30 21:09:44]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 22.2 MB/s  0:00:00
+[2026-04-30 21:09:44] Collecting lm-format-enforcer==0.11.3 (from vllm==0.20.0)
+[2026-04-30 21:09:44]   Downloading lm_format_enforcer-0.11.3-py3-none-any.whl (45 kB)
+[2026-04-30 21:09:44] Collecting llguidance<1.4.0,>=1.3.0 (from vllm==0.20.0)
+[2026-04-30 21:09:44]   Downloading llguidance-1.3.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.0 MB)
+[2026-04-30 21:09:44]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 22.2 MB/s  0:00:00
+[2026-04-30 21:09:44] Collecting outlines_core==0.2.14 (from vllm==0.20.0)
+[2026-04-30 21:09:44]   Downloading outlines_core-0.2.14-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.3 MB)
+[2026-04-30 21:09:44]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 23.3 MB/s  0:00:00
+[2026-04-30 21:09:45] Collecting diskcache==5.6.3 (from vllm==0.20.0)
+[2026-04-30 21:09:45]   Downloading diskcache-5.6.3-py3-none-any.whl (45 kB)
+[2026-04-30 21:09:45] Collecting lark==1.2.2 (from vllm==0.20.0)
+[2026-04-30 21:09:45]   Downloading lark-1.2.2-py3-none-any.whl (111 kB)
+[2026-04-30 21:09:45] Collecting xgrammar<1.0.0,>=0.1.32 (from vllm==0.20.0)
+[2026-04-30 21:09:45]   Downloading xgrammar-0.1.34-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (44.6 MB)
+[2026-04-30 21:09:45]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 15.4 MB/s  0:00:27
+[2026-04-30 21:09:45] Collecting nvidia-cuda-runtime==13.0.96.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:09:45]   Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
+[2026-04-30 21:09:46]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 13.8 MB/s  0:00:00
+[2026-04-30 21:09:46] Collecting nvidia-cufft==12.0.0.61.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:09:46]   Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (214.1 MB)
+[2026-04-30 21:09:47]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 MB 19.0 MB/s  0:00:02
+[2026-04-30 21:09:47] Requirement already satisfied: typing_extensions>=4.10 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from vllm==0.20.0) (4.15.0)
+[2026-04-30 21:09:47] Requirement already satisfied: filelock>=3.16.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from vllm==0.20.0) (3.29.0)
+[2026-04-30 21:09:47] Collecting partial-json-parser (from vllm==0.20.0)
+[2026-04-30 21:09:47]   Downloading partial_json_parser-0.2.1.1.post7-py3-none-any.whl (10 kB)
+[2026-04-30 21:09:48] Collecting pyzmq>=25.0.0 (from vllm==0.20.0)
+[2026-04-30 21:09:48]   Downloading pyzmq-27.1.0-cp312-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (840 kB)
+[2026-04-30 21:09:48]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 841.0/841.0 kB 25.5 MB/s  0:00:00
+[2026-04-30 21:09:48] Collecting msgspec (from vllm==0.20.0)
+[2026-04-30 21:09:48]   Downloading msgspec-0.21.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (225 kB)
+[2026-04-30 21:09:48] Collecting gguf>=0.17.0 (from vllm==0.20.0)
+[2026-04-30 21:09:48]   Downloading gguf-0.18.0-py3-none-any.whl (114 kB)
+[2026-04-30 21:09:48] Collecting mistral_common>=1.11.0 (from mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:09:48]   Downloading mistral_common-1.11.1-py3-none-any.whl (6.5 MB)
+[2026-04-30 21:09:48]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.5/6.5 MB 24.7 MB/s  0:00:00
+[2026-04-30 21:09:48] Collecting opencv-python-headless>=4.13.0 (from vllm==0.20.0)
+[2026-04-30 21:09:48]   Downloading opencv_python_headless-4.13.0.92-cp37-abi3-manylinux_2_28_x86_64.whl (60.4 MB)
+[2026-04-30 21:09:52]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 15.6 MB/s  0:00:03
+[2026-04-30 21:09:52] Collecting pyyaml (from vllm==0.20.0)
+[2026-04-30 21:09:52]   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+[2026-04-30 21:09:52]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 22.5 MB/s  0:00:00
+[2026-04-30 21:09:53] Collecting six>=1.16.0 (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+[2026-04-30 21:09:53] Collecting setuptools<81.0.0,>=77.0.3 (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Downloading setuptools-80.10.2-py3-none-any.whl (1.1 MB)
+[2026-04-30 21:09:53]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 21.7 MB/s  0:00:00
+[2026-04-30 21:09:53] Collecting einops (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Using cached einops-0.8.2-py3-none-any.whl (65 kB)
+[2026-04-30 21:09:53] Collecting compressed-tensors==0.15.0.1 (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Downloading compressed_tensors-0.15.0.1-py3-none-any.whl (194 kB)
+[2026-04-30 21:09:53] Collecting depyf==0.20.0 (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Downloading depyf-0.20.0-py3-none-any.whl (39 kB)
+[2026-04-30 21:09:53] Collecting cloudpickle (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Downloading cloudpickle-3.1.2-py3-none-any.whl (22 kB)
+[2026-04-30 21:09:53] Collecting watchfiles (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Downloading watchfiles-1.1.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (456 kB)
+[2026-04-30 21:09:53] Collecting python-json-logger (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Downloading python_json_logger-4.1.0-py3-none-any.whl (15 kB)
+[2026-04-30 21:09:53] Collecting ninja (from vllm==0.20.0)
+[2026-04-30 21:09:53]   Using cached ninja-1.13.0-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (180 kB)
+[2026-04-30 21:09:54] Collecting pybase64 (from vllm==0.20.0)
+[2026-04-30 21:09:54]   Downloading pybase64-1.4.3-cp312-cp312-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl (71 kB)
+[2026-04-30 21:09:54] Collecting cbor2 (from vllm==0.20.0)
+[2026-04-30 21:09:54]   Downloading cbor2-6.0.1-cp312-cp312-manylinux_2_28_x86_64.whl (456 kB)
+[2026-04-30 21:09:54] Collecting ijson (from vllm==0.20.0)
+[2026-04-30 21:09:54]   Downloading ijson-3.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (149 kB)
+[2026-04-30 21:09:54] Collecting setproctitle (from vllm==0.20.0)
+[2026-04-30 21:09:54]   Downloading setproctitle-1.3.7-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (32 kB)
+[2026-04-30 21:09:54] Collecting openai-harmony>=0.0.3 (from vllm==0.20.0)
+[2026-04-30 21:09:54]   Downloading openai_harmony-0.0.8-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.0 MB)
+[2026-04-30 21:09:54]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 24.2 MB/s  0:00:00
+[2026-04-30 21:09:54] Collecting anthropic>=0.71.0 (from vllm==0.20.0)
+[2026-04-30 21:09:54]   Downloading anthropic-0.97.0-py3-none-any.whl (662 kB)
+[2026-04-30 21:09:55]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 662.1/662.1 kB 20.8 MB/s  0:00:00
+[2026-04-30 21:09:55] Collecting model-hosting-container-standards<1.0.0,>=0.1.13 (from vllm==0.20.0)
+[2026-04-30 21:09:55]   Downloading model_hosting_container_standards-0.1.14-py3-none-any.whl (121 kB)
+[2026-04-30 21:09:55] Collecting mcp (from vllm==0.20.0)
+[2026-04-30 21:09:55]   Downloading mcp-1.27.0-py3-none-any.whl (215 kB)
+[2026-04-30 21:09:55] Collecting opentelemetry-sdk>=1.27.0 (from vllm==0.20.0)
+[2026-04-30 21:09:55]   Using cached opentelemetry_sdk-1.41.1-py3-none-any.whl (180 kB)
+[2026-04-30 21:09:55] Collecting opentelemetry-api>=1.27.0 (from vllm==0.20.0)
+[2026-04-30 21:09:55]   Using cached opentelemetry_api-1.41.1-py3-none-any.whl (69 kB)
+[2026-04-30 21:09:55] Collecting opentelemetry-exporter-otlp>=1.27.0 (from vllm==0.20.0)
+[2026-04-30 21:09:55]   Downloading opentelemetry_exporter_otlp-1.41.1-py3-none-any.whl (7.0 kB)
+[2026-04-30 21:09:55] Collecting opentelemetry-semantic-conventions-ai>=0.4.1 (from vllm==0.20.0)
+[2026-04-30 21:09:55]   Downloading opentelemetry_semantic_conventions_ai-0.5.1-py3-none-any.whl (11 kB)
+[2026-04-30 21:09:55] Collecting numba==0.65.0 (from vllm==0.20.0)
+[2026-04-30 21:09:55]   Downloading numba-0.65.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (3.8 MB)
+[2026-04-30 21:09:56]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.8/3.8 MB 24.1 MB/s  0:00:00
+[2026-04-30 21:09:56] Collecting torch==2.11.0 (from vllm==0.20.0)
+[2026-04-30 21:09:56]   Downloading torch-2.11.0-cp312-cp312-manylinux_2_28_x86_64.whl (530.7 MB)
+[2026-04-30 21:09:59]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 15.6 MB/s  0:00:13
+[2026-04-30 21:10:00] Collecting nvidia-cufile==1.15.1.6.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:00]   Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
+[2026-04-30 21:10:00]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 15.2 MB/s  0:00:00
+[2026-04-30 21:10:00] Collecting nvidia-cuda-cupti==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:00]   Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl (10.7 MB)
+[2026-04-30 21:10:01]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 15.4 MB/s  0:00:00
+[2026-04-30 21:10:01] Collecting nvidia-curand==10.4.0.35.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:01]   Downloading nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl (59.5 MB)
+[2026-04-30 21:10:05]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 15.5 MB/s  0:00:03
+[2026-04-30 21:10:05] Collecting nvidia-cusolver==12.0.4.66.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:05]   Downloading nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl (200.9 MB)
+[2026-04-30 21:10:11] [2026-04-30 21:10:11,781 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:10:11] [2026-04-30 21:10:11,781 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:10:18]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 15.5 MB/s  0:00:12
+[2026-04-30 21:10:18] Collecting nvidia-cusparse==12.6.3.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:18]   Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (145.9 MB)
+[2026-04-30 21:10:28]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 15.8 MB/s  0:00:09
+[2026-04-30 21:10:28] Collecting nvidia-nvjitlink==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:28]   Downloading nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (40.7 MB)
+[2026-04-30 21:10:31]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.7/40.7 MB 15.4 MB/s  0:00:02
+[2026-04-30 21:10:31] Collecting nvidia-cuda-nvrtc==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:31]   Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (90.2 MB)
+[2026-04-30 21:10:32]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 530.7/530.7 MB 14.7 MB/s  0:00:36
+[2026-04-30 21:10:33] Collecting torchaudio==2.11.0 (from vllm==0.20.0)
+[2026-04-30 21:10:33]   Downloading torchaudio-2.11.0-cp312-cp312-manylinux_2_28_x86_64.whl (1.8 MB)
+[2026-04-30 21:10:33]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 21.1 MB/s  0:00:00
+[2026-04-30 21:10:33] Collecting torchvision==0.26.0 (from vllm==0.20.0)
+[2026-04-30 21:10:33]   Downloading torchvision-0.26.0-cp312-cp312-manylinux_2_28_x86_64.whl (7.5 MB)
+[2026-04-30 21:10:33]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.5/7.5 MB 22.1 MB/s  0:00:00
+[2026-04-30 21:10:33] Collecting apache-tvm-ffi==0.1.9 (from vllm==0.20.0)
+[2026-04-30 21:10:33]   Downloading apache_tvm_ffi-0.1.9-cp312-abi3-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (2.3 MB)
+[2026-04-30 21:10:33]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 22.6 MB/s  0:00:00
+[2026-04-30 21:10:33] Collecting tilelang==0.1.9 (from vllm==0.20.0)
+[2026-04-30 21:10:34]   Downloading tilelang-0.1.9-cp38-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (45.4 MB)
+[2026-04-30 21:10:34] [2026-04-30 21:10:34,502 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:10:37]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 15.5 MB/s  0:00:05
+[2026-04-30 21:10:37] Collecting nvidia-nvtx==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl (148 kB)
+[2026-04-30 21:10:37] Requirement already satisfied: cuda-pathfinder~=1.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from cuda-bindings<14,>=13.0.3->torch==2.11.0->vllm==0.20.0) (1.5.4)
+[2026-04-30 21:10:37] Collecting httpx (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:37]   Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+[2026-04-30 21:10:37] Collecting jmespath (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading jmespath-1.1.0-py3-none-any.whl (20 kB)
+[2026-04-30 21:10:37] Collecting starlette>=0.49.1 (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading starlette-1.0.0-py3-none-any.whl (72 kB)
+[2026-04-30 21:10:37] Collecting supervisor>=4.2.0 (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading supervisor-4.3.0-py2.py3-none-any.whl (320 kB)
+[2026-04-30 21:10:37]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.4/45.4 MB 14.9 MB/s  0:00:03
+[2026-04-30 21:10:37] Collecting nvidia-cudnn-frontend<1.19.0,>=1.13.0 (from vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading nvidia_cudnn_frontend-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (2.2 MB)
+[2026-04-30 21:10:37]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 23.1 MB/s  0:00:00
+[2026-04-30 21:10:37] Collecting fastsafetensors>=0.2.2 (from vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading fastsafetensors-0.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (1.9 MB)
+[2026-04-30 21:10:37]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 14.1 MB/s  0:00:00
+[2026-04-30 21:10:37] Collecting nvidia-cutlass-dsl>=4.4.2 (from vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading nvidia_cutlass_dsl-4.4.2-py3-none-any.whl (10 kB)
+[2026-04-30 21:10:37] Collecting quack-kernels>=0.3.3 (from vllm==0.20.0)
+[2026-04-30 21:10:37]   Downloading quack_kernels-0.4.0-py3-none-any.whl (250 kB)
+[2026-04-30 21:10:37] Collecting click (from flashinfer-python==0.6.8.post1)
+[2026-04-30 21:10:37]   Using cached click-8.3.3-py3-none-any.whl (110 kB)
+[2026-04-30 21:10:38] Collecting aiohappyeyeballs>=2.5.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:38]   Using cached aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+[2026-04-30 21:10:38] Collecting aiosignal>=1.4.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:38]   Using cached aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+[2026-04-30 21:10:38] Collecting attrs>=17.3.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:38]   Using cached attrs-26.1.0-py3-none-any.whl (67 kB)
+[2026-04-30 21:10:38] Collecting frozenlist>=1.1.1 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:38]   Using cached frozenlist-1.8.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (242 kB)
+[2026-04-30 21:10:38] Collecting multidict<7.0,>=4.5 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:38]   Using cached multidict-6.7.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (256 kB)
+[2026-04-30 21:10:38] Collecting propcache>=0.2.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:38]   Using cached propcache-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (221 kB)
+[2026-04-30 21:10:38] Collecting cuda-tile (from flashinfer-python==0.6.8.post1)
+[2026-04-30 21:10:38]   Downloading cuda_tile-1.3.0-cp312-cp312-manylinux2014_x86_64.whl (247 kB)
+[2026-04-30 21:10:38] Collecting nvidia-ml-py (from flashinfer-python==0.6.8.post1)
+[2026-04-30 21:10:38]   Downloading nvidia_ml_py-13.595.45-py3-none-any.whl (51 kB)
+[2026-04-30 21:10:38] Requirement already satisfied: packaging>=24.2 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from flashinfer-python==0.6.8.post1) (26.2)
+[2026-04-30 21:10:38] Collecting tabulate (from flashinfer-python==0.6.8.post1)
+[2026-04-30 21:10:38]   Downloading tabulate-0.10.0-py3-none-any.whl (39 kB)
+[2026-04-30 21:10:38] Collecting loguru (from compressed-tensors==0.15.0.1->vllm==0.20.0)
+[2026-04-30 21:10:38]   Downloading loguru-0.7.3-py3-none-any.whl (61 kB)
+[2026-04-30 21:10:38] Collecting astor (from depyf==0.20.0->vllm==0.20.0)
+[2026-04-30 21:10:38]   Downloading astor-0.8.1-py2.py3-none-any.whl (27 kB)
+[2026-04-30 21:10:38] Collecting dill (from depyf==0.20.0->vllm==0.20.0)
+[2026-04-30 21:10:38]   Using cached dill-0.4.1-py3-none-any.whl (120 kB)
+[2026-04-30 21:10:38] Collecting interegular>=0.3.2 (from lm-format-enforcer==0.11.3->vllm==0.20.0)
+[2026-04-30 21:10:38]   Downloading interegular-0.3.3-py37-none-any.whl (23 kB)
+[2026-04-30 21:10:38] Collecting llvmlite<0.48,>=0.47.0dev0 (from numba==0.65.0->vllm==0.20.0)
+[2026-04-30 21:10:38]   Downloading llvmlite-0.47.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (56.3 MB)
+[2026-04-30 21:10:39] Collecting yarl<2.0,>=1.17.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:39]   Using cached yarl-1.23.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (100 kB)
+[2026-04-30 21:10:39] Collecting idna>=2.0 (from yarl<2.0,>=1.17.0->aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:10:39]   Using cached idna-3.13-py3-none-any.whl (68 kB)
+[2026-04-30 21:10:39] Collecting anyio<5,>=3.5.0 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:10:39]   Using cached anyio-4.13.0-py3-none-any.whl (114 kB)
+[2026-04-30 21:10:39] Collecting distro<2,>=1.7.0 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:10:39]   Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+[2026-04-30 21:10:40] [2026-04-30 21:10:40,871 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:10:40] Collecting docstring-parser<1,>=0.15 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:10:40]   Downloading docstring_parser-0.18.0-py3-none-any.whl (22 kB)
+[2026-04-30 21:10:40] Collecting jiter<1,>=0.4.0 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:10:40]   Downloading jiter-0.14.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (353 kB)
+[2026-04-30 21:10:40] Collecting sniffio (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:10:40]   Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+[2026-04-30 21:10:40] Collecting certifi (from httpx->model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:40]   Using cached certifi-2026.4.22-py3-none-any.whl (135 kB)
+[2026-04-30 21:10:40] Collecting httpcore==1.* (from httpx->model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:40]   Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+[2026-04-30 21:10:40] Collecting h11>=0.16 (from httpcore==1.*->httpx->model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:40]   Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+[2026-04-30 21:10:40] Collecting annotated-types>=0.6.0 (from pydantic>=2.12.0->vllm==0.20.0)
+[2026-04-30 21:10:40]   Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+[2026-04-30 21:10:41] [2026-04-30 21:10:41,957 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:10:41] Collecting pydantic-core==2.46.3 (from pydantic>=2.12.0->vllm==0.20.0)
+[2026-04-30 21:10:41]   Using cached pydantic_core-2.46.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+[2026-04-30 21:10:41] Collecting typing-inspection>=0.4.2 (from pydantic>=2.12.0->vllm==0.20.0)
+[2026-04-30 21:10:41]   Using cached typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+[2026-04-30 21:10:41] Collecting annotated-doc>=0.0.2 (from fastapi>=0.115.0->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:41]   Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+[2026-04-30 21:10:41] Collecting fastapi-cli>=0.0.8 (from fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:42]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 56.3/56.3 MB 15.2 MB/s  0:00:03
+[2026-04-30 21:10:42] Collecting torch-c-dlpack-ext (from tilelang==0.1.9->vllm==0.20.0)
+[2026-04-30 21:10:42]   Downloading torch_c_dlpack_ext-0.1.5-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (897 kB)
+[2026-04-30 21:10:42]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 897.8/897.8 kB 28.5 MB/s  0:00:00
+[2026-04-30 21:10:42] Collecting ml-dtypes (from tilelang==0.1.9->vllm==0.20.0)
+[2026-04-30 21:10:42]   Downloading ml_dtypes-0.5.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (5.0 MB)
+[2026-04-30 21:10:42]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 16.5 MB/s  0:00:00
+[2026-04-30 21:10:42]   Downloading fastapi_cli-0.0.24-py3-none-any.whl (12 kB)
+[2026-04-30 21:10:42] Collecting fastar>=0.9.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:42]   Downloading fastar-0.11.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (819 kB)
+[2026-04-30 21:10:42]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 819.4/819.4 kB 16.4 MB/s  0:00:00
+[2026-04-30 21:10:42] Collecting python-multipart>=0.0.18 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:42]   Downloading python_multipart-0.0.27-py3-none-any.whl (29 kB)
+[2026-04-30 21:10:42] Collecting email-validator>=2.0.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:42]   Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+[2026-04-30 21:10:42] Collecting uvicorn>=0.12.0 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:42]   Downloading uvicorn-0.46.0-py3-none-any.whl (70 kB)
+[2026-04-30 21:10:42] Collecting pydantic-settings>=2.0.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:42]   Downloading pydantic_settings-2.14.0-py3-none-any.whl (60 kB)
+[2026-04-30 21:10:43] Collecting z3-solver<4.15.5,>=4.13.0 (from tilelang==0.1.9->vllm==0.20.0)
+[2026-04-30 21:10:43]   Downloading z3_solver-4.15.4.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (29.3 MB)
+[2026-04-30 21:10:43] Collecting pydantic-extra-types>=2.0.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:43]   Downloading pydantic_extra_types-2.11.1-py3-none-any.whl (79 kB)
+[2026-04-30 21:10:43] Collecting dnspython>=2.0.0 (from email-validator>=2.0.0->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:43]   Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+[2026-04-30 21:10:43] Collecting typer>=0.16.0 (from fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:43]   Using cached typer-0.25.0-py3-none-any.whl (55 kB)
+[2026-04-30 21:10:43] Collecting rich-toolkit>=0.14.8 (from fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:43]   Downloading rich_toolkit-0.19.7-py3-none-any.whl (32 kB)
+[2026-04-30 21:10:43] Collecting fastapi-cloud-cli>=0.1.1 (from fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:43]   Downloading fastapi_cloud_cli-0.17.1-py3-none-any.whl (34 kB)
+[2026-04-30 21:10:44] Collecting rignore>=0.5.1 (from fastapi-cloud-cli>=0.1.1->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:44]   Downloading rignore-0.7.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (959 kB)
+[2026-04-30 21:10:44]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 959.8/959.8 kB 18.1 MB/s  0:00:00
+[2026-04-30 21:10:44] Collecting sentry-sdk>=2.20.0 (from fastapi-cloud-cli>=0.1.1->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:44]   Using cached sentry_sdk-2.58.0-py2.py3-none-any.whl (460 kB)
+[2026-04-30 21:10:44] Requirement already satisfied: MarkupSafe>=2.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from jinja2->torch==2.11.0->vllm==0.20.0) (3.0.3)
+[2026-04-30 21:10:44] Collecting jsonschema>=4.21.1 (from mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:10:44]   Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+[2026-04-30 21:10:44] Collecting numpy (from vllm==0.20.0)
+[2026-04-30 21:10:44]   Downloading numpy-2.3.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.6 MB)
+[2026-04-30 21:10:45]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 29.3/29.3 MB 14.2 MB/s  0:00:02
+[2026-04-30 21:10:45] Requirement already satisfied: sympy>=1.13.3 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (1.14.0)
+[2026-04-30 21:10:45] Requirement already satisfied: networkx>=2.5.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (3.6.1)
+[2026-04-30 21:10:45] Requirement already satisfied: jinja2 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (3.1.6)
+[2026-04-30 21:10:45] Requirement already satisfied: fsspec>=0.8.5 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (2026.4.0)
+[2026-04-30 21:10:45] Collecting cuda-toolkit==13.0.2 (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:45]   Downloading cuda_toolkit-13.0.2-py2.py3-none-any.whl (2.4 kB)
+[2026-04-30 21:10:45] Collecting cuda-bindings<14,>=13.0.3 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:45]   Downloading cuda_bindings-13.2.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (6.3 MB)
+[2026-04-30 21:10:45]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 12.6 MB/s  0:00:00
+[2026-04-30 21:10:45] Collecting nvidia-cudnn-cu13==9.19.0.56 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:10:45]   Downloading nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl (366.1 MB)
+[2026-04-30 21:10:45]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.6/16.6 MB 14.9 MB/s  0:00:01
+[2026-04-30 21:10:45] Collecting jsonschema-specifications>=2023.03.6 (from jsonschema>=4.21.1->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:10:45]   Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+[2026-04-30 21:10:45] Collecting referencing>=0.28.4 (from jsonschema>=4.21.1->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:10:45]   Using cached referencing-0.37.0-py3-none-any.whl (26 kB)
+[2026-04-30 21:10:46] Collecting rpds-py>=0.25.0 (from jsonschema>=4.21.1->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:10:46]   Using cached rpds_py-0.30.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (394 kB)
+[2026-04-30 21:10:46] Collecting nvidia-cutlass-dsl-libs-base==4.4.2 (from nvidia-cutlass-dsl>=4.4.2->vllm==0.20.0)
+[2026-04-30 21:10:46]   Downloading nvidia_cutlass_dsl_libs_base-4.4.2-cp312-cp312-manylinux_2_28_x86_64.whl (74.4 MB)
+[2026-04-30 21:10:51]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 74.4/74.4 MB 15.7 MB/s  0:00:04
+[2026-04-30 21:10:51] Collecting cuda-python>=12.8 (from nvidia-cutlass-dsl-libs-base==4.4.2->nvidia-cutlass-dsl>=4.4.2->vllm==0.20.0)
+[2026-04-30 21:10:51]   Downloading cuda_python-13.2.0-py3-none-any.whl (8.1 kB)
+[2026-04-30 21:10:51] Collecting importlib-metadata<8.8.0,>=6.0 (from opentelemetry-api>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:51]   Using cached importlib_metadata-8.7.1-py3-none-any.whl (27 kB)
+[2026-04-30 21:10:51] Collecting zipp>=3.20 (from importlib-metadata<8.8.0,>=6.0->opentelemetry-api>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:51]   Using cached zipp-3.23.1-py3-none-any.whl (10 kB)
+[2026-04-30 21:10:51] Collecting opentelemetry-exporter-otlp-proto-grpc==1.41.1 (from opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:51]   Downloading opentelemetry_exporter_otlp_proto_grpc-1.41.1-py3-none-any.whl (20 kB)
+[2026-04-30 21:10:51] Collecting opentelemetry-exporter-otlp-proto-http==1.41.1 (from opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:51]   Downloading opentelemetry_exporter_otlp_proto_http-1.41.1-py3-none-any.whl (22 kB)
+[2026-04-30 21:10:51] Collecting googleapis-common-protos~=1.57 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:51]   Using cached googleapis_common_protos-1.74.0-py3-none-any.whl (300 kB)
+[2026-04-30 21:10:52] Collecting grpcio<2.0.0,>=1.63.2 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:52]   Using cached grpcio-1.80.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (6.8 MB)
+[2026-04-30 21:10:52] Collecting opentelemetry-exporter-otlp-proto-common==1.41.1 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:52]   Downloading opentelemetry_exporter_otlp_proto_common-1.41.1-py3-none-any.whl (18 kB)
+[2026-04-30 21:10:52] Collecting opentelemetry-proto==1.41.1 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:52]   Downloading opentelemetry_proto-1.41.1-py3-none-any.whl (72 kB)
+[2026-04-30 21:10:52] Collecting protobuf!=6.30.*,!=6.31.*,!=6.32.*,!=6.33.0.*,!=6.33.1.*,!=6.33.2.*,!=6.33.3.*,!=6.33.4.*,>=5.29.6 (from vllm==0.20.0)
+[2026-04-30 21:10:52]   Using cached protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl (323 kB)
+[2026-04-30 21:10:52] Collecting opentelemetry-semantic-conventions==0.62b1 (from opentelemetry-sdk>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:10:52]   Using cached opentelemetry_semantic_conventions-0.62b1-py3-none-any.whl (231 kB)
+[2026-04-30 21:10:53] Collecting charset_normalizer<4,>=2 (from requests>=2.26.0->vllm==0.20.0)
+[2026-04-30 21:10:53]   Using cached charset_normalizer-3.4.7-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (216 kB)
+[2026-04-30 21:10:53] Collecting urllib3<3,>=1.26 (from requests>=2.26.0->vllm==0.20.0)
+[2026-04-30 21:10:53]   Using cached urllib3-2.6.3-py3-none-any.whl (131 kB)
+[2026-04-30 21:10:53] Collecting starlette>=0.49.1 (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:10:53]   Downloading starlette-0.52.1-py3-none-any.whl (74 kB)
+[2026-04-30 21:10:53] Collecting pycountry>=23 (from pydantic-extra-types[pycountry]>=2.10.5->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:10:53]   Downloading pycountry-26.2.16-py3-none-any.whl (8.0 MB)
+[2026-04-30 21:10:53]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.0/8.0 MB 14.2 MB/s  0:00:00
+[2026-04-30 21:10:54] Collecting python-dotenv>=0.21.0 (from pydantic-settings>=2.0.0->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:54]   Downloading python_dotenv-1.2.2-py3-none-any.whl (22 kB)
+[2026-04-30 21:10:54] Collecting rich>=13.7.1 (from rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:54]   Using cached rich-15.0.0-py3-none-any.whl (310 kB)
+[2026-04-30 21:10:54] Collecting markdown-it-py>=2.2.0 (from rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:54]   Using cached markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+[2026-04-30 21:10:54] Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:54]   Downloading pygments-2.20.0-py3-none-any.whl (1.2 MB)
+[2026-04-30 21:10:54]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 13.3 MB/s  0:00:00
+[2026-04-30 21:10:54] Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:54]   Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+[2026-04-30 21:10:54] Requirement already satisfied: mpmath<1.4,>=1.1.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from sympy>=1.13.3->torch==2.11.0->vllm==0.20.0) (1.3.0)
+[2026-04-30 21:10:54] Collecting huggingface-hub<2.0,>=0.16.4 (from tokenizers>=0.21.1->vllm==0.20.0)
+[2026-04-30 21:10:54]   Downloading huggingface_hub-1.12.2-py3-none-any.whl (647 kB)
+[2026-04-30 21:10:54]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 647.8/647.8 kB 12.9 MB/s  0:00:00
+[2026-04-30 21:10:54] Collecting hf-xet<2.0.0,>=1.4.3 (from huggingface-hub<2.0,>=0.16.4->tokenizers>=0.21.1->vllm==0.20.0)
+[2026-04-30 21:10:55]   Downloading hf_xet-1.4.3-cp37-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.2 MB)
+[2026-04-30 21:10:55]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/4.2 MB 16.1 MB/s  0:00:00
+[2026-04-30 21:10:55] Collecting tokenizers>=0.21.1 (from vllm==0.20.0)
+[2026-04-30 21:10:55]   Using cached tokenizers-0.22.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+[2026-04-30 21:10:55] Collecting safetensors>=0.4.3 (from transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0->vllm==0.20.0)
+[2026-04-30 21:10:55]   Using cached safetensors-0.7.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (507 kB)
+[2026-04-30 21:10:55] Collecting shellingham>=1.3.0 (from typer>=0.16.0->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:55]   Using cached shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+[2026-04-30 21:10:55] Collecting httptools>=0.6.3 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:55]   Downloading httptools-0.7.1-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (517 kB)
+[2026-04-30 21:10:55] Collecting uvloop>=0.15.1 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:55]   Downloading uvloop-0.22.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.4 MB)
+[2026-04-30 21:10:56]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 15.4 MB/s  0:00:00
+[2026-04-30 21:10:56] Collecting websockets>=10.4 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:10:56]   Downloading websockets-16.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (184 kB)
+[2026-04-30 21:10:56] Collecting httpx-sse>=0.4 (from mcp->vllm==0.20.0)
+[2026-04-30 21:10:56]   Downloading httpx_sse-0.4.3-py3-none-any.whl (9.0 kB)
+[2026-04-30 21:10:56] Collecting pyjwt>=2.10.1 (from pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:10:56]   Downloading pyjwt-2.12.1-py3-none-any.whl (29 kB)
+[2026-04-30 21:10:56] Collecting sse-starlette>=1.6.1 (from mcp->vllm==0.20.0)
+[2026-04-30 21:10:56]   Downloading sse_starlette-3.4.1-py3-none-any.whl (16 kB)
+[2026-04-30 21:10:57] Collecting cryptography>=3.4.0 (from pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:10:57]   Using cached cryptography-47.0.0-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+[2026-04-30 21:10:57] Collecting cffi>=2.0.0 (from cryptography>=3.4.0->pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:10:57]   Downloading cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (219 kB)
+[2026-04-30 21:10:57] Collecting pycparser (from cffi>=2.0.0->cryptography>=3.4.0->pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:10:57]   Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+[2026-04-30 21:10:58] Installing collected packages: z3-solver, torchaudio, supervisor, py-cpuinfo, nvidia-ml-py, nvidia-cusparselt-cu13, cuda-toolkit, zipp, websockets, uvloop, urllib3, typing-inspection, tqdm, tabulate, sniffio, six, shellingham, setuptools, setproctitle, sentencepiece, safetensors, rpds-py, rignore, regex, pyzmq, pyyaml, python-multipart, python-json-logger, python-dotenv, pyjwt, pygments, pydantic-core, pycparser, pycountry, pybase64, psutil, protobuf, propcache, prometheus_client, partial-json-parser, outlines_core, nvidia-nvtx, nvidia-nvshmem-cu13, nvidia-nvjitlink, nvidia-nccl-cu13, nvidia-curand, nvidia-cufile, nvidia-cudnn-frontend, nvidia-cuda-runtime, nvidia-cuda-nvrtc, nvidia-cuda-cupti, nvidia-cublas, numpy, ninja, multidict, msgspec, mdurl, loguru, llvmlite, llguidance, lark, jmespath, jiter, interegular, ijson, idna, httpx-sse, httptools, hf-xet, h11, grpcio, frozenlist, flashinfer-cubin, fastar, einops, docstring-parser, dnspython, distro, diskcache, dill, cuda-tile, cuda-bindings, cloudpickle, click, charset_normalizer, certifi, cbor2, cachetools, blake3, attrs, astor, apache-tvm-ffi, annotated-types, annotated-doc, aiohappyeyeballs, yarl, uvicorn, sentry-sdk, requests, referencing, pydantic, opentelemetry-proto, opencv-python-headless, nvidia-cusparse, nvidia-cufft, nvidia-cudnn-cu13, numba, ml-dtypes, markdown-it-py, importlib-metadata, httpcore, googleapis-common-protos, email-validator, depyf, cuda-python, cffi, anyio, aiosignal, watchfiles, tiktoken, starlette, rich, pydantic-settings, pydantic-extra-types, opentelemetry-exporter-otlp-proto-common, opentelemetry-api, openai-harmony, nvidia-cutlass-dsl-libs-base, nvidia-cusolver, lm-format-enforcer, jsonschema-specifications, httpx, gguf, cryptography, aiohttp, typer, sse-starlette, rich-toolkit, prometheus-fastapi-instrumentator, opentelemetry-semantic-conventions, openai, nvidia-cutlass-dsl, jsonschema, fastapi, anthropic, torch, opentelemetry-sdk, model-hosting-container-standards, mistral_common, mcp, huggingface-hub, fastsafetensors, fastapi-cloud-cli, fastapi-cli, torchvision, torch-c-dlpack-ext, tokenizers, opentelemetry-semantic-conventions-ai, opentelemetry-exporter-otlp-proto-http, opentelemetry-exporter-otlp-proto-grpc, flashinfer-python, transformers, tilelang, quack-kernels, opentelemetry-exporter-otlp, xgrammar, compressed-tensors, vllm
+[2026-04-30 21:10:58]   Attempting uninstall: torchaudio
+[2026-04-30 21:10:58]     Found existing installation: torchaudio 2.10.0
+[2026-04-30 21:10:58]     Uninstalling torchaudio-2.10.0:
+[2026-04-30 21:10:58]       Successfully uninstalled torchaudio-2.10.0
+[2026-04-30 21:11:00]   Attempting uninstall: setuptools
+[2026-04-30 21:11:00]     Found existing installation: setuptools 82.0.1
+[2026-04-30 21:11:00]     Uninstalling setuptools-82.0.1:
+[2026-04-30 21:11:00]       Successfully uninstalled setuptools-82.0.1
+[2026-04-30 21:11:03]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 366.1/366.1 MB 22.3 MB/s  0:00:17
+[2026-04-30 21:11:03] Collecting nvidia-cusparselt-cu13==0.8.0 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:03]   Downloading nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl (169.9 MB)
+[2026-04-30 21:11:07]   Attempting uninstall: numpy
+[2026-04-30 21:11:07]     Found existing installation: numpy 2.4.4
+[2026-04-30 21:11:07]     Uninstalling numpy-2.4.4:
+[2026-04-30 21:11:07]       Successfully uninstalled numpy-2.4.4
+[2026-04-30 21:11:11]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 169.9/169.9 MB 22.7 MB/s  0:00:07
+[2026-04-30 21:11:11] Collecting nvidia-nccl-cu13==2.28.9 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:11]   Downloading nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl (196.5 MB)
+[2026-04-30 21:11:12] [2026-04-30 21:11:12,081 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:11:12] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:11:12] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:11:12] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:11:12] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:11:12] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:11:12] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:11:12] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:11:12] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:11:12] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:11:12] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:11:12] 
+[2026-04-30 21:11:12] [2026-04-30 21:11:12,081 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:11:12] [2026-04-30 21:11:12,081 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:11:18]   Attempting uninstall: cuda-bindings
+[2026-04-30 21:11:18]     Found existing installation: cuda-bindings 12.9.4
+[2026-04-30 21:11:18]     Uninstalling cuda-bindings-12.9.4:
+[2026-04-30 21:11:18]       Successfully uninstalled cuda-bindings-12.9.4
+[2026-04-30 21:11:20]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 196.5/196.5 MB 22.1 MB/s  0:00:08
+[2026-04-30 21:11:20] Collecting nvidia-nvshmem-cu13==3.4.5 (from torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:20]   Downloading nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (60.4 MB)
+[2026-04-30 21:11:22]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 22.8 MB/s  0:00:02
+[2026-04-30 21:11:23] [2026-04-30 21:11:22,146 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:11:23] Requirement already satisfied: triton==3.6.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from torch==2.11.0->vllm==0.20.0) (3.6.0)
+[2026-04-30 21:11:23] Collecting nvidia-cublas==13.1.0.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:23]   Downloading nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl (423.1 MB)
+[2026-04-30 21:11:32]   Attempting uninstall: torch
+[2026-04-30 21:11:32]     Found existing installation: torch 2.10.0
+[2026-04-30 21:11:32]     Uninstalling torch-2.10.0:
+[2026-04-30 21:11:32]       Successfully uninstalled torch-2.10.0
+[2026-04-30 21:11:41]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 22.4 MB/s  0:00:18
+[2026-04-30 21:11:41] [2026-04-30 21:11:40,906 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:11:42] Collecting nvidia-cuda-runtime==13.0.96.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:42]   Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
+[2026-04-30 21:11:42]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 21.1 MB/s  0:00:00
+[2026-04-30 21:11:42] Collecting nvidia-cufft==12.0.0.61.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:42]   Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (214.1 MB)
+[2026-04-30 21:11:43] [2026-04-30 21:11:42,261 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:11:45]   Attempting uninstall: torchvision
+[2026-04-30 21:11:45]     Found existing installation: torchvision 0.25.0
+[2026-04-30 21:11:45]     Uninstalling torchvision-0.25.0:
+[2026-04-30 21:11:45]       Successfully uninstalled torchvision-0.25.0
+[2026-04-30 21:11:51]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 22.8 MB/s  0:00:09
+[2026-04-30 21:11:52] Collecting nvidia-cufile==1.15.1.6.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:52]   Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
+[2026-04-30 21:11:52]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 22.7 MB/s  0:00:00
+[2026-04-30 21:11:52] Collecting nvidia-cuda-cupti==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:52]   Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl (10.7 MB)
+[2026-04-30 21:11:52]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 22.7 MB/s  0:00:00
+[2026-04-30 21:11:52] Collecting nvidia-curand==10.4.0.35.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:52]   Downloading nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl (59.5 MB)
+[2026-04-30 21:11:55]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 21.9 MB/s  0:00:02
+[2026-04-30 21:11:55] Collecting nvidia-cusolver==12.0.4.66.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:11:55]   Downloading nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl (200.9 MB)
+[2026-04-30 21:12:04]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 22.5 MB/s  0:00:08
+[2026-04-30 21:12:04] Collecting nvidia-cusparse==12.6.3.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:12:04]   Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (145.9 MB)
+[2026-04-30 21:12:05] 
+[2026-04-30 21:12:05] Successfully installed aiohappyeyeballs-2.6.1 aiohttp-3.13.5 aiosignal-1.4.0 annotated-doc-0.0.4 annotated-types-0.7.0 anthropic-0.97.0 anyio-4.13.0 apache-tvm-ffi-0.1.9 astor-0.8.1 attrs-26.1.0 blake3-1.0.8 cachetools-7.0.6 cbor2-6.0.1 certifi-2026.4.22 cffi-2.0.0 charset_normalizer-3.4.7 click-8.3.3 cloudpickle-3.1.2 compressed-tensors-0.15.0.1 cryptography-47.0.0 cuda-bindings-13.2.0 cuda-python-13.2.0 cuda-tile-1.3.0 cuda-toolkit-13.0.2 depyf-0.20.0 dill-0.4.1 diskcache-5.6.3 distro-1.9.0 dnspython-2.8.0 docstring-parser-0.18.0 einops-0.8.2 email-validator-2.3.0 fastapi-0.136.1 fastapi-cli-0.0.24 fastapi-cloud-cli-0.17.1 fastar-0.11.0 fastsafetensors-0.3 flashinfer-cubin-0.6.8.post1 flashinfer-python-0.6.8.post1 frozenlist-1.8.0 gguf-0.18.0 googleapis-common-protos-1.74.0 grpcio-1.80.0 h11-0.16.0 hf-xet-1.4.3 httpcore-1.0.9 httptools-0.7.1 httpx-0.28.1 httpx-sse-0.4.3 huggingface-hub-1.12.2 idna-3.13 ijson-3.5.0 importlib-metadata-8.7.1 interegular-0.3.3 jiter-0.14.0 jmespath-1.1.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 lark-1.2.2 llguidance-1.3.0 llvmlite-0.47.0 lm-format-enforcer-0.11.3 loguru-0.7.3 markdown-it-py-4.0.0 mcp-1.27.0 mdurl-0.1.2 mistral_common-1.11.1 ml-dtypes-0.5.4 model-hosting-container-standards-0.1.14 msgspec-0.21.1 multidict-6.7.1 ninja-1.13.0 numba-0.65.0 numpy-2.3.5 nvidia-cublas-13.1.0.3 nvidia-cuda-cupti-13.0.85 nvidia-cuda-nvrtc-13.0.88 nvidia-cuda-runtime-13.0.96 nvidia-cudnn-cu13-9.19.0.56 nvidia-cudnn-frontend-1.18.0 nvidia-cufft-12.0.0.61 nvidia-cufile-1.15.1.6 nvidia-curand-10.4.0.35 nvidia-cusolver-12.0.4.66 nvidia-cusparse-12.6.3.3 nvidia-cusparselt-cu13-0.8.0 nvidia-cutlass-dsl-4.4.2 nvidia-cutlass-dsl-libs-base-4.4.2 nvidia-ml-py-13.595.45 nvidia-nccl-cu13-2.28.9 nvidia-nvjitlink-13.0.88 nvidia-nvshmem-cu13-3.4.5 nvidia-nvtx-13.0.85 openai-2.33.0 openai-harmony-0.0.8 opencv-python-headless-4.13.0.92 opentelemetry-api-1.41.1 opentelemetry-exporter-otlp-1.41.1 opentelemetry-exporter-otlp-proto-common-1.41.1 opentelemetry-exporter-otlp-proto-grpc-1.41.1 opentelemetry-exporter-otlp-proto-http-1.41.1 opentelemetry-proto-1.41.1 opentelemetry-sdk-1.41.1 opentelemetry-semantic-conventions-0.62b1 opentelemetry-semantic-conventions-ai-0.5.1 outlines_core-0.2.14 partial-json-parser-0.2.1.1.post7 prometheus-fastapi-instrumentator-7.1.0 prometheus_client-0.25.0 propcache-0.4.1 protobuf-6.33.6 psutil-7.2.2 py-cpuinfo-9.0.0 pybase64-1.4.3 pycountry-26.2.16 pycparser-3.0 pydantic-2.13.3 pydantic-core-2.46.3 pydantic-extra-types-2.11.1 pydantic-settings-2.14.0 pygments-2.20.0 pyjwt-2.12.1 python-dotenv-1.2.2 python-json-logger-4.1.0 python-multipart-0.0.27 pyyaml-6.0.3 pyzmq-27.1.0 quack-kernels-0.4.0 referencing-0.37.0 regex-2026.4.4 requests-2.33.1 rich-15.0.0 rich-toolkit-0.19.7 rignore-0.7.6 rpds-py-0.30.0 safetensors-0.7.0 sentencepiece-0.2.1 sentry-sdk-2.58.0 setproctitle-1.3.7 setuptools-80.10.2 shellingham-1.5.4 six-1.17.0 sniffio-1.3.1 sse-starlette-3.4.1 starlette-0.52.1 supervisor-4.3.0 tabulate-0.10.0 tiktoken-0.12.0 tilelang-0.1.9 tokenizers-0.22.2 torch-2.11.0 torch-c-dlpack-ext-0.1.5 torchaudio-2.11.0 torchvision-0.26.0 tqdm-4.67.3 transformers-5.7.0 typer-0.25.0 typing-inspection-0.4.2 urllib3-2.6.3 uvicorn-0.46.0 uvloop-0.22.1 vllm-0.20.0 watchfiles-1.1.1 websockets-16.0 xgrammar-0.1.34 yarl-1.23.0 z3-solver-4.15.4.0 zipp-3.23.1
+[2026-04-30 21:12:06] [2026-04-30 21:12:05,978 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:12:06] Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+[2026-04-30 21:12:06] Looking in links: /mnt/data/ebft-distribution-new/caches/wheels
+[2026-04-30 21:12:06] Collecting huggingface_hub==1.9.0
+[2026-04-30 21:12:06]   Downloading huggingface_hub-1.9.0-py3-none-any.whl (637 kB)
+[2026-04-30 21:12:06]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 637.4/637.4 kB 14.1 MB/s  0:00:00
+[2026-04-30 21:12:06] Requirement already satisfied: filelock>=3.10.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (3.29.0)
+[2026-04-30 21:12:06] Requirement already satisfied: fsspec>=2023.5.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (2026.4.0)
+[2026-04-30 21:12:06] Requirement already satisfied: hf-xet<2.0.0,>=1.4.3 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (1.4.3)
+[2026-04-30 21:12:06] Requirement already satisfied: httpx<1,>=0.23.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (0.28.1)
+[2026-04-30 21:12:06] Requirement already satisfied: packaging>=20.9 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (26.2)
+[2026-04-30 21:12:06] Requirement already satisfied: pyyaml>=5.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (6.0.3)
+[2026-04-30 21:12:06] Requirement already satisfied: tqdm>=4.42.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (4.67.3)
+[2026-04-30 21:12:06] Requirement already satisfied: typer in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (0.25.0)
+[2026-04-30 21:12:06] Requirement already satisfied: typing-extensions>=4.1.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (4.15.0)
+[2026-04-30 21:12:06] Requirement already satisfied: anyio in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (4.13.0)
+[2026-04-30 21:12:06] Requirement already satisfied: certifi in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (2026.4.22)
+[2026-04-30 21:12:06] Requirement already satisfied: httpcore==1.* in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (1.0.9)
+[2026-04-30 21:12:06] Requirement already satisfied: idna in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (3.13)
+[2026-04-30 21:12:06] Requirement already satisfied: h11>=0.16 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpcore==1.*->httpx<1,>=0.23.0->huggingface_hub==1.9.0) (0.16.0)
+[2026-04-30 21:12:07] Requirement already satisfied: click>=8.2.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (8.3.3)
+[2026-04-30 21:12:07] Requirement already satisfied: shellingham>=1.3.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (1.5.4)
+[2026-04-30 21:12:07] Requirement already satisfied: rich>=13.8.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (15.0.0)
+[2026-04-30 21:12:07] Requirement already satisfied: annotated-doc>=0.0.2 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (0.0.4)
+[2026-04-30 21:12:07] Requirement already satisfied: markdown-it-py>=2.2.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from rich>=13.8.0->typer->huggingface_hub==1.9.0) (4.0.0)
+[2026-04-30 21:12:07] Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from rich>=13.8.0->typer->huggingface_hub==1.9.0) (2.20.0)
+[2026-04-30 21:12:07] Requirement already satisfied: mdurl~=0.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from markdown-it-py>=2.2.0->rich>=13.8.0->typer->huggingface_hub==1.9.0) (0.1.2)
+[2026-04-30 21:12:07] Installing collected packages: huggingface_hub
+[2026-04-30 21:12:07]   Attempting uninstall: huggingface_hub
+[2026-04-30 21:12:07]     Found existing installation: huggingface_hub 1.12.2
+[2026-04-30 21:12:07]     Uninstalling huggingface_hub-1.12.2:
+[2026-04-30 21:12:07]       Successfully uninstalled huggingface_hub-1.12.2
+[2026-04-30 21:12:07] Successfully installed huggingface_hub-1.9.0
+[2026-04-30 21:12:07] 
+[2026-04-30 21:12:07] [21:12:07] Pinning teacher transformers to 5.5.0 (no-deps)
+[2026-04-30 21:12:07] Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+[2026-04-30 21:12:07] Looking in links: /mnt/data/ebft-distribution-new/caches/wheels
+[2026-04-30 21:12:08] Collecting transformers==5.5.0
+[2026-04-30 21:12:08]   Downloading transformers-5.5.0-py3-none-any.whl (10.2 MB)
+[2026-04-30 21:12:08]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 16.6 MB/s  0:00:00
+[2026-04-30 21:12:09] Installing collected packages: transformers
+[2026-04-30 21:12:09]   Attempting uninstall: transformers
+[2026-04-30 21:12:09]     Found existing installation: transformers 5.7.0
+[2026-04-30 21:12:09]     Uninstalling transformers-5.7.0:
+[2026-04-30 21:12:09]       Successfully uninstalled transformers-5.7.0
+[2026-04-30 21:12:11]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 22.3 MB/s  0:00:06
+[2026-04-30 21:12:11] Collecting nvidia-nvjitlink==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:12:11]   Downloading nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (40.7 MB)
+[2026-04-30 21:12:13]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.7/40.7 MB 22.3 MB/s  0:00:01
+[2026-04-30 21:12:13] Collecting nvidia-cuda-nvrtc==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:12:13]   Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (90.2 MB)
+[2026-04-30 21:12:13] [2026-04-30 21:12:12,415 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:12:13] [2026-04-30 21:12:12,415 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:12:15] Successfully installed transformers-5.5.0
+[2026-04-30 21:12:15] 
+[2026-04-30 21:12:15] [21:12:14] Verifying teacher env
+[2026-04-30 21:12:17]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 22.8 MB/s  0:00:03
+[2026-04-30 21:12:17] Collecting nvidia-nvtx==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.11.0->vllm==0.20.0)
+[2026-04-30 21:12:17]   Downloading nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl (148 kB)
+[2026-04-30 21:12:17] Requirement already satisfied: cuda-pathfinder~=1.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from cuda-bindings<14,>=13.0.3->torch==2.11.0->vllm==0.20.0) (1.5.4)
+[2026-04-30 21:12:17] Collecting httpx (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:17]   Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+[2026-04-30 21:12:17] Collecting jmespath (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:17]   Downloading jmespath-1.1.0-py3-none-any.whl (20 kB)
+[2026-04-30 21:12:17] Collecting starlette>=0.49.1 (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:17]   Downloading starlette-1.0.0-py3-none-any.whl (72 kB)
+[2026-04-30 21:12:17] Collecting supervisor>=4.2.0 (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:17]   Downloading supervisor-4.3.0-py2.py3-none-any.whl (320 kB)
+[2026-04-30 21:12:18] Collecting aiohappyeyeballs>=2.5.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:18]   Using cached aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+[2026-04-30 21:12:18] Collecting aiosignal>=1.4.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:18]   Using cached aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+[2026-04-30 21:12:18] Collecting attrs>=17.3.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:18]   Using cached attrs-26.1.0-py3-none-any.whl (67 kB)
+[2026-04-30 21:12:18] Collecting frozenlist>=1.1.1 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:18]   Using cached frozenlist-1.8.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (242 kB)
+[2026-04-30 21:12:18] Collecting multidict<7.0,>=4.5 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:18]   Using cached multidict-6.7.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (256 kB)
+[2026-04-30 21:12:18] Collecting propcache>=0.2.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:18]   Using cached propcache-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (221 kB)
+[2026-04-30 21:12:19] Collecting yarl<2.0,>=1.17.0 (from aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:19]   Using cached yarl-1.23.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (100 kB)
+[2026-04-30 21:12:19] Collecting idna>=2.0 (from yarl<2.0,>=1.17.0->aiohttp>=3.13.3->vllm==0.20.0)
+[2026-04-30 21:12:19]   Using cached idna-3.13-py3-none-any.whl (68 kB)
+[2026-04-30 21:12:19] Collecting anyio<5,>=3.5.0 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:12:19]   Using cached anyio-4.13.0-py3-none-any.whl (114 kB)
+[2026-04-30 21:12:19] Collecting distro<2,>=1.7.0 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:12:19]   Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+[2026-04-30 21:12:19] Collecting docstring-parser<1,>=0.15 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:12:19]   Downloading docstring_parser-0.18.0-py3-none-any.whl (22 kB)
+[2026-04-30 21:12:19] Collecting jiter<1,>=0.4.0 (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:12:19]   Downloading jiter-0.14.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (353 kB)
+[2026-04-30 21:12:19] Collecting sniffio (from anthropic>=0.71.0->vllm==0.20.0)
+[2026-04-30 21:12:19]   Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+[2026-04-30 21:12:19] Collecting certifi (from httpx->model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:19]   Using cached certifi-2026.4.22-py3-none-any.whl (135 kB)
+[2026-04-30 21:12:19] Collecting httpcore==1.* (from httpx->model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:19]   Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+[2026-04-30 21:12:19] Collecting h11>=0.16 (from httpcore==1.*->httpx->model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:19]   Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+[2026-04-30 21:12:19] Collecting annotated-types>=0.6.0 (from pydantic>=2.12.0->vllm==0.20.0)
+[2026-04-30 21:12:19]   Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+[2026-04-30 21:12:19] python 3.12.12
+[2026-04-30 21:12:20] torch 2.11.0+cu130 cuda 13.0 available True
+[2026-04-30 21:12:20] transformers 5.5.0
+[2026-04-30 21:12:20] vllm 0.20.0
+[2026-04-30 21:12:20] vllm_cli /mnt/workspace/venvs/.teacherVenv/bin/vllm
+[2026-04-30 21:12:20] vllm_cli_on_path None
+[2026-04-30 21:12:20] warning: zstd not on PATH; skipping snapshot of teacher venv
+[2026-04-30 21:12:20] 
+[2026-04-30 21:12:20] [21:12:20] Done.
+[2026-04-30 21:12:20]   student env:  source /mnt/workspace/venvs/.venv/bin/activate
+[2026-04-30 21:12:20]   teacher env:  source /mnt/workspace/venvs/.teacherVenv/bin/activate
+[2026-04-30 21:12:20] 
+[2026-04-30 21:12:20] Note: venvs live on ephemeral ext4 (/mnt/workspace); snapshots in /mnt/data/ebft-distribution-new/caches/snapshots
+[2026-04-30 21:12:20] On a fresh machine / after a container restart, re-running this
+[2026-04-30 21:12:20] script will untar the snapshots back into /mnt/workspace in ~1-2 minutes
+[2026-04-30 21:12:20] instead of re-installing from pip. To force a clean rebuild:
+[2026-04-30 21:12:20]   EBFT_REBUILD_VENV=1 bash scripts/setup_env.sh
+[2026-04-30 21:12:20] To disable snapshots entirely:
+[2026-04-30 21:12:20]   EBFT_USE_VENV_SNAPSHOT=0 bash scripts/setup_env.sh
+[2026-04-30 21:12:20] 
+[2026-04-30 21:12:20] When invoking run_*.sh / supplement*/*.sh, export:
+[2026-04-30 21:12:20]   export STUDENT_VENV=/mnt/workspace/venvs/.venv
+[2026-04-30 21:12:20]   export TEACHER_VENV=/mnt/workspace/venvs/.teacherVenv
+[2026-04-30 21:12:20]   export HF_HOME=/mnt/data/ebft-distribution-new/caches/hf
+[2026-04-30 21:12:20]   export PIP_CACHE_DIR=/root/.cache/pip
+[2026-04-30 21:12:20]   export TORCH_EXTENSIONS_DIR=/mnt/workspace/.torch_extensions
+[2026-04-30 21:12:20]   export TRITON_CACHE_DIR=/mnt/workspace/.triton_cache
+[2026-04-30 21:12:20] [INFO] DLC multi-pod mode: rank=0 world_size=2 master=dlcom1bt6c5aunyq-master-0
+[2026-04-30 21:12:20] Collecting pydantic-core==2.46.3 (from pydantic>=2.12.0->vllm==0.20.0)
+[2026-04-30 21:12:20]   Using cached pydantic_core-2.46.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+[2026-04-30 21:12:20] Collecting typing-inspection>=0.4.2 (from pydantic>=2.12.0->vllm==0.20.0)
+[2026-04-30 21:12:20]   Using cached typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+[2026-04-30 21:12:20] Collecting annotated-doc>=0.0.2 (from fastapi>=0.115.0->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:20]   Using cached annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+[2026-04-30 21:12:21] ========== G2 2-node once launcher ==========
+[2026-04-30 21:12:21] RUN_DIR:                    /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq
+[2026-04-30 21:12:21] HEAD_NODE / IP:             dlcom1bt6c5aunyq-master-0 / 22.27.120.74
+[2026-04-30 21:12:21] WORKER_NODE / IP:           dlc-rank-0-pod / 22.27.120.74
+[2026-04-30 21:12:21] Head teacher GPUs:          0,1,2,3,4,5
+[2026-04-30 21:12:21] Worker teacher GPUs:        0,1,2,3,4,5
+[2026-04-30 21:12:21] Head student GPUs:          6,7
+[2026-04-30 21:12:21] Worker student GPUs:        6,7
+[2026-04-30 21:12:21] Teacher worker count:       6 + 6
+[2026-04-30 21:12:21] Teacher API:                http://22.27.120.74:8004/v1,http://22.27.120.74:8005/v1,http://22.27.120.74:8006/v1,http://22.27.120.74:8007/v1,http://22.27.120.74:8008/v1,http://22.27.120.74:8009/v1,http://22.27.120.74:8004/v1,http://22.27.120.74:8005/v1,http://22.27.120.74:8006/v1,http://22.27.120.74:8007/v1,http://22.27.120.74:8008/v1,http://22.27.120.74:8009/v1
+[2026-04-30 21:12:21] Actor/Critic GPUs:          2/2
+[2026-04-30 21:12:21] Actor/Critic nodes:         1/1
+[2026-04-30 21:12:21] Target steps:               500
+[2026-04-30 21:12:21] Max samples:                16000
+[2026-04-30 21:12:21] Post-train eval:            true
+[2026-04-30 21:12:21] Post-eval script:           /mnt/data/ebft-distribution-new/code/scripts/supplement_2rounds/G2_2node.sh
+[2026-04-30 21:12:21] Post-eval VLLM_TP_SIZE:     8 (head node only; worker idle during eval)
+[2026-04-30 21:12:21] Post-eval first/second pass: 16384/32768 tokens
+[2026-04-30 21:12:21] Single training submitter:  dlcom1bt6c5aunyq-master-0
+[2026-04-30 21:12:21] =============================================
+[2026-04-30 21:12:21] [DLC master] waiting for worker pod IP at /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/dlc_rendezvous/worker_1_ip.txt...
+[2026-04-30 21:12:21] Collecting fastapi-cli>=0.0.8 (from fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:21]   Downloading fastapi_cli-0.0.24-py3-none-any.whl (12 kB)
+[2026-04-30 21:12:21] Collecting fastar>=0.9.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:21]   Downloading fastar-0.11.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (819 kB)
+[2026-04-30 21:12:21]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 819.4/819.4 kB 23.9 MB/s  0:00:00
+[2026-04-30 21:12:21] Collecting python-multipart>=0.0.18 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:21]   Downloading python_multipart-0.0.27-py3-none-any.whl (29 kB)
+[2026-04-30 21:12:21] Collecting email-validator>=2.0.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:21]   Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+[2026-04-30 21:12:21] Collecting uvicorn>=0.12.0 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:21]   Downloading uvicorn-0.46.0-py3-none-any.whl (70 kB)
+[2026-04-30 21:12:21] Collecting pydantic-settings>=2.0.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:21]   Downloading pydantic_settings-2.14.0-py3-none-any.whl (60 kB)
+[2026-04-30 21:12:21] Collecting pydantic-extra-types>=2.0.0 (from fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:21]   Downloading pydantic_extra_types-2.11.1-py3-none-any.whl (79 kB)
+[2026-04-30 21:12:21] Collecting dnspython>=2.0.0 (from email-validator>=2.0.0->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:22]   Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+[2026-04-30 21:12:22] Collecting typer>=0.16.0 (from fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:22]   Downloading typer-0.25.0-py3-none-any.whl (55 kB)
+[2026-04-30 21:12:22] Collecting rich-toolkit>=0.14.8 (from fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:22]   Downloading rich_toolkit-0.19.7-py3-none-any.whl (32 kB)
+[2026-04-30 21:12:22] Collecting fastapi-cloud-cli>=0.1.1 (from fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:22]   Downloading fastapi_cloud_cli-0.17.1-py3-none-any.whl (34 kB)
+[2026-04-30 21:12:22] Collecting rignore>=0.5.1 (from fastapi-cloud-cli>=0.1.1->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:22]   Downloading rignore-0.7.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (959 kB)
+[2026-04-30 21:12:22]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 959.8/959.8 kB 19.7 MB/s  0:00:00
+[2026-04-30 21:12:22] Collecting sentry-sdk>=2.20.0 (from fastapi-cloud-cli>=0.1.1->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:22]   Using cached sentry_sdk-2.58.0-py2.py3-none-any.whl (460 kB)
+[2026-04-30 21:12:22] Requirement already satisfied: MarkupSafe>=2.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from jinja2->torch==2.11.0->vllm==0.20.0) (3.0.3)
+[2026-04-30 21:12:22] Collecting jsonschema>=4.21.1 (from mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:12:22]   Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+[2026-04-30 21:12:23] Collecting numpy (from vllm==0.20.0)
+[2026-04-30 21:12:23]   Downloading numpy-2.3.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.6 MB)
+[2026-04-30 21:12:23]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.6/16.6 MB 22.4 MB/s  0:00:00
+[2026-04-30 21:12:23] Collecting jsonschema-specifications>=2023.03.6 (from jsonschema>=4.21.1->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:12:23]   Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+[2026-04-30 21:12:24] Collecting referencing>=0.28.4 (from jsonschema>=4.21.1->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:12:24]   Using cached referencing-0.37.0-py3-none-any.whl (26 kB)
+[2026-04-30 21:12:24] Collecting rpds-py>=0.25.0 (from jsonschema>=4.21.1->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:12:24]   Using cached rpds_py-0.30.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (394 kB)
+[2026-04-30 21:12:24] Collecting nvidia-cutlass-dsl-libs-base==4.4.2 (from nvidia-cutlass-dsl>=4.4.2->vllm==0.20.0)
+[2026-04-30 21:12:24]   Downloading nvidia_cutlass_dsl_libs_base-4.4.2-cp312-cp312-manylinux_2_28_x86_64.whl (74.4 MB)
+[2026-04-30 21:12:27]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 74.4/74.4 MB 22.6 MB/s  0:00:03
+[2026-04-30 21:12:27] Collecting cuda-python>=12.8 (from nvidia-cutlass-dsl-libs-base==4.4.2->nvidia-cutlass-dsl>=4.4.2->vllm==0.20.0)
+[2026-04-30 21:12:27]   Downloading cuda_python-13.2.0-py3-none-any.whl (8.1 kB)
+[2026-04-30 21:12:28] Collecting importlib-metadata<8.8.0,>=6.0 (from opentelemetry-api>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:28]   Using cached importlib_metadata-8.7.1-py3-none-any.whl (27 kB)
+[2026-04-30 21:12:28] Collecting zipp>=3.20 (from importlib-metadata<8.8.0,>=6.0->opentelemetry-api>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:28]   Downloading zipp-3.23.1-py3-none-any.whl (10 kB)
+[2026-04-30 21:12:28] Collecting opentelemetry-exporter-otlp-proto-grpc==1.41.1 (from opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:28]   Downloading opentelemetry_exporter_otlp_proto_grpc-1.41.1-py3-none-any.whl (20 kB)
+[2026-04-30 21:12:28] Collecting opentelemetry-exporter-otlp-proto-http==1.41.1 (from opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:28]   Downloading opentelemetry_exporter_otlp_proto_http-1.41.1-py3-none-any.whl (22 kB)
+[2026-04-30 21:12:28] Collecting googleapis-common-protos~=1.57 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:28]   Using cached googleapis_common_protos-1.74.0-py3-none-any.whl (300 kB)
+[2026-04-30 21:12:28] Collecting grpcio<2.0.0,>=1.63.2 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:28]   Using cached grpcio-1.80.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (6.8 MB)
+[2026-04-30 21:12:29] Collecting opentelemetry-exporter-otlp-proto-common==1.41.1 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:29]   Downloading opentelemetry_exporter_otlp_proto_common-1.41.1-py3-none-any.whl (18 kB)
+[2026-04-30 21:12:29] Collecting opentelemetry-proto==1.41.1 (from opentelemetry-exporter-otlp-proto-grpc==1.41.1->opentelemetry-exporter-otlp>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:29]   Using cached opentelemetry_proto-1.41.1-py3-none-any.whl (72 kB)
+[2026-04-30 21:12:29] Collecting protobuf!=6.30.*,!=6.31.*,!=6.32.*,!=6.33.0.*,!=6.33.1.*,!=6.33.2.*,!=6.33.3.*,!=6.33.4.*,>=5.29.6 (from vllm==0.20.0)
+[2026-04-30 21:12:29]   Using cached protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl (323 kB)
+[2026-04-30 21:12:29] Collecting opentelemetry-semantic-conventions==0.62b1 (from opentelemetry-sdk>=1.27.0->vllm==0.20.0)
+[2026-04-30 21:12:29]   Using cached opentelemetry_semantic_conventions-0.62b1-py3-none-any.whl (231 kB)
+[2026-04-30 21:12:29] Collecting charset_normalizer<4,>=2 (from requests>=2.26.0->vllm==0.20.0)
+[2026-04-30 21:12:29]   Downloading charset_normalizer-3.4.7-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (216 kB)
+[2026-04-30 21:12:29] Collecting urllib3<3,>=1.26 (from requests>=2.26.0->vllm==0.20.0)
+[2026-04-30 21:12:29]   Using cached urllib3-2.6.3-py3-none-any.whl (131 kB)
+[2026-04-30 21:12:29] Collecting starlette>=0.49.1 (from model-hosting-container-standards<1.0.0,>=0.1.13->vllm==0.20.0)
+[2026-04-30 21:12:29]   Downloading starlette-0.52.1-py3-none-any.whl (74 kB)
+[2026-04-30 21:12:29] Collecting pycountry>=23 (from pydantic-extra-types[pycountry]>=2.10.5->mistral_common>=1.11.0->mistral_common[image]>=1.11.0->vllm==0.20.0)
+[2026-04-30 21:12:29]   Downloading pycountry-26.2.16-py3-none-any.whl (8.0 MB)
+[2026-04-30 21:12:29]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.0/8.0 MB 23.0 MB/s  0:00:00
+[2026-04-30 21:12:29] Collecting python-dotenv>=0.21.0 (from pydantic-settings>=2.0.0->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:29]   Downloading python_dotenv-1.2.2-py3-none-any.whl (22 kB)
+[2026-04-30 21:12:30] Collecting rich>=13.7.1 (from rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached rich-15.0.0-py3-none-any.whl (310 kB)
+[2026-04-30 21:12:30] Collecting markdown-it-py>=2.2.0 (from rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+[2026-04-30 21:12:30] Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached pygments-2.20.0-py3-none-any.whl (1.2 MB)
+[2026-04-30 21:12:30] Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+[2026-04-30 21:12:30] Requirement already satisfied: mpmath<1.4,>=1.1.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from sympy>=1.13.3->torch==2.11.0->vllm==0.20.0) (1.3.0)
+[2026-04-30 21:12:30] Collecting huggingface-hub<2.0,>=0.16.4 (from tokenizers>=0.21.1->vllm==0.20.0)
+[2026-04-30 21:12:30]   Downloading huggingface_hub-1.12.2-py3-none-any.whl (647 kB)
+[2026-04-30 21:12:30]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 647.8/647.8 kB 19.4 MB/s  0:00:00
+[2026-04-30 21:12:30] Collecting hf-xet<2.0.0,>=1.4.3 (from huggingface-hub<2.0,>=0.16.4->tokenizers>=0.21.1->vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached hf_xet-1.4.3-cp37-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.2 MB)
+[2026-04-30 21:12:30] Collecting tokenizers>=0.21.1 (from vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached tokenizers-0.22.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+[2026-04-30 21:12:30] Collecting safetensors>=0.4.3 (from transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached safetensors-0.7.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (507 kB)
+[2026-04-30 21:12:30] Collecting shellingham>=1.3.0 (from typer>=0.16.0->fastapi-cli>=0.0.8->fastapi-cli[standard]>=0.0.8; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Using cached shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+[2026-04-30 21:12:30] Collecting httptools>=0.6.3 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Downloading httptools-0.7.1-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (517 kB)
+[2026-04-30 21:12:30] Collecting uvloop>=0.15.1 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:30]   Downloading uvloop-0.22.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.4 MB)
+[2026-04-30 21:12:31]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 21.6 MB/s  0:00:00
+[2026-04-30 21:12:31] Collecting websockets>=10.4 (from uvicorn[standard]>=0.12.0; extra == "standard"->fastapi[standard]>=0.115.0->vllm==0.20.0)
+[2026-04-30 21:12:31]   Downloading websockets-16.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (184 kB)
+[2026-04-30 21:12:31] Collecting httpx-sse>=0.4 (from mcp->vllm==0.20.0)
+[2026-04-30 21:12:31]   Downloading httpx_sse-0.4.3-py3-none-any.whl (9.0 kB)
+[2026-04-30 21:12:31] Collecting pyjwt>=2.10.1 (from pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:12:31]   Downloading pyjwt-2.12.1-py3-none-any.whl (29 kB)
+[2026-04-30 21:12:31] Collecting sse-starlette>=1.6.1 (from mcp->vllm==0.20.0)
+[2026-04-30 21:12:31]   Downloading sse_starlette-3.4.1-py3-none-any.whl (16 kB)
+[2026-04-30 21:12:31] Collecting cryptography>=3.4.0 (from pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:12:31]   Using cached cryptography-47.0.0-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+[2026-04-30 21:12:31] Collecting cffi>=2.0.0 (from cryptography>=3.4.0->pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:12:32]   Downloading cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (219 kB)
+[2026-04-30 21:12:32] Collecting pycparser (from cffi>=2.0.0->cryptography>=3.4.0->pyjwt[crypto]>=2.10.1->mcp->vllm==0.20.0)
+[2026-04-30 21:12:32]   Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+[2026-04-30 21:12:32] Installing collected packages: z3-solver, torchaudio, supervisor, py-cpuinfo, nvidia-ml-py, nvidia-cusparselt-cu13, cuda-toolkit, zipp, websockets, uvloop, urllib3, typing-inspection, tqdm, tabulate, sniffio, six, shellingham, setuptools, setproctitle, sentencepiece, safetensors, rpds-py, rignore, regex, pyzmq, pyyaml, python-multipart, python-json-logger, python-dotenv, pyjwt, pygments, pydantic-core, pycparser, pycountry, pybase64, psutil, protobuf, propcache, prometheus_client, partial-json-parser, outlines_core, nvidia-nvtx, nvidia-nvshmem-cu13, nvidia-nvjitlink, nvidia-nccl-cu13, nvidia-curand, nvidia-cufile, nvidia-cudnn-frontend, nvidia-cuda-runtime, nvidia-cuda-nvrtc, nvidia-cuda-cupti, nvidia-cublas, numpy, ninja, multidict, msgspec, mdurl, loguru, llvmlite, llguidance, lark, jmespath, jiter, interegular, ijson, idna, httpx-sse, httptools, hf-xet, h11, grpcio, frozenlist, flashinfer-cubin, fastar, einops, docstring-parser, dnspython, distro, diskcache, dill, cuda-tile, cuda-bindings, cloudpickle, click, charset_normalizer, certifi, cbor2, cachetools, blake3, attrs, astor, apache-tvm-ffi, annotated-types, annotated-doc, aiohappyeyeballs, yarl, uvicorn, sentry-sdk, requests, referencing, pydantic, opentelemetry-proto, opencv-python-headless, nvidia-cusparse, nvidia-cufft, nvidia-cudnn-cu13, numba, ml-dtypes, markdown-it-py, importlib-metadata, httpcore, googleapis-common-protos, email-validator, depyf, cuda-python, cffi, anyio, aiosignal, watchfiles, tiktoken, starlette, rich, pydantic-settings, pydantic-extra-types, opentelemetry-exporter-otlp-proto-common, opentelemetry-api, openai-harmony, nvidia-cutlass-dsl-libs-base, nvidia-cusolver, lm-format-enforcer, jsonschema-specifications, httpx, gguf, cryptography, aiohttp, typer, sse-starlette, rich-toolkit, prometheus-fastapi-instrumentator, opentelemetry-semantic-conventions, openai, nvidia-cutlass-dsl, jsonschema, fastapi, anthropic, torch, opentelemetry-sdk, model-hosting-container-standards, mistral_common, mcp, huggingface-hub, fastsafetensors, fastapi-cloud-cli, fastapi-cli, torchvision, torch-c-dlpack-ext, tokenizers, opentelemetry-semantic-conventions-ai, opentelemetry-exporter-otlp-proto-http, opentelemetry-exporter-otlp-proto-grpc, flashinfer-python, transformers, tilelang, quack-kernels, opentelemetry-exporter-otlp, xgrammar, compressed-tensors, vllm
+[2026-04-30 21:12:33]   Attempting uninstall: torchaudio
+[2026-04-30 21:12:33]     Found existing installation: torchaudio 2.10.0
+[2026-04-30 21:12:33]     Uninstalling torchaudio-2.10.0:
+[2026-04-30 21:12:33]       Successfully uninstalled torchaudio-2.10.0
+[2026-04-30 21:12:34]   Attempting uninstall: setuptools
+[2026-04-30 21:12:34]     Found existing installation: setuptools 82.0.1
+[2026-04-30 21:12:34]     Uninstalling setuptools-82.0.1:
+[2026-04-30 21:12:34]       Successfully uninstalled setuptools-82.0.1
+[2026-04-30 21:12:41] [2026-04-30 21:12:40,942 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:12:42]   Attempting uninstall: numpy
+[2026-04-30 21:12:42]     Found existing installation: numpy 2.4.4
+[2026-04-30 21:12:42]     Uninstalling numpy-2.4.4:
+[2026-04-30 21:12:42]       Successfully uninstalled numpy-2.4.4
+[2026-04-30 21:12:43] [2026-04-30 21:12:42,576 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:12:52]   Attempting uninstall: cuda-bindings
+[2026-04-30 21:12:52]     Found existing installation: cuda-bindings 12.9.4
+[2026-04-30 21:12:52]     Uninstalling cuda-bindings-12.9.4:
+[2026-04-30 21:12:52]       Successfully uninstalled cuda-bindings-12.9.4
+[2026-04-30 21:13:06]   Attempting uninstall: torch
+[2026-04-30 21:13:06]     Found existing installation: torch 2.10.0
+[2026-04-30 21:13:07]     Uninstalling torch-2.10.0:
+[2026-04-30 21:13:07]       Successfully uninstalled torch-2.10.0
+[2026-04-30 21:13:13] [2026-04-30 21:13:12,700 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:13:13] [2026-04-30 21:13:12,700 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:13:19]   Attempting uninstall: torchvision
+[2026-04-30 21:13:19]     Found existing installation: torchvision 0.25.0
+[2026-04-30 21:13:19]     Uninstalling torchvision-0.25.0:
+[2026-04-30 21:13:19]       Successfully uninstalled torchvision-0.25.0
+[2026-04-30 21:13:23] [2026-04-30 21:13:22,898 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:13:38] [2026-04-30 21:13:37,951 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:13:38] 
+[2026-04-30 21:13:38] Successfully installed aiohappyeyeballs-2.6.1 aiohttp-3.13.5 aiosignal-1.4.0 annotated-doc-0.0.4 annotated-types-0.7.0 anthropic-0.97.0 anyio-4.13.0 apache-tvm-ffi-0.1.9 astor-0.8.1 attrs-26.1.0 blake3-1.0.8 cachetools-7.0.6 cbor2-6.0.1 certifi-2026.4.22 cffi-2.0.0 charset_normalizer-3.4.7 click-8.3.3 cloudpickle-3.1.2 compressed-tensors-0.15.0.1 cryptography-47.0.0 cuda-bindings-13.2.0 cuda-python-13.2.0 cuda-tile-1.3.0 cuda-toolkit-13.0.2 depyf-0.20.0 dill-0.4.1 diskcache-5.6.3 distro-1.9.0 dnspython-2.8.0 docstring-parser-0.18.0 einops-0.8.2 email-validator-2.3.0 fastapi-0.136.1 fastapi-cli-0.0.24 fastapi-cloud-cli-0.17.1 fastar-0.11.0 fastsafetensors-0.3 flashinfer-cubin-0.6.8.post1 flashinfer-python-0.6.8.post1 frozenlist-1.8.0 gguf-0.18.0 googleapis-common-protos-1.74.0 grpcio-1.80.0 h11-0.16.0 hf-xet-1.4.3 httpcore-1.0.9 httptools-0.7.1 httpx-0.28.1 httpx-sse-0.4.3 huggingface-hub-1.12.2 idna-3.13 ijson-3.5.0 importlib-metadata-8.7.1 interegular-0.3.3 jiter-0.14.0 jmespath-1.1.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 lark-1.2.2 llguidance-1.3.0 llvmlite-0.47.0 lm-format-enforcer-0.11.3 loguru-0.7.3 markdown-it-py-4.0.0 mcp-1.27.0 mdurl-0.1.2 mistral_common-1.11.1 ml-dtypes-0.5.4 model-hosting-container-standards-0.1.14 msgspec-0.21.1 multidict-6.7.1 ninja-1.13.0 numba-0.65.0 numpy-2.3.5 nvidia-cublas-13.1.0.3 nvidia-cuda-cupti-13.0.85 nvidia-cuda-nvrtc-13.0.88 nvidia-cuda-runtime-13.0.96 nvidia-cudnn-cu13-9.19.0.56 nvidia-cudnn-frontend-1.18.0 nvidia-cufft-12.0.0.61 nvidia-cufile-1.15.1.6 nvidia-curand-10.4.0.35 nvidia-cusolver-12.0.4.66 nvidia-cusparse-12.6.3.3 nvidia-cusparselt-cu13-0.8.0 nvidia-cutlass-dsl-4.4.2 nvidia-cutlass-dsl-libs-base-4.4.2 nvidia-ml-py-13.595.45 nvidia-nccl-cu13-2.28.9 nvidia-nvjitlink-13.0.88 nvidia-nvshmem-cu13-3.4.5 nvidia-nvtx-13.0.85 openai-2.33.0 openai-harmony-0.0.8 opencv-python-headless-4.13.0.92 opentelemetry-api-1.41.1 opentelemetry-exporter-otlp-1.41.1 opentelemetry-exporter-otlp-proto-common-1.41.1 opentelemetry-exporter-otlp-proto-grpc-1.41.1 opentelemetry-exporter-otlp-proto-http-1.41.1 opentelemetry-proto-1.41.1 opentelemetry-sdk-1.41.1 opentelemetry-semantic-conventions-0.62b1 opentelemetry-semantic-conventions-ai-0.5.1 outlines_core-0.2.14 partial-json-parser-0.2.1.1.post7 prometheus-fastapi-instrumentator-7.1.0 prometheus_client-0.25.0 propcache-0.4.1 protobuf-6.33.6 psutil-7.2.2 py-cpuinfo-9.0.0 pybase64-1.4.3 pycountry-26.2.16 pycparser-3.0 pydantic-2.13.3 pydantic-core-2.46.3 pydantic-extra-types-2.11.1 pydantic-settings-2.14.0 pygments-2.20.0 pyjwt-2.12.1 python-dotenv-1.2.2 python-json-logger-4.1.0 python-multipart-0.0.27 pyyaml-6.0.3 pyzmq-27.1.0 quack-kernels-0.4.0 referencing-0.37.0 regex-2026.4.4 requests-2.33.1 rich-15.0.0 rich-toolkit-0.19.7 rignore-0.7.6 rpds-py-0.30.0 safetensors-0.7.0 sentencepiece-0.2.1 sentry-sdk-2.58.0 setproctitle-1.3.7 setuptools-80.10.2 shellingham-1.5.4 six-1.17.0 sniffio-1.3.1 sse-starlette-3.4.1 starlette-0.52.1 supervisor-4.3.0 tabulate-0.10.0 tiktoken-0.12.0 tilelang-0.1.9 tokenizers-0.22.2 torch-2.11.0 torch-c-dlpack-ext-0.1.5 torchaudio-2.11.0 torchvision-0.26.0 tqdm-4.67.3 transformers-5.7.0 typer-0.25.0 typing-inspection-0.4.2 urllib3-2.6.3 uvicorn-0.46.0 uvloop-0.22.1 vllm-0.20.0 watchfiles-1.1.1 websockets-16.0 xgrammar-0.1.34 yarl-1.23.0 z3-solver-4.15.4.0 zipp-3.23.1
+[2026-04-30 21:13:39] Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+[2026-04-30 21:13:39] Looking in links: /mnt/data/ebft-distribution-new/caches/wheels
+[2026-04-30 21:13:40] Collecting huggingface_hub==1.9.0
+[2026-04-30 21:13:40]   Downloading huggingface_hub-1.9.0-py3-none-any.whl (637 kB)
+[2026-04-30 21:13:40]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 637.4/637.4 kB 39.7 MB/s  0:00:00
+[2026-04-30 21:13:40] Requirement already satisfied: filelock>=3.10.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (3.29.0)
+[2026-04-30 21:13:40] Requirement already satisfied: fsspec>=2023.5.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (2026.4.0)
+[2026-04-30 21:13:40] Requirement already satisfied: hf-xet<2.0.0,>=1.4.3 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (1.4.3)
+[2026-04-30 21:13:40] Requirement already satisfied: httpx<1,>=0.23.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (0.28.1)
+[2026-04-30 21:13:40] Requirement already satisfied: packaging>=20.9 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (26.2)
+[2026-04-30 21:13:40] Requirement already satisfied: pyyaml>=5.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (6.0.3)
+[2026-04-30 21:13:40] Requirement already satisfied: tqdm>=4.42.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (4.67.3)
+[2026-04-30 21:13:40] Requirement already satisfied: typer in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (0.25.0)
+[2026-04-30 21:13:40] Requirement already satisfied: typing-extensions>=4.1.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from huggingface_hub==1.9.0) (4.15.0)
+[2026-04-30 21:13:40] Requirement already satisfied: anyio in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (4.13.0)
+[2026-04-30 21:13:40] Requirement already satisfied: certifi in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (2026.4.22)
+[2026-04-30 21:13:40] Requirement already satisfied: httpcore==1.* in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (1.0.9)
+[2026-04-30 21:13:40] Requirement already satisfied: idna in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpx<1,>=0.23.0->huggingface_hub==1.9.0) (3.13)
+[2026-04-30 21:13:40] Requirement already satisfied: h11>=0.16 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from httpcore==1.*->httpx<1,>=0.23.0->huggingface_hub==1.9.0) (0.16.0)
+[2026-04-30 21:13:40] Requirement already satisfied: click>=8.2.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (8.3.3)
+[2026-04-30 21:13:40] Requirement already satisfied: shellingham>=1.3.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (1.5.4)
+[2026-04-30 21:13:40] Requirement already satisfied: rich>=13.8.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (15.0.0)
+[2026-04-30 21:13:40] Requirement already satisfied: annotated-doc>=0.0.2 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from typer->huggingface_hub==1.9.0) (0.0.4)
+[2026-04-30 21:13:40] Requirement already satisfied: markdown-it-py>=2.2.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from rich>=13.8.0->typer->huggingface_hub==1.9.0) (4.0.0)
+[2026-04-30 21:13:40] Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from rich>=13.8.0->typer->huggingface_hub==1.9.0) (2.20.0)
+[2026-04-30 21:13:40] Requirement already satisfied: mdurl~=0.1 in /mnt/workspace/venvs/.teacherVenv/lib/python3.12/site-packages (from markdown-it-py>=2.2.0->rich>=13.8.0->typer->huggingface_hub==1.9.0) (0.1.2)
+[2026-04-30 21:13:40] Installing collected packages: huggingface_hub
+[2026-04-30 21:13:40]   Attempting uninstall: huggingface_hub
+[2026-04-30 21:13:40]     Found existing installation: huggingface_hub 1.12.2
+[2026-04-30 21:13:40]     Uninstalling huggingface_hub-1.12.2:
+[2026-04-30 21:13:40]       Successfully uninstalled huggingface_hub-1.12.2
+[2026-04-30 21:13:40] Successfully installed huggingface_hub-1.9.0
+[2026-04-30 21:13:40] 
+[2026-04-30 21:13:40] [21:13:39] Pinning teacher transformers to 5.5.0 (no-deps)
+[2026-04-30 21:13:41] Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+[2026-04-30 21:13:41] Looking in links: /mnt/data/ebft-distribution-new/caches/wheels
+[2026-04-30 21:13:41] Collecting transformers==5.5.0
+[2026-04-30 21:13:41]   Downloading transformers-5.5.0-py3-none-any.whl (10.2 MB)
+[2026-04-30 21:13:41]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 38.6 MB/s  0:00:00
+[2026-04-30 21:13:41] Installing collected packages: transformers
+[2026-04-30 21:13:41]   Attempting uninstall: transformers
+[2026-04-30 21:13:41]     Found existing installation: transformers 5.7.0
+[2026-04-30 21:13:41]     Uninstalling transformers-5.7.0:
+[2026-04-30 21:13:41]       Successfully uninstalled transformers-5.7.0
+[2026-04-30 21:13:41] [2026-04-30 21:13:40,978 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:13:43] [2026-04-30 21:13:43,003 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:13:47] Successfully installed transformers-5.5.0
+[2026-04-30 21:13:47] 
+[2026-04-30 21:13:47] [21:13:46] Verifying teacher env
+[2026-04-30 21:13:52] python 3.12.12
+[2026-04-30 21:13:52] torch 2.11.0+cu130 cuda 13.0 available True
+[2026-04-30 21:13:52] transformers 5.5.0
+[2026-04-30 21:13:52] vllm 0.20.0
+[2026-04-30 21:13:52] vllm_cli /mnt/workspace/venvs/.teacherVenv/bin/vllm
+[2026-04-30 21:13:52] vllm_cli_on_path None
+[2026-04-30 21:13:52] warning: zstd not on PATH; skipping snapshot of teacher venv
+[2026-04-30 21:13:52] 
+[2026-04-30 21:13:52] [21:13:51] Done.
+[2026-04-30 21:13:52]   student env:  source /mnt/workspace/venvs/.venv/bin/activate
+[2026-04-30 21:13:52]   teacher env:  source /mnt/workspace/venvs/.teacherVenv/bin/activate
+[2026-04-30 21:13:52] 
+[2026-04-30 21:13:52] Note: venvs live on ephemeral ext4 (/mnt/workspace); snapshots in /mnt/data/ebft-distribution-new/caches/snapshots
+[2026-04-30 21:13:52] On a fresh machine / after a container restart, re-running this
+[2026-04-30 21:13:52] script will untar the snapshots back into /mnt/workspace in ~1-2 minutes
+[2026-04-30 21:13:52] instead of re-installing from pip. To force a clean rebuild:
+[2026-04-30 21:13:52]   EBFT_REBUILD_VENV=1 bash scripts/setup_env.sh
+[2026-04-30 21:13:52] To disable snapshots entirely:
+[2026-04-30 21:13:52]   EBFT_USE_VENV_SNAPSHOT=0 bash scripts/setup_env.sh
+[2026-04-30 21:13:52] 
+[2026-04-30 21:13:52] When invoking run_*.sh / supplement*/*.sh, export:
+[2026-04-30 21:13:52]   export STUDENT_VENV=/mnt/workspace/venvs/.venv
+[2026-04-30 21:13:52]   export TEACHER_VENV=/mnt/workspace/venvs/.teacherVenv
+[2026-04-30 21:13:52]   export HF_HOME=/mnt/data/ebft-distribution-new/caches/hf
+[2026-04-30 21:13:52]   export PIP_CACHE_DIR=/root/.cache/pip
+[2026-04-30 21:13:52]   export TORCH_EXTENSIONS_DIR=/mnt/workspace/.torch_extensions
+[2026-04-30 21:13:52]   export TRITON_CACHE_DIR=/mnt/workspace/.triton_cache
+[2026-04-30 21:13:52] [INFO] DLC multi-pod mode: rank=1 world_size=2 master=dlcom1bt6c5aunyq-master-0
+[2026-04-30 21:13:53] ========== G2 2-node once launcher ==========
+[2026-04-30 21:13:53] RUN_DIR:                    /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq
+[2026-04-30 21:13:53] HEAD_NODE / IP:             dlcom1bt6c5aunyq-master-0 / 22.27.120.74
+[2026-04-30 21:13:53] WORKER_NODE / IP:           dlc-rank-1-pod / 22.27.120.74
+[2026-04-30 21:13:53] Head teacher GPUs:          0,1,2,3,4,5
+[2026-04-30 21:13:53] Worker teacher GPUs:        0,1,2,3,4,5
+[2026-04-30 21:13:53] Head student GPUs:          6,7
+[2026-04-30 21:13:53] Worker student GPUs:        6,7
+[2026-04-30 21:13:53] Teacher worker count:       6 + 6
+[2026-04-30 21:13:53] Teacher API:                http://22.27.120.74:8004/v1,http://22.27.120.74:8005/v1,http://22.27.120.74:8006/v1,http://22.27.120.74:8007/v1,http://22.27.120.74:8008/v1,http://22.27.120.74:8009/v1,http://22.27.120.74:8004/v1,http://22.27.120.74:8005/v1,http://22.27.120.74:8006/v1,http://22.27.120.74:8007/v1,http://22.27.120.74:8008/v1,http://22.27.120.74:8009/v1
+[2026-04-30 21:13:53] Actor/Critic GPUs:          2/2
+[2026-04-30 21:13:53] Actor/Critic nodes:         1/1
+[2026-04-30 21:13:53] Target steps:               500
+[2026-04-30 21:13:53] Max samples:                16000
+[2026-04-30 21:13:53] Post-train eval:            true
+[2026-04-30 21:13:53] Post-eval script:           /mnt/data/ebft-distribution-new/code/scripts/supplement_2rounds/G2_2node.sh
+[2026-04-30 21:13:53] Post-eval VLLM_TP_SIZE:     8 (head node only; worker idle during eval)
+[2026-04-30 21:13:53] Post-eval first/second pass: 16384/32768 tokens
+[2026-04-30 21:13:53] Single training submitter:  dlcom1bt6c5aunyq-master-0
+[2026-04-30 21:13:53] =============================================
+[2026-04-30 21:13:53] ================================================================
+[2026-04-30 21:13:53] [DLC worker rank=1] starting on dlcom1bt6c5aunyq-worker-0
+[2026-04-30 21:13:53] [DLC worker rank=1] master address: dlcom1bt6c5aunyq-master-0:6379
+[2026-04-30 21:13:53] [DLC worker] my IP: 10.1.53.79
+[2026-04-30 21:13:53] [DLC worker] wrote IP to /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/dlc_rendezvous/worker_1_ip.txt
+[2026-04-30 21:13:53] [DLC worker] IP keepalive started (pid=1054, interval=5s)
+[2026-04-30 21:13:53] [DLC worker] launching 6 teacher worker(s)...
+[2026-04-30 21:13:53] [DLC worker] teacher #0 launched on GPUs 0 -> port 8004, log /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/teacher_logs/worker_dlc_rank1_0.log
+[2026-04-30 21:13:53] [DLC worker] teacher #1 launched on GPUs 1 -> port 8005, log /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/teacher_logs/worker_dlc_rank1_1.log
+[2026-04-30 21:13:53] [DLC worker] teacher #2 launched on GPUs 2 -> port 8006, log /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/teacher_logs/worker_dlc_rank1_2.log
+[2026-04-30 21:13:53] [DLC worker] teacher #3 launched on GPUs 3 -> port 8007, log /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/teacher_logs/worker_dlc_rank1_3.log
+[2026-04-30 21:13:53] [DLC worker] teacher #4 launched on GPUs 4 -> port 8008, log /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/teacher_logs/worker_dlc_rank1_4.log
+[2026-04-30 21:13:53] [DLC worker] teacher #5 launched on GPUs 5 -> port 8009, log /mnt/data/ebft-distribution-new/outputs/g2_dlcom1bt6c5aunyq/teacher_logs/worker_dlc_rank1_5.log
+[2026-04-30 21:13:53] [DLC worker] waiting for master ray head at dlcom1bt6c5aunyq-master-0:6379 (timeout 3600s)...
+[2026-04-30 21:13:54] [DLC master] worker IP: 10.1.53.79 (after 93s)
+[2026-04-30 21:13:54] [DLC master] updated TEACHER_API_BASE: http://22.27.120.74:8004/v1,http://22.27.120.74:8005/v1,http://22.27.120.74:8006/v1,http://22.27.120.74:8007/v1,http://22.27.120.74:8008/v1,http://22.27.120.74:8009/v1,http://10.1.53.79:8004/v1,http://10.1.53.79:8005/v1,http://10.1.53.79:8006/v1,http://10.1.53.79:8007/v1,http://10.1.53.79:8008/v1,http://10.1.53.79:8009/v1
+[2026-04-30 21:13:54] [1/5] DLC mode: worker pod connects in via ray start; skipping ssh check
+[2026-04-30 21:13:54] [2/5] DLC mode: worker pod launches teacher locally; skipping ssh teacher launch
+[2026-04-30 21:13:54] [3/5] launching head-side teacher services...
+[2026-04-30 21:13:54] [4/5] waiting for teacher health checks...
+[2026-04-30 21:14:14] [2026-04-30 21:14:13,134 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:14:14] [2026-04-30 21:14:13,135 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:14:41] [2026-04-30 21:14:41,017 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:14:44] [2026-04-30 21:14:43,331 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:15:10] [2026-04-30 21:15:09,885 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:15:14] [2026-04-30 21:15:13,464 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:15:14] [2026-04-30 21:15:13,464 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:15:24] [2026-04-30 21:15:23,544 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:15:41] [2026-04-30 21:15:41,054 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:15:44] [2026-04-30 21:15:43,655 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:16:14] [2026-04-30 21:16:13,783 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:16:14] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:16:14] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:16:14] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:16:14] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:16:14] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:16:14] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:16:14] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:16:14] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:16:14] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:16:14] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:16:14] 
+[2026-04-30 21:16:14] [2026-04-30 21:16:13,783 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:16:14] [2026-04-30 21:16:13,783 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:16:41] [2026-04-30 21:16:41,062 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:16:41] [2026-04-30 21:16:41,090 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:16:44] [2026-04-30 21:16:43,947 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:17:14] [2026-04-30 21:17:14,084 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:17:14] [2026-04-30 21:17:14,084 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:17:24] [2026-04-30 21:17:24,142 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:17:41] [2026-04-30 21:17:41,126 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:17:45] [2026-04-30 21:17:44,277 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:18:13] [2026-04-30 21:18:12,549 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:18:15] [2026-04-30 21:18:14,469 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:18:15] [2026-04-30 21:18:14,469 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:18:41] [2026-04-30 21:18:41,162 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:18:45] [2026-04-30 21:18:44,650 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:19:15] [2026-04-30 21:19:14,783 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:19:15] [2026-04-30 21:19:14,783 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:19:25] [2026-04-30 21:19:24,845 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:19:41] [2026-04-30 21:19:41,198 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:19:45] [2026-04-30 21:19:44,403 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:19:45] [2026-04-30 21:19:45,031 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:20:15] [2026-04-30 21:20:15,157 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:20:15] [2026-04-30 21:20:15,157 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:20:41] [2026-04-30 21:20:41,234 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:20:45] [2026-04-30 21:20:45,335 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:21:16] [2026-04-30 21:21:15,476 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:21:16] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:21:16] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:21:16] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:21:16] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:21:16] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:21:16] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:21:16] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:21:16] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:21:16] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:21:16] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:21:16] 
+[2026-04-30 21:21:16] [2026-04-30 21:21:15,477 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:21:16] [2026-04-30 21:21:15,477 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:21:16] [2026-04-30 21:21:15,642 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:21:26] [2026-04-30 21:21:25,533 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:21:41] [2026-04-30 21:21:41,270 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:21:46] [2026-04-30 21:21:45,639 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:22:16] [2026-04-30 21:22:15,765 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:22:16] [2026-04-30 21:22:15,765 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:22:41] [2026-04-30 21:22:41,304 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:22:46] [2026-04-30 21:22:45,944 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:22:47] [2026-04-30 21:22:47,260 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:23:16] [2026-04-30 21:23:16,119 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:23:16] [2026-04-30 21:23:16,119 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:23:26] [2026-04-30 21:23:26,183 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:23:41] [2026-04-30 21:23:41,344 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:23:46] [2026-04-30 21:23:46,292 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:24:17] [2026-04-30 21:24:16,527 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:24:17] [2026-04-30 21:24:16,527 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:24:19] [2026-04-30 21:24:19,227 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:24:41] [2026-04-30 21:24:41,379 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:24:47] [2026-04-30 21:24:46,736 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:25:17] [2026-04-30 21:25:16,913 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:25:17] [2026-04-30 21:25:16,913 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:25:27] [2026-04-30 21:25:26,983 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:25:41] [2026-04-30 21:25:41,414 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:25:47] [2026-04-30 21:25:47,091 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:25:50] [2026-04-30 21:25:50,565 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:26:17] [2026-04-30 21:26:17,238 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:26:17] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:26:17] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:26:17] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:26:17] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:26:17] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:26:17] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:26:17] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:26:17] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:26:17] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:26:17] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:26:17] 
+[2026-04-30 21:26:17] [2026-04-30 21:26:17,239 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:26:17] [2026-04-30 21:26:17,239 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:26:41] [2026-04-30 21:26:41,450 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:26:47] [2026-04-30 21:26:47,411 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:27:17] [2026-04-30 21:27:17,545 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:27:17] [2026-04-30 21:27:17,545 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:27:22] [2026-04-30 21:27:22,492 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:27:28] [2026-04-30 21:27:27,616 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:27:41] [2026-04-30 21:27:41,488 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:27:48] [2026-04-30 21:27:47,727 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:28:18] [2026-04-30 21:28:17,867 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:28:18] [2026-04-30 21:28:17,867 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:28:41] [2026-04-30 21:28:41,524 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:28:48] [2026-04-30 21:28:48,024 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:28:54] [2026-04-30 21:28:54,218 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:29:18] [2026-04-30 21:29:18,191 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:29:18] [2026-04-30 21:29:18,191 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:29:28] [2026-04-30 21:29:28,249 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:29:41] [2026-04-30 21:29:41,560 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:29:48] [2026-04-30 21:29:48,367 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:30:18] [2026-04-30 21:30:18,494 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:30:18] [2026-04-30 21:30:18,494 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:30:25] [2026-04-30 21:30:25,456 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:30:41] [2026-04-30 21:30:41,596 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:30:48] [2026-04-30 21:30:48,704 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:31:19] [2026-04-30 21:31:18,844 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:31:19] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:31:19] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:31:19] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:31:19] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:31:19] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:31:19] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:31:19] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:31:19] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:31:19] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:31:19] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:31:19] 
+[2026-04-30 21:31:19] [2026-04-30 21:31:18,844 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:31:19] [2026-04-30 21:31:18,844 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:31:29] [2026-04-30 21:31:28,910 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:31:41] [2026-04-30 21:31:41,632 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:31:49] [2026-04-30 21:31:49,081 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:31:57] [2026-04-30 21:31:57,482 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:32:19] [2026-04-30 21:32:19,242 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:32:19] [2026-04-30 21:32:19,242 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:32:41] [2026-04-30 21:32:41,667 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:32:49] [2026-04-30 21:32:49,430 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:33:19] [2026-04-30 21:33:19,573 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:33:19] [2026-04-30 21:33:19,574 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:33:28] [2026-04-30 21:33:28,809 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:33:29] [2026-04-30 21:33:29,644 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:33:41] [2026-04-30 21:33:41,704 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:33:49] [2026-04-30 21:33:49,763 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:34:20] [2026-04-30 21:34:19,876 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:34:20] [2026-04-30 21:34:19,876 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:34:41] [2026-04-30 21:34:41,738 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:34:50] [2026-04-30 21:34:50,117 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:35:01] [2026-04-30 21:35:00,909 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:35:20] [2026-04-30 21:35:20,269 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:35:20] [2026-04-30 21:35:20,269 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:35:30] [2026-04-30 21:35:30,333 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:35:41] [2026-04-30 21:35:41,776 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:35:50] [2026-04-30 21:35:50,436 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:36:20] [2026-04-30 21:36:20,626 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:36:20] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:36:20] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:36:20] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:36:20] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:36:20] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:36:20] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:36:20] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:36:20] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:36:20] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:36:20] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:36:20] 
+[2026-04-30 21:36:20] [2026-04-30 21:36:20,626 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:36:20] [2026-04-30 21:36:20,626 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:36:32] [2026-04-30 21:36:32,642 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:36:41] [2026-04-30 21:36:41,814 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:36:50] [2026-04-30 21:36:50,786 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:37:20] [2026-04-30 21:37:20,912 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:37:20] [2026-04-30 21:37:20,912 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:37:30] [2026-04-30 21:37:30,968 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:37:41] [2026-04-30 21:37:41,850 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:37:52] [2026-04-30 21:37:51,089 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:38:05] [2026-04-30 21:38:04,442 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:38:22] [2026-04-30 21:38:21,262 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:38:22] [2026-04-30 21:38:21,262 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:38:42] [2026-04-30 21:38:41,886 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:38:52] [2026-04-30 21:38:51,481 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:39:22] [2026-04-30 21:39:21,710 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:39:22] [2026-04-30 21:39:21,710 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:39:32] [2026-04-30 21:39:31,771 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:39:36] [2026-04-30 21:39:35,824 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:39:42] [2026-04-30 21:39:41,924 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:39:52] [2026-04-30 21:39:51,893 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:40:22] [2026-04-30 21:40:22,017 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:40:22] [2026-04-30 21:40:22,017 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:40:42] [2026-04-30 21:40:41,960 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:40:53] [2026-04-30 21:40:52,191 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:41:08] [2026-04-30 21:41:07,657 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:41:23] [2026-04-30 21:41:22,347 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:41:23] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:41:23] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:41:23] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:41:23] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:41:23] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:41:23] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:41:23] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:41:23] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:41:23] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:41:23] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:41:23] 
+[2026-04-30 21:41:23] [2026-04-30 21:41:22,347 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:41:23] [2026-04-30 21:41:22,347 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:41:33] [2026-04-30 21:41:32,433 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:41:42] [2026-04-30 21:41:41,996 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:41:53] [2026-04-30 21:41:52,544 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:42:23] [2026-04-30 21:42:22,684 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:42:23] [2026-04-30 21:42:22,684 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:42:40] [2026-04-30 21:42:39,284 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:42:42] [2026-04-30 21:42:42,035 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:42:53] [2026-04-30 21:42:52,862 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:43:23] [2026-04-30 21:43:23,037 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:43:23] [2026-04-30 21:43:23,037 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:43:33] [2026-04-30 21:43:33,097 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:43:42] [2026-04-30 21:43:42,072 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:43:53] [2026-04-30 21:43:53,208 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:44:12] [2026-04-30 21:44:11,271 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:44:24] [2026-04-30 21:44:23,339 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:44:24] [2026-04-30 21:44:23,339 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:44:42] [2026-04-30 21:44:42,110 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:44:54] [2026-04-30 21:44:53,500 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:45:24] [2026-04-30 21:45:23,709 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:45:24] [2026-04-30 21:45:23,709 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:45:34] [2026-04-30 21:45:33,770 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-04-30 21:45:42] [2026-04-30 21:45:42,146 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:45:43] [2026-04-30 21:45:43,043 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-04-30 21:45:54] [2026-04-30 21:45:53,894 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:46:24] [2026-04-30 21:46:24,024 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-04-30 21:46:24] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-04-30 21:46:24] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-04-30 21:46:24] | Running            |       2 | 100.0%       | [dlcom1bt6c5aunyq-master-0, dlcom1bt6c5aunyq-worker-0] |
+[2026-04-30 21:46:24] | Pending            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:46:24] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-04-30 21:46:24] | Failed             |       0 | 0.0%         |                                                        |
+[2026-04-30 21:46:24] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-04-30 21:46:24] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-04-30 21:46:24] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-04-30 21:46:24] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-04-30 21:46:24] 
+[2026-04-30 21:46:24] [2026-04-30 21:46:24,024 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:46:24] [2026-04-30 21:46:24,025 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-04-30 21:46:42] [2026-04-30 21:46:42,180 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-04-30 21:46:54] [2026-04-30 21:46:54,189 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-04-30 21:47:16] [2026-04-30 21:47:15,500 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))

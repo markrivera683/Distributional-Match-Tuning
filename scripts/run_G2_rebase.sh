@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
-# AOPS: single-node 8 GPU, online teacher + student training
-# Manual resource split:
-#   - teacher GPU ids: TEACHER_CUDA_VISIBLE_DEVICES
-#   - student GPU ids: STUDENT_CUDA_VISIBLE_DEVICES
-#   - student actor/critic GPU counts: ACTOR_GPUS / CRITIC_GPUS
+# AOPS: single-node 8 GPU, online teacher + student training (G2 recipe)
+#
+# Default resource split: 6 teacher + 2 student.
+#   - teacher GPU ids:                TEACHER_CUDA_VISIBLE_DEVICES (default 0-5)
+#   - student GPU ids:                STUDENT_CUDA_VISIBLE_DEVICES (default 6-7)
+#   - student actor/critic GPU count: ACTOR_GPUS / CRITIC_GPUS    (default 1 / 1)
 #   - ref/reward follow actor/critic automatically (colocate)
+#
+# Why 1+1 student (not 2+2): 6 vLLM workers are required for low online
+# teacher latency on the 27B Qwen3.5 teacher. That leaves only 2 GPUs
+# for the student, hence ACTOR_GPUS=CRITIC_GPUS=1. ZeRO can't actually
+# shard at world_size=1, so memory pressure is fought via offloads + a
+# bf16 grad accumulator instead. See the inline annotation block next
+# to the --zero_stage flag for the full memory budget breakdown and
+# why stage 3 is unsafe with this Gemma-4 multimodal model.
 set -euo pipefail
 
 # Override examples:
@@ -23,6 +32,30 @@ count_csv_items() {
 # --------------------------------------------------------------------
 # 0) MANUAL GPU ASSIGNMENT (edit these first)
 # --------------------------------------------------------------------
+# Default split: 6 teacher (vLLM) + 2 student (actor/critic).
+#
+# Constraints: 6 teacher workers are required for low-latency online
+# inference on the 27B Qwen3.5 teacher. Student therefore has only
+# 2 GPUs, which forces ACTOR_GPUS=1 and CRITIC_GPUS=1 (ZeRO can't
+# actually shard at world_size=1).
+#
+# How we still fit Gemma-4 E4B (~8B multimodal) on 80 GB without
+# sharding (see the inline annotation block next to the --zero_stage
+# flag for the full table of attempted configs):
+#   - stage 2 + adam_offload    -> fp32 master + Adam m,v -> CPU (-96 GB GPU)
+#   - ref_reward_offload        -> ref bf16 -> CPU                (-16 GB GPU)
+#   - grad_accum_dtype=bf16     -> grad accumulator 32 -> 16 GB   (-16 GB GPU)
+#   - gradient_checkpointing    -> activation peak halved
+# Net per-rank GPU usage estimate: ~42-46 GiB peak, ~34-38 GiB headroom.
+# CPU RAM cost: ~128 GiB (Adam 96 + ref/reward 32); DSW host has ~900
+# GiB free, plenty.
+#
+# Note: MICRO_TRAIN_BATCH_SIZE / MICRO_ROLLOUT_BATCH_SIZE cannot drop
+# below N_SAMPLES_PER_PROMPT (=4) because RLOO needs each group's
+# n_samples trajectories together to compute leave-one-out advantage.
+# If activation peak ever pushes us OOM, the next lever is to lower
+# N_SAMPLES_PER_PROMPT to 2 (and MICRO to 2 with it), trading variance
+# for memory.
 TEACHER_CUDA_VISIBLE_DEVICES="${TEACHER_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5}"
 STUDENT_CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES:-6,7}"
 
@@ -126,31 +159,75 @@ TEACHER_TOP_P="${TEACHER_TOP_P:-0.95}"
 TEACHER_MAX_NEW_TOKENS="${TEACHER_MAX_NEW_TOKENS:-1024}"
 TEACHER_TIMEOUT="${TEACHER_TIMEOUT:-200}"
 TEACHER_MAX_RETRIES="${TEACHER_MAX_RETRIES:-3}"
-TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-48}"
+TEACHER_REMOTE_BATCH_SIZE="${TEACHER_REMOTE_BATCH_SIZE:-64}"
 TEACHER_SYSTEM_PROMPT_TEXT="${TEACHER_SYSTEM_PROMPT_TEXT:-You are a precise assistant. produce a correct and well-reasoned answer. Step by step when necessary. Keep reasoning sufficient. Final answer is clearly stated.}"
 TEACHER_SYSTEM_PROMPT_ID="${TEACHER_SYSTEM_PROMPT_ID:-v1-balanced}"
-TEACHER_CACHE_DIR="${TEACHER_CACHE_DIR:-/root/outputs/teacher_cache_shared}"
+# TEACHER_CACHE_DIR must be on local ext4 (NOT on ossfs2 / /mnt/data).
+# The provider opens a SQLite DB at "${TEACHER_CACHE_DIR}/worker_<i>/teacher_cache.db",
+# and SQLite on ossfs2 dies almost instantly with `sqlite3.OperationalError:
+# disk I/O error` because:
+#   - ossfs2 doesn't honor POSIX advisory locks (fcntl F_SETLK), which
+#     SQLite's rollback-journal mode requires for the reserved/pending lock
+#     transitions; the FUSE shim returns EINVAL/ENOTSUP and SQLite aborts.
+#   - WAL mode would also fail because it depends on shared-memory mmap of
+#     the .db-shm file, and ossfs2 only supports read-only mmap.
+# Symptom in practice: training process crashes during EBFTTrainer.__init__()
+# the moment build_teacher_provider() instantiates TeacherCache(...).
+TEACHER_CACHE_DIR="${TEACHER_CACHE_DIR:-/mnt/workspace/teacher_cache_shared}"
 
 ENABLE_TEACHER_PREFETCH="${ENABLE_TEACHER_PREFETCH:-false}"
 PREFETCH_DEPTH="${PREFETCH_DEPTH:-2}"
 PREFETCH_MAX_WORKERS="${PREFETCH_MAX_WORKERS:-6}"
 
 # ── Eval / Checkpoint ──
-EVAL_STEPS="${EVAL_STEPS:-100}"
+# IN-TRAINING EVAL DISABLED BY DEFAULT.
+#   GENERATE_MAX_LEN=8 (the EBFT token-level rollout) makes the in-training
+#   eval generate only 8 tokens, which is meaningless on AOPS — every prompt
+#   ends up "no answer" / 0% acc and clutters TensorBoard with a flat-zero
+#   curve that misleads early-stopping decisions. The post-training 2-round
+#   vLLM eval (via supplement_2rounds/G2.sh) is what we actually trust for
+#   accuracy reporting; that runs at FIRST_PASS_MAX_NEW_TOKENS=16384 / 32768.
+#
+#   To re-enable in-training eval explicitly, override EVAL_STEPS to a value
+#   <= TARGET_STEPS, e.g.:
+#       EVAL_STEPS=100 EVAL_GENERATE_MAX_LEN=2048 bash scripts/run_G2_rebase.sh
+#   NOTE: only eval_steps == -1 is treated as "disabled" by ebft_trainer
+#   (eval_steps == -1 -> float('inf')). A finite-but-large value still
+#   triggers the trainer's step-0 initial eval, which under ZeRO-3
+#   colocate_actor_ref deadlocks NCCL all-gather when batches don't
+#   divide evenly across actor ranks. Use -1, not a big number.
+EVAL_STEPS="${EVAL_STEPS:--1}"
 EVAL_MAX_SAMPLES="${EVAL_MAX_SAMPLES:-50}"
 EVAL_GENERATE_MAX_LEN="${EVAL_GENERATE_MAX_LEN:-${GENERATE_MAX_LEN}}"
 SAVE_STEPS="${SAVE_STEPS:-50}"
 SAVE_EVEN_COUNT="${SAVE_EVEN_COUNT:-10}"
 
+# Post-training offline two-round eval (16k → 32k via vLLM in
+# scripts/supplement_2rounds/G2.sh). Independent from in-training EVAL_STEPS.
 EVAL_AFTER_TRAIN="${EVAL_AFTER_TRAIN:-true}"
-POST_EVAL_NPROC="${POST_EVAL_NPROC:-8}"
+RUN_TWO_ROUND_EVAL="${RUN_TWO_ROUND_EVAL:-${EVAL_AFTER_TRAIN}}"
 POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES:-5328}"
 POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-512}"
-POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-8192}"
+FIRST_PASS_MAX_NEW_TOKENS="${FIRST_PASS_MAX_NEW_TOKENS:-16384}"
+SECOND_PASS_MAX_NEW_TOKENS="${SECOND_PASS_MAX_NEW_TOKENS:-32768}"
 POST_EVAL_TEMPERATURE="${POST_EVAL_TEMPERATURE:-0.6}"
 POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
-POST_EVAL_MICRO_BATCH_SIZE="${POST_EVAL_MICRO_BATCH_SIZE:-32}"
-POST_EVAL_MASTER_PORT="${POST_EVAL_MASTER_PORT:-29501}"
+POST_EVAL_REPETITION_PENALTY="${POST_EVAL_REPETITION_PENALTY:-1.0}"
+POST_EVAL_BEST_OF_N="${POST_EVAL_BEST_OF_N:-1}"
+# vLLM concurrency knobs. See scripts/supplement_2rounds/G2.sh for the full
+# HOL-blocking rationale that motivated raising these from the legacy
+# {32, hardcoded-16} defaults to {256, 256}.
+VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-256}"
+VLLM_PROGRESS_BATCH_SIZE="${VLLM_PROGRESS_BATCH_SIZE:-256}"
+VLLM_ENABLE_PREFIX_CACHING="${VLLM_ENABLE_PREFIX_CACHING:-false}"
+VLLM_SEED="${VLLM_SEED:-1234}"
+# vLLM eval grabs all 8 GPUs after teacher + RL training are torn down.
+MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-${TEACHER_CUDA_VISIBLE_DEVICES},${STUDENT_CUDA_VISIBLE_DEVICES}}"
+VLLM_TP_SIZE="${VLLM_TP_SIZE:-$(count_csv_items "${MODEL_CUDA_VISIBLE_DEVICES}")}"
+
+# Analysis venv (same as student by default; the analyzer is a pure-python
+# script that just needs HF tokenizers, so no need for a separate venv).
+ANALYSIS_VENV="${ANALYSIS_VENV:-${STUDENT_VENV}}"
 
 # --------------------------------------------------------------------
 # 4) ENV / RUN DIR
@@ -167,6 +244,26 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
 export PYTHONUNBUFFERED=1
 
+# NCCL safety nets — applied to BOTH the training stage (DeepSpeed/Ray
+# collectives between actor/critic/ref/reward on the student GPUs) AND
+# the post-training vLLM stage (which also sources _vllm_runtime.sh and
+# would re-apply these defaults; redundant export here makes the
+# training stage benefit from the same protections):
+#
+#   NCCL_P2P_LEVEL=NVL   - allow P2P only over NVLink (HGX A100 NVSwitch
+#                          full mesh on this box). Banning the previous
+#                          NCCL_P2P_DISABLE=1 default that disabled NVLink
+#                          P2P entirely and forced cross-NUMA traffic onto
+#                          RoCE GDRDMA (where it tripped mlx5:1 async fatal
+#                          QP / local access violation).
+#   NCCL_NET_GDR_DISABLE=1 - even if NCCL still routes some path via NET,
+#                          stage transfers through host RAM instead of GDR.
+#                          Slower but eliminates the GDR-page-unmap window
+#                          that fires QP-fatal asynchronously.
+export NCCL_P2P_LEVEL="${NCCL_P2P_LEVEL:-NVL}"
+[[ "${NCCL_P2P_DISABLE:-}" == "1" ]] && unset NCCL_P2P_DISABLE
+export NCCL_NET_GDR_DISABLE="${NCCL_NET_GDR_DISABLE:-1}"
+
 RUN_NAME="${RUN_NAME:-g2_online_teacher_8gpu_$(date +%m%d_%H%M)}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/ebft-distribution-new/outputs}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
@@ -174,8 +271,9 @@ SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
 TEACHER_LOG_DIR="${RUN_DIR}/teacher_logs"
 mkdir -p "$RUN_DIR" "$SAVE_PATH" "$TB_DIR" "$TEACHER_CACHE_DIR" "$TEACHER_LOG_DIR"
-POST_EVAL_OUTPUT_PATH="${POST_EVAL_OUTPUT_PATH:-${RUN_DIR}/eval_results.jsonl}"
-POST_EVAL_LOG_PATH="${POST_EVAL_LOG_PATH:-${RUN_DIR}/eval.log}"
+# Note: post-eval output paths (eval_results_*.jsonl, eval_*.log,
+# eval_analysis_*.json) are managed by scripts/supplement_2rounds/G2.sh
+# under ${RUN_DIR}/supplement_logs/; no need to declare them here.
 
 # --------------------------------------------------------------------
 # 5) SANITY CHECK
@@ -195,6 +293,21 @@ if [[ ! -x "${STUDENT_PYTHON_BIN}" ]]; then
   echo "[ERROR] STUDENT_PYTHON_BIN not executable: ${STUDENT_PYTHON_BIN}"
   echo "        expected student env: ${STUDENT_VENV}"
   exit 1
+fi
+
+# Required only when the post-training two-round vLLM eval will run.
+TEACHER_PYTHON_BIN="${TEACHER_PYTHON_BIN:-${TEACHER_VENV}/bin/python}"
+ANALYSIS_PYTHON_BIN="${ANALYSIS_PYTHON_BIN:-${ANALYSIS_VENV}/bin/python}"
+if [[ "${RUN_TWO_ROUND_EVAL}" == "true" ]]; then
+  if [[ ! -x "${TEACHER_PYTHON_BIN}" ]]; then
+    echo "[ERROR] TEACHER_PYTHON_BIN not executable: ${TEACHER_PYTHON_BIN}"
+    echo "        (needed for vLLM 2-round eval; set RUN_TWO_ROUND_EVAL=false to skip)"
+    exit 1
+  fi
+  if [[ ! -x "${ANALYSIS_PYTHON_BIN}" ]]; then
+    echo "[ERROR] ANALYSIS_PYTHON_BIN not executable: ${ANALYSIS_PYTHON_BIN}"
+    exit 1
+  fi
 fi
 
 if (( teacher_gpu_count < TEACHER_TP_SIZE )); then
@@ -270,6 +383,7 @@ echo "target_steps:               ${TARGET_STEPS}"
 echo "max_samples:                ${MAX_SAMPLES}"
 echo "Teacher vLLM bin:           ${TEACHER_VLLM_BIN}"
 echo "Student python:             ${STUDENT_PYTHON_BIN}"
+echo "Memory layout:              ZeRO-2 + adam_offload + ref_reward_offload + grad_accum_dtype=bf16 (1-way world)"
 echo "============================================="
 
 declare -a TEACHER_PIDS=()
@@ -277,6 +391,7 @@ declare -a TEACHER_PORTS=()
 declare -a TEACHER_WORKER_LOGS=()
 
 cleanup() {
+  # 1) Stop the teacher vLLM worker processes we tracked.
   for _pid in "${TEACHER_PIDS[@]:-}"; do
     if [[ -n "${_pid}" ]] && kill -0 "${_pid}" 2>/dev/null; then
       echo "[cleanup] stopping teacher pid=${_pid}"
@@ -286,6 +401,23 @@ cleanup() {
   for _pid in "${TEACHER_PIDS[@]:-}"; do
     [[ -n "${_pid}" ]] && wait "${_pid}" 2>/dev/null || true
   done
+
+  # 2) Tear down the Ray cluster (actor/critic/ref/reward workers each hold
+  #    a GPU; if training crashes mid-run, ray actors leak and OOM the next
+  #    attempt).
+  echo "[cleanup] stopping ray cluster..."
+  ray stop --force >/dev/null 2>&1 || true
+
+  # 3) Kill any orphan vLLM stage workers from the post-training
+  #    supplement_2rounds/G2.sh (stage1 / stage2). When EngineCore raises
+  #    EngineDeadError or the user Ctrl-C's, the parent Python exits but
+  #    the multiproc TP workers keep holding all 8 GPUs on a dead NCCL
+  #    collective. Same fault we hit on G1 stage2 (2026-04-28).
+  echo "[cleanup] killing orphan vLLM stage workers (if any)..."
+  pkill -9 -f 'multiproc_executor' 2>/dev/null || true
+  pkill -9 -f 'vllm.v1.engine.core' 2>/dev/null || true
+  pkill -9 -f 'EngineCore' 2>/dev/null || true
+  pkill -9 -f 'vllm_generate_progress' 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -306,9 +438,26 @@ wait_for_teacher_worker() {
   return 0
 }
 
+# Staggered launch: vLLM v1's EngineCore calls torch.distributed
+# init_process_group() with TCPStore on a RANDOMLY CHOSEN high port.
+# The port picker uses the classic `bind(port=0) -> getsockname() -> close()
+# -> later bind(same port)` pattern, which has a TOCTOU race: between
+# close() and the real bind(), the kernel may hand the same port to
+# another process's ephemeral socket, producing
+#   DistNetworkError: port NNN EADDRINUSE
+# on the second bind(). Probability is tiny for 1-2 concurrent workers
+# but shoots up to ~20-30% at 6 workers launched in a ~1s window, which
+# is exactly what this script does. Sleeping between launches spreads
+# the EngineCore startup sequence so no two are inside each other's
+# port-picker TOCTOU window.
+TEACHER_LAUNCH_STAGGER_SECONDS="${TEACHER_LAUNCH_STAGGER_SECONDS:-2}"
+
 if [[ "${LAUNCH_TEACHER}" == "true" ]]; then
   echo "[teacher] launching ${TEACHER_WORKER_COUNT} workers (TP=${TEACHER_TP_SIZE}) ..."
   for (( _w=0; _w<TEACHER_WORKER_COUNT; _w++ )); do
+    if (( _w > 0 && TEACHER_LAUNCH_STAGGER_SECONDS > 0 )); then
+      sleep "${TEACHER_LAUNCH_STAGGER_SECONDS}"
+    fi
     _port=$(( TEACHER_BASE_PORT + _w ))
     _gpu_start=$(( _w * TEACHER_TP_SIZE ))
     _worker_gpus=""
@@ -317,6 +466,16 @@ if [[ "${LAUNCH_TEACHER}" == "true" ]]; then
       _worker_gpus="${_worker_gpus}${_TEACHER_GPU_IDS[$_g]}"
     done
     _log="${TEACHER_LOG_DIR}/worker_${_w}.log"
+    # TEACHER_LOG_DIR sits under RUN_DIR on ossfs2. `bash > existing_file`
+    # opens with O_WRONLY|O_CREAT|O_TRUNC, and ossfs2 rejects truncate of
+    # an existing object with EINVAL (fuse mis-reports as ENOSPC). Bash
+    # then exits the redirect subshell BEFORE exec'ing vllm, so $! points
+    # at a dead helper, no vllm actually runs -> GPU stays idle / curl
+    # hangs for 1h. Only bites when the same RUN_NAME is reused within
+    # the same minute (timestamp granularity), e.g. rapid Ctrl-C+restart
+    # loops during debugging. Pre-delete forces O_CREAT-new-object path
+    # which ossfs2 supports.
+    rm -f "${_log}" 2>/dev/null || true
 
     CUDA_VISIBLE_DEVICES="${_worker_gpus}" \
     "${TEACHER_VLLM_BIN}" serve "${TEACHER_MODEL_PATH}" \
@@ -414,7 +573,24 @@ CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
   \
   --advantage_estimator rloo --init_kl_coef 0.0 --kl_estimator k2 \
   --temperature 0.6 --top_p 1.0 --actor_learning_rate 1e-6 \
-  --zero_stage 3 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
+  `# Memory layout for Gemma-4 E4B (~8B text params + vision_tower,` \
+  `# vocab=262144) on 1-actor + 1-critic GPU (world_size=1; 6 GPUs go` \
+  `# to the online vLLM teacher). Without sharding, the only way to` \
+  `# fit is to offload everything offloadable AND shrink the` \
+  `# in-GPU grad accumulator to bf16:` \
+  `#   stage 3 + adam_offload          -> CRASH: Gemma-4 vision_tower` \
+  `#       has no grad_fn in pure-text PPO; ZeRO-3 backward walk hits` \
+  `#       NoneType.next_functions in deepspeed/runtime/utils.py.` \
+  `#       (Verified by run_G1_rebase.sh ll. 379-401.)` \
+  `#   stage 2 + adam_offload + ref_reward_offload + grad_accum_dtype=bf16:` \
+  `#     bf16 weights         16 GiB` \
+  `#     bf16 grad accum      16 GiB  (was 32 GiB fp32)` \
+  `#     Adam offloaded        0 GiB  (96 GiB on host)` \
+  `#     ref offloaded         0 GiB  (16 GiB on host)` \
+  `#     activations + buffers ~10 GiB` \
+  `#     ─────────────────────────────────` \
+  `#     peak ~42-46 GiB, headroom ~34-38 GiB on 80 GiB A100.` \
+  --zero_stage 2 --adam_offload --ref_reward_offload --grad_accum_dtype bf16 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
   --seed 43 \
   --eval_steps "${EVAL_STEPS}" \
   --eval_max_samples "${EVAL_MAX_SAMPLES}" \
@@ -427,16 +603,11 @@ CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
   2>&1 | tee "${RUN_DIR}/train.log"
 
 # ====================================================================
-# POST-TRAINING EVAL
+# POST-TRAINING TWO-ROUND VLLM EVAL  (16k first pass -> 32k retry)
+# Runs the same eval pipeline as G1/G3/baseline so checkpoint accuracy
+# is directly comparable across methods.
 # ====================================================================
 ray stop --force 2>/dev/null || true
-# Refresh the student environment before post-training eval so newly
-# installed/updated packages are picked up by a fresh Python process.
-source "${STUDENT_VENV}/bin/activate"
-STUDENT_PYTHON_BIN="${STUDENT_VENV}/bin/python"
-
-POST_EVAL_PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN:-384}"
-POST_EVAL_MAX_NEW_TOKENS="${POST_EVAL_MAX_NEW_TOKENS:-768}"
 
 echo ""
 echo "──────────────────────────────────────────────────"
@@ -445,7 +616,8 @@ echo "  Logs:        ${RUN_DIR}/train.log"
 echo "  TensorBoard: ${TB_DIR}"
 echo "  Checkpoints: ${SAVE_PATH}"
 
-if [[ "${EVAL_AFTER_TRAIN}" == "true" ]]; then
+if [[ "${RUN_TWO_ROUND_EVAL}" == "true" ]]; then
+  # Free teacher GPUs (vLLM eval will grab all 8 cards via TP=VLLM_TP_SIZE).
   if (( ${#TEACHER_PIDS[@]} > 0 )); then
     echo "[post-eval] stopping ${#TEACHER_PIDS[@]} teacher workers to free GPU memory..."
     for _pid in "${TEACHER_PIDS[@]}"; do
@@ -458,35 +630,20 @@ if [[ "${EVAL_AFTER_TRAIN}" == "true" ]]; then
   fi
 
   echo ""
-  echo "[post-eval] Running generation eval on ${EVAL_DATA} ..."
-  CUDA_VISIBLE_DEVICES="0,1,2,3,4,5,6,7" \
-  "${STUDENT_PYTHON_BIN}" -m torch.distributed.run \
-    --nproc_per_node "${POST_EVAL_NPROC}" --master_port "${POST_EVAL_MASTER_PORT}" \
-    -m openrlhf.cli.batch_inference \
-    --eval_task generate \
-    --pretrain "${SAVE_PATH}" \
-    --dataset "${EVAL_DATA}" \
-    --input_key question \
-    --output_path "${POST_EVAL_OUTPUT_PATH}" \
-    --prompt_max_len "${POST_EVAL_PROMPT_MAX_LEN}" \
-    --max_new_tokens "${POST_EVAL_MAX_NEW_TOKENS}" \
-    --temperature "${POST_EVAL_TEMPERATURE}" \
-    --top_p "${POST_EVAL_TOP_P}" \
-    --max_samples "${POST_EVAL_MAX_SAMPLES}" \
-    --micro_batch_size "${POST_EVAL_MICRO_BATCH_SIZE}" \
-    --bf16 \
-    2>&1 | tee "${POST_EVAL_LOG_PATH}"
-  echo "[post-eval] Saved: ${POST_EVAL_OUTPUT_PATH}"
-  echo "[post-eval] Log:   ${POST_EVAL_LOG_PATH}"
-
-  echo ""
-  echo "[analysis] Running eval analysis ..."
-  "${STUDENT_PYTHON_BIN}" "${REPO_ROOT}/scripts/analyze_eval_results.py" \
-    --eval_results "${POST_EVAL_OUTPUT_PATH}" \
-    --eval_dataset "${EVAL_DATA}" \
-    --input_key question --label_key answer \
-    --report_path "${RUN_DIR}/eval_analysis.json" \
-    2>&1 | tee "${RUN_DIR}/eval_analysis.log"
+  echo "===== Running two-round 16k/32k completion eval ====="
+  # Use export instead of inline VAR=val so child shell's `set -u` can't
+  # surprise-fail on lookup; also mirrors how run_G1_rebase.sh does it.
+  export RUN_DIR MODEL_PATH="${SAVE_PATH}"
+  export TEACHER_VENV ANALYSIS_VENV
+  export TEACHER_PYTHON_BIN ANALYSIS_PYTHON_BIN
+  export MODEL_CUDA_VISIBLE_DEVICES VLLM_TP_SIZE
+  export POST_EVAL_MAX_SAMPLES POST_EVAL_PROMPT_MAX_LEN
+  export FIRST_PASS_MAX_NEW_TOKENS SECOND_PASS_MAX_NEW_TOKENS
+  export POST_EVAL_TEMPERATURE POST_EVAL_TOP_P
+  export POST_EVAL_REPETITION_PENALTY POST_EVAL_BEST_OF_N
+  export VLLM_MAX_NUM_SEQS VLLM_PROGRESS_BATCH_SIZE VLLM_ENABLE_PREFIX_CACHING VLLM_SEED
+  export EVAL_DATA
+  bash "${REPO_ROOT}/scripts/supplement_2rounds/G2.sh"
 fi
 
 echo "──────────────────────────────────────────────────"

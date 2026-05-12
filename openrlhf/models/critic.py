@@ -1,6 +1,7 @@
 from contextlib import nullcontext
 from typing import Optional
 import math
+import os
 import torch
 import torch.nn as nn
 from peft import LoraConfig, TaskType, get_peft_model
@@ -10,6 +11,7 @@ from transformers.integrations.deepspeed import HfDeepSpeedConfig
 import torch.nn.functional as F
 
 from openrlhf.utils.logging_utils import init_logger
+from openrlhf.utils.model_config import freeze_unused_multimodal_modules
 from openrlhf.utils.model_config import resolve_text_hidden_size
 
 logger = init_logger(__name__)
@@ -212,6 +214,15 @@ class Critic(nn.Module):
                 torch_dtype=torch.bfloat16 if bf16 else "auto",
                 device_map=device_map,
             )
+
+            if os.environ.get("OPENRLHF_FREEZE_MM_TOWERS", "1") != "0":
+                frozen = freeze_unused_multimodal_modules(self.model)
+                if frozen:
+                    paths = ", ".join(f"{k}={v}" for k, v in frozen.items())
+                    logger.info(
+                        "[multimodal] froze %d unused tower(s), total=%d params: %s",
+                        len(frozen), sum(frozen.values()), paths,
+                    )
 
             if hidden_state_method == "last_only":
                 num_layers = 1

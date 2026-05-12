@@ -5,13 +5,21 @@
 #   MODEL_PATH=/mnt/data/models/qwen3.5-27b bash scripts/supplement_2rounds/Teacher.sh
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+# REPO_ROOT auto-derived; portable across DSW symlink and DLC bare path.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
 DEFAULT_EVAL_DATA="/mnt/data/ebft-teacher-distribution/data/aops/test_qa.jsonl"
 EVAL_DATA="${EVAL_DATA:-${DEFAULT_EVAL_DATA}}"
 
-TEACHER_VENV="${TEACHER_VENV:-${REPO_ROOT}/.teacherVenv}"
+# venv defaults: setup_env.sh canonical first, legacy in-repo fallback.
+_DEFAULT_TEACHER_VENV="/mnt/workspace/venvs/.teacherVenv"
+[[ -d "${_DEFAULT_TEACHER_VENV}" ]] || _DEFAULT_TEACHER_VENV="${REPO_ROOT}/.teacherVenv"
+TEACHER_VENV="${TEACHER_VENV:-${_DEFAULT_TEACHER_VENV}}"
 TEACHER_PYTHON_BIN="${TEACHER_PYTHON_BIN:-${TEACHER_VENV}/bin/python}"
-ANALYSIS_VENV="${ANALYSIS_VENV:-${REPO_ROOT}/.venv}"
+
+_DEFAULT_ANALYSIS_VENV="/mnt/workspace/venvs/.venv"
+[[ -d "${_DEFAULT_ANALYSIS_VENV}" ]] || _DEFAULT_ANALYSIS_VENV="${REPO_ROOT}/.venv"
+ANALYSIS_VENV="${ANALYSIS_VENV:-${_DEFAULT_ANALYSIS_VENV}}"
 ANALYSIS_PYTHON_BIN="${ANALYSIS_PYTHON_BIN:-${ANALYSIS_VENV}/bin/python}"
 PROGRESS_HELPER="${PROGRESS_HELPER:-${REPO_ROOT}/scripts/supplement/vllm_generate_progress.py}"
 
@@ -52,6 +60,11 @@ POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
 POST_EVAL_REPETITION_PENALTY="${POST_EVAL_REPETITION_PENALTY:-1.0}"
 POST_EVAL_BEST_OF_N="${POST_EVAL_BEST_OF_N:-1}"
 VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-128}"
+# vLLM bash-side chunk size for vllm_generate_progress.py. Default 256 (was the
+# helper's hardcoded 16) so a chunk's slowest 32k-decoding tail prompt only
+# blocks the next chunk's launch every ~256 prompts instead of every ~16,
+# amortizing HOL latency 16x. See baseline.sh for the full rationale.
+VLLM_PROGRESS_BATCH_SIZE="${VLLM_PROGRESS_BATCH_SIZE:-256}"
 VLLM_ENABLE_PREFIX_CACHING="${VLLM_ENABLE_PREFIX_CACHING:-false}"
 VLLM_SEED="${VLLM_SEED:-1234}"
 INPUT_TEMPLATE="${INPUT_TEMPLATE:-}"
@@ -82,6 +95,10 @@ export TOKENIZERS_PARALLELISM=false
 export PYTHONUNBUFFERED=1
 export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
 
+# DLC stability env vars + pre-flight topology + run_vllm_generation_with_retry()
+# helper. See _vllm_runtime.sh for what it sets and why.
+source "${SCRIPT_DIR}/_vllm_runtime.sh"
+
 for _bin in "${TEACHER_PYTHON_BIN}" "${ANALYSIS_PYTHON_BIN}"; do
   [[ -x "${_bin}" ]] || { echo "[ERROR] Not executable: ${_bin}"; exit 1; }
 done
@@ -102,6 +119,7 @@ run_vllm_generation() {
 
   echo "[${stage_name}] vLLM generating with max_new_tokens=${max_new_tokens}"
   local -a vllm_cmd=(
+    env "CUDA_VISIBLE_DEVICES=${MODEL_CUDA_VISIBLE_DEVICES}"
     "${TEACHER_PYTHON_BIN}" "${PROGRESS_HELPER}"
     --pretrain "${MODEL_PATH}"
     --dataset "${dataset_path}"
@@ -116,13 +134,13 @@ run_vllm_generation() {
     --best_of_n "${POST_EVAL_BEST_OF_N}"
     --tp_size "${VLLM_TP_SIZE}"
     --max_num_seqs "${VLLM_MAX_NUM_SEQS}"
+    --progress_batch_size "${VLLM_PROGRESS_BATCH_SIZE}"
     --seed "${VLLM_SEED}"
   )
   [[ -n "${INPUT_TEMPLATE}" ]] && vllm_cmd+=(--input_template "${INPUT_TEMPLATE}")
   [[ "${VLLM_ENABLE_PREFIX_CACHING}" == "true" ]] && vllm_cmd+=(--enable_prefix_caching)
 
-  CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES}" \
-  "${vllm_cmd[@]}" 2>&1 | tee "${log_path}"
+  run_vllm_generation_with_retry "${stage_name}" "${log_path}" "${output_path}" "${dataset_path}" "${vllm_cmd[@]}"
 }
 
 run_analysis() {
@@ -130,14 +148,22 @@ run_analysis() {
   local eval_results_path="$2"
   local report_path="$3"
   local log_path="$4"
+  # Optional 5th arg: the generation cap for this stage. When provided,
+  # analyze_eval_results.py will also report token-length stats and the
+  # fraction of outputs that hit max_new_tokens (along with cleaner units).
+  local max_new_tokens="${5:-}"
 
   echo "[${stage_name}] Analyzing results"
-  "${ANALYSIS_PYTHON_BIN}" "${REPO_ROOT}/scripts/analyze_eval_results.py" \
-    --eval_results "${eval_results_path}" \
-    --eval_dataset "${EVAL_DATA}" \
-    --input_key question --label_key answer \
-    --report_path "${report_path}" \
-    2>&1 | tee "${log_path}"
+  local -a analysis_cmd=(
+    "${ANALYSIS_PYTHON_BIN}" "${REPO_ROOT}/scripts/analyze_eval_results.py"
+    --eval_results "${eval_results_path}"
+    --eval_dataset "${EVAL_DATA}"
+    --input_key question --label_key answer
+    --report_path "${report_path}"
+    --tokenizer_path "${MODEL_PATH}"
+  )
+  [[ -n "${max_new_tokens}" ]] && analysis_cmd+=(--max_new_tokens "${max_new_tokens}")
+  "${analysis_cmd[@]}" 2>&1 | tee "${log_path}"
 }
 
 extract_retry_subset() {
@@ -326,13 +352,14 @@ echo "SECOND_PASS_MAX_NEW_TOKENS:   ${SECOND_PASS_MAX_NEW_TOKENS}"
 echo "MODEL_CUDA_VISIBLE_DEVICES:   ${MODEL_CUDA_VISIBLE_DEVICES}"
 echo "VLLM_TP_SIZE:                 ${VLLM_TP_SIZE}"
 echo "VLLM_MAX_NUM_SEQS:            ${VLLM_MAX_NUM_SEQS}"
+echo "VLLM_PROGRESS_BATCH_SIZE:     ${VLLM_PROGRESS_BATCH_SIZE}"
 echo "POST_EVAL_MAX_SAMPLES:        ${POST_EVAL_MAX_SAMPLES}"
 echo "================================================="
 
 echo ""
 echo "===== Stage 1: Full eval at ${FIRST_PASS_MAX_NEW_TOKENS} tokens ====="
 run_vllm_generation "stage1" "${EVAL_DATA}" "${FIRST_PASS_OUTPUT_PATH}" "${FIRST_PASS_LOG_PATH}" "${FIRST_PASS_MAX_NEW_TOKENS}"
-run_analysis "stage1-analysis" "${FIRST_PASS_OUTPUT_PATH}" "${FIRST_PASS_ANALYSIS_REPORT_PATH}" "${FIRST_PASS_ANALYSIS_LOG_PATH}"
+run_analysis "stage1-analysis" "${FIRST_PASS_OUTPUT_PATH}" "${FIRST_PASS_ANALYSIS_REPORT_PATH}" "${FIRST_PASS_ANALYSIS_LOG_PATH}" "${FIRST_PASS_MAX_NEW_TOKENS}"
 
 echo ""
 echo "===== Extracting retry subset ====="
@@ -344,7 +371,7 @@ if (( RETRY_COUNT > 0 )); then
   echo ""
   echo "===== Stage 2: Retry ${RETRY_COUNT} prompts at ${SECOND_PASS_MAX_NEW_TOKENS} tokens ====="
   run_vllm_generation "stage2" "${SECOND_PASS_DATASET_PATH}" "${SECOND_PASS_OUTPUT_PATH}" "${SECOND_PASS_LOG_PATH}" "${SECOND_PASS_MAX_NEW_TOKENS}"
-  run_analysis "stage2-analysis" "${SECOND_PASS_OUTPUT_PATH}" "${SECOND_PASS_ANALYSIS_REPORT_PATH}" "${SECOND_PASS_ANALYSIS_LOG_PATH}"
+  run_analysis "stage2-analysis" "${SECOND_PASS_OUTPUT_PATH}" "${SECOND_PASS_ANALYSIS_REPORT_PATH}" "${SECOND_PASS_ANALYSIS_LOG_PATH}" "${SECOND_PASS_MAX_NEW_TOKENS}"
 else
   echo "[stage2] All correct on first pass, skipping retry."
   echo '{"summary":{"total_predictions":0,"evaluated":0,"correct":0,"accuracy_pct":0.0},"records":[]}' > "${SECOND_PASS_ANALYSIS_REPORT_PATH}"

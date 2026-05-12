@@ -15,6 +15,7 @@ import sys
 import tempfile
 import textwrap
 from collections import Counter
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -101,6 +102,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--enable_prefix_caching", action="store_true", default=False)
     parser.add_argument("--max_samples_per_benchmark", type=int, default=0, help="0 means full benchmark")
     parser.add_argument("--timeout_seconds", type=int, default=10)
+    parser.add_argument(
+        "--detail_preview_chars",
+        type=int,
+        default=4096,
+        help="Max characters to keep for greedy/evaluated-code previews in benchmark_details.jsonl; 0 disables previews",
+    )
     parser.add_argument("--skip_missing_toolchains", action="store_true", default=False)
 
     parser.add_argument("--humaneval_dataset", type=str, default="openai/openai_humaneval")
@@ -170,6 +177,14 @@ def truncate_at_stop(text: str, stop_tokens: list[str] | tuple[str, ...] | None)
         if idx != -1:
             min_idx = idx if min_idx is None else min(min_idx, idx)
     return text if min_idx is None else text[:min_idx]
+
+
+def truncate_preview(text: str | None, max_chars: int) -> str:
+    if not text or max_chars <= 0:
+        return ""
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars] + f"\n...[truncated {len(text) - max_chars} chars]"
 
 
 def _sanitize_generated_code(response: str, keep_leading_def: bool = False) -> str:
@@ -258,8 +273,8 @@ def _build_mbpp_code(
 
     if def_indices:
         start_idx = def_indices[0]
+        found_target = False
         if function_name:
-            found_target = False
             for idx in def_indices:
                 line = lines[idx].lstrip()
                 if line.startswith(f"def {function_name}("):
@@ -275,6 +290,13 @@ def _build_mbpp_code(
                     code_text = helper_code + "\n\n" + code_text
             return code_text.strip()
         code_text = "\n".join(lines[start_idx:]).rstrip()
+        if not prompt_has_target_def and found_target:
+            full_code = code_text
+            if helper_code:
+                helper_code = helper_code.rstrip()
+                if helper_code:
+                    full_code = helper_code + "\n\n" + full_code
+            return full_code.strip()
 
     if not prompt_has_target_def and function_signature:
         signature = function_signature.rstrip()
@@ -510,6 +532,38 @@ class TextGenerator:
         from vllm import LLM
 
         log("[benchmark] Initializing vLLM engine")
+        supplement_dir = Path(__file__).resolve().parents[1] / "supplement"
+        if str(supplement_dir) not in sys.path:
+            sys.path.insert(0, str(supplement_dir))
+
+        from vllm_generate_progress import (  # noqa: WPS433
+            chained_hf_overrides,
+            ensure_qwen35_config_registered,
+            ensure_qwen35_preprocessor_files,
+            fail_fast_on_qwen35_tp_incompatibility,
+            gemma4_text_only_hf_overrides,
+            prepare_qwen35_text_only_shim_env,
+            qwen35_hf_overrides,
+        )
+
+        ensure_qwen35_config_registered()
+        qwen35_text_only_shim = fail_fast_on_qwen35_tp_incompatibility(
+            self.args.model_path,
+            max(1, self.args.tp_size),
+            enable_text_only_shim=True,
+        )
+        if qwen35_text_only_shim:
+            prepare_qwen35_text_only_shim_env()
+            log(
+                "[compat] enabling Qwen3.5 text-only shim for benchmark vLLM "
+                f"(tp_size={self.args.tp_size})"
+            )
+        ensure_qwen35_preprocessor_files(self.args.model_path)
+
+        disable_car_env = os.environ.get("VLLM_DISABLE_CUSTOM_ALL_REDUCE", "1")
+        disable_custom_all_reduce = disable_car_env not in ("0", "false", "False", "")
+        enforce_eager = os.environ.get("VLLM_ENFORCE_EAGER", "0") not in ("0", "false", "False", "")
+
         self.llm = LLM(
             model=self.args.model_path,
             tensor_parallel_size=max(1, self.args.tp_size),
@@ -517,6 +571,16 @@ class TextGenerator:
             seed=self.args.seed,
             max_num_seqs=self.args.max_num_seqs,
             enable_prefix_caching=self.args.enable_prefix_caching,
+            disable_custom_all_reduce=disable_custom_all_reduce,
+            enforce_eager=enforce_eager,
+            limit_mm_per_prompt={"image": 0, "video": 0, "audio": 0},
+            hf_overrides=chained_hf_overrides(
+                partial(
+                    qwen35_hf_overrides,
+                    enable_text_only_shim=bool(qwen35_text_only_shim),
+                ),
+                gemma4_text_only_hf_overrides,
+            ),
         )
 
     def _init_hf(self):
@@ -581,6 +645,15 @@ class TextGenerator:
             return self._generate_vllm(requests, temperature, n_samples)
         return self._generate_hf(requests, temperature, n_samples, batch_size)
 
+    def _truncate_prompt_for_vllm(self, prompt: str) -> str:
+        max_len = max(0, int(self.args.prompt_max_len or 0))
+        if max_len <= 0:
+            return prompt
+        token_ids = self.tokenizer.encode(prompt, add_special_tokens=False)
+        if len(token_ids) <= max_len:
+            return prompt
+        return self.tokenizer.decode(token_ids[:max_len], skip_special_tokens=True)
+
     def _generate_vllm(self, requests: list[dict[str, Any]], temperature: float, n_samples: int) -> list[list[str]]:
         from vllm import SamplingParams
 
@@ -591,7 +664,7 @@ class TextGenerator:
 
         outputs: list[list[str]] = [[] for _ in requests]
         for stop_key, items in grouped.items():
-            prompts = [req["prompt"] for _, req in items]
+            prompts = [self._truncate_prompt_for_vllm(req["prompt"]) for _, req in items]
             sampling_params = SamplingParams(
                 max_tokens=self.args.max_new_tokens,
                 top_p=self.args.top_p,
@@ -603,7 +676,6 @@ class TextGenerator:
                 # Strip EOS / pad tokens so they don't leak into the executed code as
                 # raw "<|endoftext|>"-style strings (causes spurious SyntaxError).
                 skip_special_tokens=True,
-                truncate_prompt_tokens=self.args.prompt_max_len,
             )
             generations = self.llm.generate(prompts, sampling_params)
             for (orig_idx, req), generation in zip(items, generations):
@@ -662,20 +734,28 @@ class TextGenerator:
         return outputs
 
 
-def evaluate_humaneval_completion(prompt: str, completion: str, test_code: str, entry_point: str | None, timeout: int) -> tuple[bool, str | None]:
+def build_humaneval_code(prompt: str, completion: str) -> str:
     cleaned_response = _sanitize_generated_code(completion or "")
-    full_code = prompt.rstrip() + "\n" + cleaned_response
+    return prompt.rstrip() + "\n" + cleaned_response
+
+
+def evaluate_humaneval_completion(prompt: str, completion: str, test_code: str, entry_point: str | None, timeout: int) -> tuple[bool, str | None]:
+    full_code = build_humaneval_code(prompt, completion)
     unit_tests = [test_code, f"check({entry_point})"] if entry_point else [test_code]
     return _run_python_code_in_subprocess(full_code, unit_tests, timeout=timeout)
 
 
-def evaluate_mbpp_completion(row: dict[str, Any], completion: str, timeout: int) -> tuple[bool, str | None]:
+def build_mbpp_evaluated_code(row: dict[str, Any], completion: str) -> str:
     prompt = row["prompt_for_model"]
     function_name = row["function_name"]
     helper_code = row["helper_code"]
     function_signature = row["function_signature"]
+    return _build_mbpp_code(prompt, completion, function_name, helper_code, function_signature=function_signature, keep_leading_def=True)
+
+
+def evaluate_mbpp_completion(row: dict[str, Any], completion: str, timeout: int) -> tuple[bool, str | None]:
     unit_tests = row["unit_tests"]
-    code = _build_mbpp_code(prompt, completion, function_name, helper_code, function_signature=function_signature, keep_leading_def=True)
+    code = build_mbpp_evaluated_code(row, completion)
     return _run_python_code_in_subprocess(code, unit_tests, timeout=timeout)
 
 
@@ -813,11 +893,12 @@ HUMANEVAL_STOP_TOKENS = [
 def build_humaneval_requests(dataset) -> list[dict[str, Any]]:
     requests = []
     for row in dataset:
+        prompt = row.get("prompt") or row.get("question") or ""
         requests.append(
             {
                 "benchmark": "HumanEval",
                 "task_id": row.get("task_id", ""),
-                "prompt": row["prompt"],
+                "prompt": prompt,
                 "stop_tokens": list(HUMANEVAL_STOP_TOKENS),
                 "test_code": row["test"],
                 "entry_point": row.get("entry_point"),
@@ -829,8 +910,8 @@ def build_humaneval_requests(dataset) -> list[dict[str, Any]]:
 def build_mbpp_requests(dataset) -> list[dict[str, Any]]:
     requests = []
     for row in dataset:
-        prompt = row.get("prompt") or row.get("text") or ""
-        tests = row.get("test_list") or []
+        prompt = row.get("prompt") or row.get("text") or row.get("question") or ""
+        tests = row.get("test_list") or row.get("tests") or []
         test_imports = row.get("test_imports") or []
         test_setup_code = row.get("test_setup_code") or ""
         helper_parts = []
@@ -844,7 +925,8 @@ def build_mbpp_requests(dataset) -> list[dict[str, Any]]:
 
         function_name = None
         function_signature = None
-        for line in str(row.get("code", "")).splitlines():
+        code_hint = row.get("code") or row.get("answer") or ""
+        for line in str(code_hint).splitlines():
             stripped = line.strip()
             if stripped.startswith("def "):
                 function_signature = stripped
@@ -860,7 +942,7 @@ def build_mbpp_requests(dataset) -> list[dict[str, Any]]:
                 "benchmark": "MBPP",
                 "task_id": row.get("task_id", ""),
                 "prompt": prompt_for_model,
-                "stop_tokens": ["\n\ndef ", "\nclass", "\nassert", '\n"""', "\nprint", "\nif", "\n<|/", "\n```"],
+                "stop_tokens": ["<|im_end|>", "<|endoftext|>"],
                 "function_name": function_name,
                 "function_signature": function_signature,
                 "helper_code": helper_code,
@@ -889,10 +971,21 @@ def build_multipl_requests(dataset, config_name: str) -> list[dict[str, Any]]:
     return requests
 
 
-def evaluate_request(request: dict[str, Any], greedy_output: str, sampled_outputs: list[str], timeout: int, passk_list: list[int]) -> dict[str, Any]:
+def evaluate_request(
+    request: dict[str, Any],
+    greedy_output: str,
+    sampled_outputs: list[str],
+    timeout: int,
+    passk_list: list[int],
+    detail_preview_chars: int,
+) -> dict[str, Any]:
     benchmark = request["benchmark"]
     sampled_outputs = sampled_outputs or []
+    evaluated_code = ""
+    unit_tests_preview: list[str] | str = []
     if benchmark == "HumanEval":
+        evaluated_code = build_humaneval_code(request["prompt"], greedy_output)
+        unit_tests_preview = [request["test_code"], f"check({request['entry_point']})"] if request["entry_point"] else [request["test_code"]]
         greedy_correct, greedy_error = evaluate_humaneval_completion(
             request["prompt"], greedy_output, request["test_code"], request["entry_point"], timeout
         )
@@ -901,9 +994,13 @@ def evaluate_request(request: dict[str, Any], greedy_output: str, sampled_output
             for sample in sampled_outputs
         ]
     elif benchmark == "MBPP":
+        evaluated_code = build_mbpp_evaluated_code(request, greedy_output)
+        unit_tests_preview = request["unit_tests"]
         greedy_correct, greedy_error = evaluate_mbpp_completion(request, greedy_output, timeout)
         sample_results = [evaluate_mbpp_completion(request, sample, timeout)[0] for sample in sampled_outputs]
     else:
+        evaluated_code = f"{request['prompt']}{greedy_output}{request['tests']}"
+        unit_tests_preview = request["tests"]
         greedy_eval, greedy_error = evaluate_multipl_completion(
             request["language"], request["prompt"], greedy_output, request["tests"], timeout
         )
@@ -913,6 +1010,9 @@ def evaluate_request(request: dict[str, Any], greedy_output: str, sampled_output
                 "task_id": request["task_id"],
                 "status": "skipped",
                 "reason": greedy_error,
+                "greedy_output_preview": truncate_preview(greedy_output, detail_preview_chars),
+                "evaluated_code_preview": truncate_preview(evaluated_code, detail_preview_chars),
+                "unit_tests_preview": truncate_preview(str(unit_tests_preview), detail_preview_chars),
             }
         greedy_correct = greedy_eval
         sample_results = []
@@ -930,6 +1030,14 @@ def evaluate_request(request: dict[str, Any], greedy_output: str, sampled_output
         "num_samples": len(sample_results),
         "num_correct_samples": correct_count,
     }
+    if detail_preview_chars > 0:
+        record.update(
+            {
+                "greedy_output_preview": truncate_preview(greedy_output, detail_preview_chars),
+                "evaluated_code_preview": truncate_preview(evaluated_code, detail_preview_chars),
+                "unit_tests_preview": truncate_preview(str(unit_tests_preview), detail_preview_chars),
+            }
+        )
     for k in passk_list:
         value = estimate_pass_at_k(len(sample_results), correct_count, k)
         record[f"pass@{k}"] = value
@@ -970,6 +1078,7 @@ def run_benchmark_group(
     sample_batch_size: int,
     timeout: int,
     passk_list: list[int],
+    detail_preview_chars: int,
     greedy_only: bool = False,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     log(f"[benchmark] Running {benchmark_name} on {len(requests)} prompts")
@@ -985,7 +1094,7 @@ def run_benchmark_group(
     records = []
     for request, greedy_sample, sampled in zip(requests, greedy_outputs, sampled_outputs):
         greedy_text = greedy_sample[0] if greedy_sample else ""
-        record = evaluate_request(request, greedy_text, sampled, timeout, passk_list)
+        record = evaluate_request(request, greedy_text, sampled, timeout, passk_list, detail_preview_chars)
         records.append(record)
 
     summary = summarize_records(benchmark_name, records, passk_list)
@@ -1030,6 +1139,7 @@ def main() -> int:
                 args.sample_batch_size,
                 args.timeout_seconds,
                 passk_list,
+                args.detail_preview_chars,
                 args.greedy_only,
             )
             summary_rows.append(summary)
@@ -1053,6 +1163,7 @@ def main() -> int:
                 args.sample_batch_size,
                 args.timeout_seconds,
                 passk_list,
+                args.detail_preview_chars,
                 args.greedy_only,
             )
             summary_rows.append(summary)
@@ -1099,6 +1210,7 @@ def main() -> int:
                     args.sample_batch_size,
                     args.timeout_seconds,
                     passk_list,
+                    args.detail_preview_chars,
                     args.greedy_only,
                 )
                 summary_rows.append(summary)
@@ -1120,6 +1232,7 @@ def main() -> int:
             "top_p": args.top_p,
             "repetition_penalty": args.repetition_penalty,
             "max_samples_per_benchmark": args.max_samples_per_benchmark,
+            "detail_preview_chars": args.detail_preview_chars,
             "summaries": summary_rows,
         }
         with open(summary_path, "w", encoding="utf-8") as f:

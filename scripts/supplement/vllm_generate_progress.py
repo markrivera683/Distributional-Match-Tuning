@@ -7,6 +7,7 @@ import argparse
 import heapq
 import json
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -319,6 +320,84 @@ def qwen35_hf_overrides(cfg: Any, *, enable_text_only_shim: bool = False) -> Any
     except Exception:
         pass
     return cfg
+
+
+# --------------------------------------------------------------------
+# Gemma4 text-only shim
+# --------------------------------------------------------------------
+# Gemma4 ("gemma-4-E4B" etc.) is shipped as a multimodal checkpoint with
+# architectures=["Gemma4ForConditionalGeneration"] and a vision_tower +
+# audio_tower attached to a text decoder. vLLM dispatches that arch to
+# vllm/model_executor/models/gemma4_mm.py, which during profile_run feeds
+# dummy 224x224 PIL images through the HF Gemma4Processor pipeline. On
+# transformers builds where Qwen2VLImageProcessorKwargs lacks the new
+# ``max_soft_tokens`` field (a Gemma4Processor → Qwen2VL image-processor
+# bridge added in newer transformers), this raises:
+#
+#   TypeError: Qwen2VLImageProcessorKwargs.__init__() got an unexpected
+#              keyword argument 'max_soft_tokens'
+#
+# which kills every TP worker before the engine can serve a single
+# request. Symptom upstream looks like:
+#
+#   RuntimeError: Engine core initialization failed.
+#                 Failed core proc(s): {}
+#
+# For pure-text math eval (AOPS / two-round 16k+32k retry) we never feed
+# images, so the cleanest fix is to bypass gemma4_mm entirely. vLLM also
+# ships a text-only model class — vllm/model_executor/models/gemma4.py
+# Gemma4ForCausalLM — whose constructor explicitly handles the nested
+# Gemma4Config layout via _get_text_config(). Rewriting the architecture
+# to "Gemma4ForCausalLM" routes the load through gemma4.py instead of
+# gemma4_mm.py, skipping the multimodal profile_run hot path entirely.
+#
+# Vision/audio tower weights present in the checkpoint are simply
+# ignored (vLLM logs them as "weights not used") — this is bit-identical
+# behavior for text-only inference because the text decoder does not
+# read those tensors.
+GEMMA4_TEXT_ONLY_SHIM_ARCH = "Gemma4ForCausalLM"
+GEMMA4_CONDITIONAL_ARCH = "Gemma4ForConditionalGeneration"
+
+
+def gemma4_text_only_hf_overrides(cfg: Any) -> Any:
+    """Rewrite Gemma4 conditional-generation arch to text-only Gemma4ForCausalLM.
+
+    No-op for non-Gemma4 configs. Idempotent: calling it on an already
+    rewritten config is safe.
+    """
+    try:
+        model_type = getattr(cfg, "model_type", None)
+        if model_type != "gemma4":
+            return cfg
+
+        architectures = getattr(cfg, "architectures", None) or []
+        if GEMMA4_CONDITIONAL_ARCH not in architectures:
+            return cfg
+
+        cfg.architectures = [GEMMA4_TEXT_ONLY_SHIM_ARCH]
+    except Exception:
+        # Best-effort only; if anything goes wrong, fall back to the
+        # default multimodal path so the user still sees the underlying
+        # error rather than a silent shim failure.
+        pass
+    return cfg
+
+
+def chained_hf_overrides(*overrides):
+    """Compose multiple hf_overrides callables into a single one.
+
+    vLLM only accepts a single hf_overrides callable per LLM. Each fn is
+    applied in order, threading the (possibly mutated) config through.
+    """
+
+    def _apply(cfg: Any) -> Any:
+        for fn in overrides:
+            if fn is None:
+                continue
+            cfg = fn(cfg)
+        return cfg
+
+    return _apply
 
 
 def ensure_qwen35_preprocessor_files(model_path: str) -> None:
@@ -644,6 +723,55 @@ def main() -> None:
                     f"tp_size={qwen35_text_only_shim['tp_size']}"
                 )
         ensure_qwen35_preprocessor_files(args.pretrain)
+
+        # Gemma4 ("gemma-4-E4B") ships as Gemma4ForConditionalGeneration and
+        # vLLM dispatches that to gemma4_mm.py, whose profile_run() feeds dummy
+        # 224x224 PIL images through HF Gemma4Processor. On transformers builds
+        # missing the 'max_soft_tokens' kwarg in Qwen2VLImageProcessorKwargs,
+        # that profile_run crashes every TP worker before serving the first
+        # request. For text-only AOPS eval we never feed images, so we rewrite
+        # the arch to Gemma4ForCausalLM — vLLM has a separate, fully
+        # text-capable gemma4.py module that handles the nested Gemma4Config
+        # via _get_text_config(). See gemma4_text_only_hf_overrides above for
+        # the full rationale and trade-offs.
+        gemma4_local_cfg = load_local_model_config(args.pretrain) or {}
+        gemma4_text_only_active = (
+            gemma4_local_cfg.get("model_type") == "gemma4"
+            and GEMMA4_CONDITIONAL_ARCH in (gemma4_local_cfg.get("architectures") or [])
+        )
+        if gemma4_text_only_active and is_primary_process:
+            print(
+                "[compat] enabling Gemma4 text-only shim: rewriting "
+                f"architectures={[GEMMA4_CONDITIONAL_ARCH]} -> "
+                f"[{GEMMA4_TEXT_ONLY_SHIM_ARCH!r}] to bypass gemma4_mm "
+                "profile_run (transformers/vLLM image-processor-kwargs mismatch)"
+            )
+
+        # disable_custom_all_reduce: vLLM's custom kernel needs GPU<->GPU P2P,
+        # which is blocked on PAI-DLC virtualized A100 nodes (the kernel fails
+        # with "Cuda error custom_all_reduce.cuh:455 'invalid argument'" at
+        # init). NCCL fallback works without P2P. Honor VLLM_DISABLE_CUSTOM_ALL_REDUCE
+        # if the user already exported it; otherwise default to disabled here so
+        # the script is portable across DSW (P2P available) and DLC (P2P blocked).
+        _disable_car_env = os.environ.get("VLLM_DISABLE_CUSTOM_ALL_REDUCE", "1")
+        _disable_car = _disable_car_env not in ("0", "false", "False", "")
+        # limit_mm_per_prompt: belt-and-suspenders alongside the
+        # gemma4_text_only_hf_overrides shim. The hf_overrides callback runs
+        # *after* vLLM's profile_run dummy-data builder has already consulted
+        # the (unmodified) HF config in some vLLM 0.19 code paths, so the
+        # Gemma4Processor still sees architectures=Gemma4ForConditionalGeneration
+        # and tries to feed dummy <|image|> + 224x224 PIL images, crashing on
+        # the max_soft_tokens kwarg mismatch. Setting limit_mm_per_prompt to
+        # 0 for every modality is a top-level vLLM contract that "no mm
+        # tokens will appear", so vLLM skips the dummy mm payload entirely
+        # regardless of architecture. Safe for any text-only eval. Override
+        # if you ever feed real multimodal input.
+        # VLLM_ENFORCE_EAGER=1 disables CUDA-graph capture entirely. Use as
+        # an escape hatch when graph-capture or graph-replay deadlocks
+        # interact badly with NCCL/shm under cluster faults. Costs ~5-10%
+        # decode throughput, but eliminates a whole class of multi-process
+        # synchronization bugs that surface as "shm_broadcast timeout".
+        _enforce_eager = os.environ.get("VLLM_ENFORCE_EAGER", "0") not in ("0", "false", "False", "")
         llm_kwargs: dict[str, Any] = dict(
             model=args.pretrain,
             tensor_parallel_size=args.tp_size,
@@ -651,9 +779,15 @@ def main() -> None:
             seed=args.seed,
             max_num_seqs=args.max_num_seqs,
             enable_prefix_caching=args.enable_prefix_caching,
-            hf_overrides=partial(
-                qwen35_hf_overrides,
-                enable_text_only_shim=bool(qwen35_text_only_shim),
+            disable_custom_all_reduce=_disable_car,
+            enforce_eager=_enforce_eager,
+            limit_mm_per_prompt={"image": 0, "video": 0, "audio": 0},
+            hf_overrides=chained_hf_overrides(
+                partial(
+                    qwen35_hf_overrides,
+                    enable_text_only_shim=bool(qwen35_text_only_shim),
+                ),
+                gemma4_text_only_hf_overrides,
             ),
         )
         if args.pp_size > 1:
@@ -663,6 +797,152 @@ def main() -> None:
             llm_kwargs["distributed_executor_backend"] = "external_launcher"
         if args.gpu_memory_utilization is not None:
             llm_kwargs["gpu_memory_utilization"] = args.gpu_memory_utilization
+
+        # ────────────────────────────────────────────────────────────────
+        # Tier 1 vLLM optimizations for Gemma-4 long-decode workloads
+        # (e.g. AOPS 32k two-round retry).
+        #
+        # Each optimization is gated by an env var; default ON. To roll
+        # back individually, export the corresponding var = "0".
+        #
+        # Why these specific knobs: Gemma-4's heterogeneous head
+        # dimensions (head_dim=256 sliding / global_head_dim=512)
+        # disqualify FlashAttention and FlashInfer on every NVIDIA SM
+        # (vLLM #38887, #40677). vLLM is permanently pinned to
+        # TRITON_ATTN, and SGLang / TRT-LLM hit the same fallback. So
+        # we cannot win by switching attention backends; the leverage
+        # points are:
+        #   (a) cut prefill work for the KV-shared cross-decoder layers
+        #       (YOCO);
+        #   (b) propose tokens cheaply via prompt-lookup (ngram) so each
+        #       target-model forward verifies multiple tokens at once;
+        #   (c) halve KV-cache memory via FP8 storage so the
+        #       max_num_seqs=256 ceiling we lifted upstream is actually
+        #       reachable at 32k context.
+        #
+        # Empirical evidence:
+        #   - Fast prefill: +20% throughput @ concurrency=8 / +39% @
+        #     concurrency=32 on Gemma-4 E4B (vLLM PR #38879 benchmark).
+        #     GSM8K 5-shot accuracy unchanged (verified in same PR).
+        #   - n-gram speculative on math reasoning: 1.50-1.58x
+        #     (arXiv 2601.11580, Qwen3-8B-Thinking on GPQA-Main / AIME).
+        #   - FP8 KV cache: <0.5% perplexity impact per vLLM Gemma-4
+        #     recipe; pure storage compression on A100 (compute stays
+        #     bf16, no FP8 tensor core needed).
+        # ────────────────────────────────────────────────────────────────
+        def _opt_env_on(name: str, *, default: bool = True) -> bool:
+            """Tri-state env switch.
+
+            - If <name> is unset: use `default` (default-ON kept for
+              backward compatibility with existing call sites).
+            - If <name> is set: parse "0/false/no/off" as off, anything
+              else as on.
+            """
+            val = os.environ.get(name)
+            if val is None:
+                return default
+            return val.strip().lower() not in ("0", "false", "no", "off")
+
+        def _vllm_version_tuple() -> tuple[int, int, int]:
+            try:
+                import vllm as _v_mod
+                ver = getattr(_v_mod, "__version__", "0.0.0")
+                m = re.match(r"(\d+)\.(\d+)\.(\d+)", ver)
+                if not m:
+                    return (0, 0, 0)
+                return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            except Exception:
+                return (0, 0, 0)
+
+        _model_type = (
+            gemma4_local_cfg.get("model_type") if gemma4_local_cfg else None
+        )
+
+        # (a) VLLM_FAST_PREFILL: Gemma-4 YOCO KV-sharing fast prefill.
+        # Only valid for Gemma-4 (model-specific optimization) and only
+        # available in vLLM >= 0.20 (LLM constructor TypeErrors otherwise
+        # on the unknown kwarg). Both gates fail-soft so this script keeps
+        # running on the legacy 0.19 teacher venv with the optimization
+        # silently disabled.
+        if _opt_env_on("VLLM_FAST_PREFILL"):
+            if _model_type == "gemma4" and _vllm_version_tuple() >= (0, 20, 0):
+                llm_kwargs["kv_sharing_fast_prefill"] = True
+                if is_primary_process:
+                    print(
+                        "[opt] VLLM_FAST_PREFILL=1 -> "
+                        "kv_sharing_fast_prefill=True "
+                        "(Gemma-4 YOCO; +20-39% throughput per vLLM #38879)"
+                    )
+            elif is_primary_process:
+                _v_str = ".".join(str(x) for x in _vllm_version_tuple())
+                print(
+                    f"[opt] VLLM_FAST_PREFILL=1 requested but skipping "
+                    f"(model_type={_model_type!r}, vllm={_v_str}; "
+                    "needs gemma4 + vllm>=0.20). "
+                    "Bump TEACHER_VLLM_VERSION in scripts/setup_env.sh "
+                    "and rebuild teacher venv to enable."
+                )
+
+        # (b) VLLM_NGRAM_SPEC: prompt-lookup speculative decoding.
+        # Zero extra model, zero extra GPU memory, no calibration. The
+        # tokens / lookup window can be tuned via VLLM_NGRAM_* env vars
+        # if the defaults are too aggressive (high acceptance rate but
+        # also higher compute per step at high concurrency).
+        if _opt_env_on("VLLM_NGRAM_SPEC"):
+            llm_kwargs["speculative_config"] = {
+                "method": "ngram",
+                "num_speculative_tokens": int(
+                    os.environ.get("VLLM_NGRAM_NUM_SPEC_TOKENS", "5")
+                ),
+                "prompt_lookup_min": int(
+                    os.environ.get("VLLM_NGRAM_PROMPT_LOOKUP_MIN", "2")
+                ),
+                "prompt_lookup_max": int(
+                    os.environ.get("VLLM_NGRAM_PROMPT_LOOKUP_MAX", "5")
+                ),
+            }
+            if is_primary_process:
+                print(
+                    "[opt] VLLM_NGRAM_SPEC=1 -> "
+                    f"speculative_config={llm_kwargs['speculative_config']} "
+                    "(1.50-1.58x on math reasoning per arXiv 2601.11580)"
+                )
+
+        # (c) VLLM_FP8_KV_CACHE: store KV cache in FP8 (compute stays
+        # bf16). DEFAULT OFF.
+        #
+        # The naive assumption was "FP8 KV is pure storage compression
+        # on A100, no FP8 tensor core needed". That is wrong on vLLM
+        # 0.19 + Triton: the read/write paths emit Triton kernels that
+        # cast bf16 <-> fp8 with tl.float8e4nv. Triton's NVIDIA backend
+        # only accepts fp8e4nv on sm_89+ (Ada) and sm_90+ (Hopper). On
+        # sm_80 (A100) the supported FP8 subtypes are {fp8e4b15, fp8e5}
+        # only, and Inductor compilation fails with:
+        #
+        #   ValueError("type fp8e4nv not supported in this architecture.
+        #   The supported fp8 dtypes are ('fp8e4b15', 'fp8e5')")
+        #
+        # crashing every TP worker before profile_run completes.
+        #
+        # Default OFF makes the script safe on any GPU. To re-enable on
+        # H100/H200 (or to experiment with VLLM_FP8_KV_CACHE_DTYPE=fp8_e5m2
+        # which uses a Triton dtype that *is* supported on A100), export
+        # VLLM_FP8_KV_CACHE=1 explicitly.
+        if _opt_env_on("VLLM_FP8_KV_CACHE", default=False):
+            llm_kwargs["kv_cache_dtype"] = os.environ.get(
+                "VLLM_FP8_KV_CACHE_DTYPE", "fp8"
+            )
+            if is_primary_process:
+                print(
+                    "[opt] VLLM_FP8_KV_CACHE=1 -> "
+                    f"kv_cache_dtype={llm_kwargs['kv_cache_dtype']} "
+                    "(KV pool ~2x larger -> max_num_seqs ceiling actually "
+                    "reachable at 32k context). NOTE: on A100 (sm_80) Triton "
+                    "only supports fp8e4b15/fp8e5; the default 'fp8' "
+                    "(fp8e4nv) WILL crash. Use VLLM_FP8_KV_CACHE_DTYPE=fp8_e5m2 "
+                    "if you must enable FP8 KV on A100."
+                )
+
         llm = LLM(**llm_kwargs)
 
         dp_rank = 0

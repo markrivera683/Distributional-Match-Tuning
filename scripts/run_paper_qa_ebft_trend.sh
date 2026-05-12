@@ -39,7 +39,9 @@ CRITIC_GPUS="${CRITIC_GPUS:-4}"
 REF_GPUS="${REF_GPUS:-${ACTOR_GPUS}}"
 REWARD_GPUS="${REWARD_GPUS:-${CRITIC_GPUS}}"
 
-REPO_ROOT="${REPO_ROOT:-/root/code/Distributional-Match-Tuning}"
+# REPO_ROOT auto-derived; portable across DSW symlink and DLC bare path.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 MODEL_PATH="${MODEL_PATH:-/root/model}"
 TRAIN_DATA="${TRAIN_DATA:-sjelassi/opencode-instruct_100k_200tok}"
 PROMPT_SPLIT="${PROMPT_SPLIT:-train}"

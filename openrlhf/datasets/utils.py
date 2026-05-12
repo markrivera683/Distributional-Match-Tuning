@@ -53,7 +53,17 @@ def blending_datasets(
             ext = ext.lower().strip(".")
             if ext == "jsonl":
                 ext = "json"
-            data = load_dataset(ext, data_files=dataset, split=split_spec)
+            # HF datasets >= 4.x raises 'ValueError: Unknown split "<x>"' if the
+            # JSONL/CSV file is loaded with split=<x> where <x> != "train",
+            # because a single-file dataset is implicitly named "train". Map the
+            # file to the requested split via data_files so eval_split=test
+            # (or any non-train name) works for local files. When split_spec is
+            # None we keep the legacy behaviour and let the downstream fallback
+            # below pick a split out of the resulting DatasetDict.
+            if split_spec:
+                data = load_dataset(ext, data_files={split_spec: dataset}, split=split_spec)
+            else:
+                data = load_dataset(ext, data_files=dataset, split=split_spec)
             strategy.print(f"loaded {dataset} with data_files={dataset}")
         # local dataset saved with `datasets.Dataset.save_to_disk`
         elif os.path.isdir(dataset):

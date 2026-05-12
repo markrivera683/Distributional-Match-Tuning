@@ -29,7 +29,20 @@ class BaseDistributedActor:
         self._world_size = world_size
         self._rank = rank
         self._master_addr = master_addr if master_addr else self._get_current_node_ip()
-        self._master_port = master_port if master_port else self._get_free_port()
+        # IMPORTANT: prefer a class-specific port so that actor / critic / ref /
+        # reward groups never collide on the same port. ``_get_free_port`` used
+        # to ignore ``preferred_port`` and always fall through to
+        # ``bind(("", 0))`` (OS-assigned), which is a TOCTOU race: two
+        # ``rank=0`` masters in different groups can both close their probe
+        # socket and have the OS re-issue the SAME port to the second caller
+        # (TIME_WAIT reuse). When that happens, the second group's workers
+        # ``connect()`` to the first group's TCPStore, the ping nonce check
+        # fails, and PyTorch raises::
+        #     RuntimeError: nonce == returnedNonce INTERNAL ASSERT FAILED
+        #     ... Ping failed, invalid nonce returned
+        # Pinning each class to ``29600 + offset`` (see
+        # ``_class_port_offsets``) keeps groups disjoint by construction.
+        self._master_port = master_port if master_port else self._get_free_port(self._get_preferred_port())
         os.environ["MASTER_ADDR"] = self._master_addr
         os.environ["MASTER_PORT"] = str(self._master_port)
         os.environ["WORLD_SIZE"] = str(self._world_size)
@@ -72,6 +85,30 @@ class BaseDistributedActor:
 
     @staticmethod
     def _get_free_port(preferred_port=None):
+        # Try the caller's preferred port first. If it's free, return it; this
+        # gives each actor class a deterministic, non-overlapping port range
+        # (see ``_class_port_offsets``) so two groups don't race for the same
+        # OS-assigned port and end up causing a TCPStore nonce mismatch.
+        if preferred_port is not None:
+            try:
+                with socket.socket() as sock:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    sock.bind(("", int(preferred_port)))
+                    return int(preferred_port)
+            except OSError:
+                # Preferred port is busy (stale TIME_WAIT, another job, etc.):
+                # walk a small contiguous range above it before giving up so
+                # consecutive retries don't all collide on the OS-assigned
+                # port pool either.
+                for delta in range(1, 64):
+                    candidate = int(preferred_port) + delta
+                    try:
+                        with socket.socket() as sock:
+                            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                            sock.bind(("", candidate))
+                            return candidate
+                    except OSError:
+                        continue
         with socket.socket() as sock:
             sock.bind(("", 0))
             return sock.getsockname()[1]

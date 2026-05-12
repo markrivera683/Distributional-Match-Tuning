@@ -548,7 +548,17 @@ class EBFTPolicyModelActor(BaseModelActor):
         device = torch.cuda.current_device()
         self.actor.eval()
 
-        with torch.inference_mode():
+        # NOTE: deliberately ``no_grad`` and not ``inference_mode``. Under
+        # ZeRO-3, ``self.actor(...)`` triggers DeepSpeed's forward hook to
+        # all-gather the partitioned weights into ``param.data``. If this
+        # happens inside ``torch.inference_mode``, the gathered storage is
+        # tagged as an inference tensor; that tag persists after partition
+        # and the *next* training forward (which gathers into the same
+        # storage and saves it for backward via ``LinearFunctionForZeroStage3``)
+        # crashes with ``Inference tensors cannot be saved for backward``.
+        # ``no_grad`` gives the same autograd-disabled semantics without the
+        # inference-tensor flag.
+        with torch.no_grad():
             # Ensure full_sequences is a proper tensor with batch dimension
             if isinstance(full_sequences, list):
                 full_sequences_batch = torch.tensor(full_sequences, dtype=torch.long)
@@ -624,7 +634,10 @@ class EBFTPolicyModelActor(BaseModelActor):
         device = torch.cuda.current_device()
         self.actor.eval()
 
-        with torch.inference_mode():
+        # See ``forward_strided_blocks`` for why we use ``no_grad`` instead of
+        # ``inference_mode``: under ZeRO-3 the latter taints the gathered
+        # weight storage and breaks the next training backward pass.
+        with torch.no_grad():
             # Generate tokens one at a time (standard autoregressive)
             out = self.actor.generate_for_downstream(
                 # sequences=sequence,
@@ -711,7 +724,19 @@ class EBFTPolicyModelActor(BaseModelActor):
         for _ in range(num_blocks):
             generated_blocks.append([])
 
-        with torch.inference_mode():  # stronger than no_grad; also skips version counters
+        # NOTE: ``no_grad`` (not ``inference_mode``). The "stronger than no_grad
+        # / skips version counters" optimisation is incompatible with
+        # DeepSpeed ZeRO-3: forward through ``self.actor`` triggers the ZeRO-3
+        # forward hook which all-gathers partitioned weights into
+        # ``param.data``. Inside ``inference_mode`` the gathered storage is
+        # marked as an inference tensor, the flag survives the subsequent
+        # partition, and the next *training* forward (which gathers into the
+        # same storage and is supposed to save it for backward via
+        # ``LinearFunctionForZeroStage3``) crashes with::
+        #     RuntimeError: Inference tensors cannot be saved for backward.
+        # ``no_grad`` disables autograd tracking just like ``inference_mode``
+        # but does not taint the gathered weights.
+        with torch.no_grad():
             # Generate tokens iteratively - at each step, we generate one token per block
             for generation_step in range(generate_length):
                 # Build the strided attention mask for the current augmented sequence

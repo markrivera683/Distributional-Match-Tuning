@@ -12,6 +12,8 @@ from transformers.integrations.deepspeed import HfDeepSpeedConfig
 
 from .utils import compute_entropy, log_probs_from_logits, compute_squared_loss
 from openrlhf.utils.logging_utils import init_logger
+from openrlhf.utils.model_config import freeze_unused_multimodal_modules
+from openrlhf.utils.model_config import freeze_unused_multimodal_modules
 
 logger = init_logger(__name__)
 
@@ -120,6 +122,15 @@ class Actor(nn.Module):
                 torch_dtype=torch.bfloat16 if bf16 else "auto",
                 device_map=device_map,
             )
+
+            if os.environ.get("OPENRLHF_FREEZE_MM_TOWERS", "1") != "0":
+                frozen = freeze_unused_multimodal_modules(self.model)
+                if frozen:
+                    paths = ", ".join(f"{k}={v}" for k, v in frozen.items())
+                    logger.info(
+                        "[multimodal] froze %d unused tower(s), total=%d params: %s",
+                        len(frozen), sum(frozen.values()), paths,
+                    )
 
             # LoRA
             if lora_rank > 0:

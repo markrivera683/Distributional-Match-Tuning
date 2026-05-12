@@ -53,7 +53,14 @@ EVAL_SPLIT="${EVAL_SPLIT:-train}"
 
 # Venvs live on local ext4 (ossfs2 can't host venv symlinks). See
 # scripts/setup_env.sh for the bootstrap that creates and snapshots them.
+# - STUDENT_VENV: torch/deepspeed/openrlhf stack used for training (this script).
+# - TEACHER_VENV: vLLM stack used by the post-training two-round eval worker
+#   scripts/supplement_2rounds/G1.sh; passed through via env at section 7.
+# - ANALYSIS_VENV: hosts scripts/analyze_eval_results.py; defaults to STUDENT_VENV
+#   since the analysis deps are a subset of the student env.
 STUDENT_VENV="${STUDENT_VENV:-/mnt/workspace/venvs/.venv}"
+TEACHER_VENV="${TEACHER_VENV:-/mnt/workspace/venvs/.teacherVenv}"
+ANALYSIS_VENV="${ANALYSIS_VENV:-${STUDENT_VENV}}"
 
 # HF blobs go on persistent OSS (model weights survive container restart;
 # downloads are tmp+rename, OSS-safe).
@@ -141,7 +148,11 @@ POST_EVAL_TEMPERATURE="${POST_EVAL_TEMPERATURE:-0.6}"
 POST_EVAL_TOP_P="${POST_EVAL_TOP_P:-1.0}"
 POST_EVAL_REPETITION_PENALTY="${POST_EVAL_REPETITION_PENALTY:-1.0}"
 POST_EVAL_BEST_OF_N="${POST_EVAL_BEST_OF_N:-1}"
-VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-32}"
+# vLLM concurrency knobs. See scripts/supplement_2rounds/G1.sh for the full
+# HOL-blocking rationale that motivated raising these from the legacy
+# {32, hardcoded-16} defaults to {256, 256}.
+VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-256}"
+VLLM_PROGRESS_BATCH_SIZE="${VLLM_PROGRESS_BATCH_SIZE:-256}"
 VLLM_ENABLE_PREFIX_CACHING="${VLLM_ENABLE_PREFIX_CACHING:-false}"
 VLLM_SEED="${VLLM_SEED:-1234}"
 MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-${CUDA_VISIBLE_DEVICES}}"
@@ -190,6 +201,23 @@ if [[ ! -x "${STUDENT_PYTHON_BIN}" ]]; then
   echo "[ERROR] STUDENT_PYTHON_BIN not executable: ${STUDENT_PYTHON_BIN}"
   echo "        expected student env: ${STUDENT_VENV}"
   exit 1
+fi
+
+TEACHER_PYTHON_BIN="${TEACHER_PYTHON_BIN:-${TEACHER_VENV}/bin/python}"
+ANALYSIS_PYTHON_BIN="${ANALYSIS_PYTHON_BIN:-${ANALYSIS_VENV}/bin/python}"
+# Only required when the post-training two-round eval will run.
+if [[ "${RUN_TWO_ROUND_EVAL:-${EVAL_AFTER_TRAIN:-true}}" == "true" ]]; then
+  if [[ ! -x "${TEACHER_PYTHON_BIN}" ]]; then
+    echo "[ERROR] TEACHER_PYTHON_BIN not executable: ${TEACHER_PYTHON_BIN}"
+    echo "        expected teacher env: ${TEACHER_VENV}"
+    echo "        (needed by scripts/supplement_2rounds/G1.sh; run scripts/setup_env.sh)"
+    exit 1
+  fi
+  if [[ ! -x "${ANALYSIS_PYTHON_BIN}" ]]; then
+    echo "[ERROR] ANALYSIS_PYTHON_BIN not executable: ${ANALYSIS_PYTHON_BIN}"
+    echo "        expected analysis env: ${ANALYSIS_VENV}"
+    exit 1
+  fi
 fi
 
 if (( ACTOR_GPUS + CRITIC_GPUS > gpu_count )); then
@@ -287,6 +315,10 @@ else
   echo "Prompt split:         ${PROMPT_SPLIT}"
 fi
 echo "Student python:       ${STUDENT_PYTHON_BIN}"
+if [[ "${RUN_TWO_ROUND_EVAL}" == "true" ]]; then
+  echo "Teacher python:       ${TEACHER_PYTHON_BIN}"
+  echo "Analysis python:      ${ANALYSIS_PYTHON_BIN}"
+fi
 echo "distribution_reward:  pointwise"
 echo "cf_target_mode:       single"
 echo "target_steps:         ${TARGET_STEPS}"
@@ -393,6 +425,10 @@ if [[ "${RUN_TWO_ROUND_EVAL}" == "true" ]]; then
   echo "===== Running two-round 16k/32k completion eval ====="
   RUN_DIR="${RUN_DIR}" \
   MODEL_PATH="${SAVE_PATH}" \
+  TEACHER_VENV="${TEACHER_VENV}" \
+  ANALYSIS_VENV="${ANALYSIS_VENV}" \
+  TEACHER_PYTHON_BIN="${TEACHER_PYTHON_BIN}" \
+  ANALYSIS_PYTHON_BIN="${ANALYSIS_PYTHON_BIN}" \
   MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES}" \
   VLLM_TP_SIZE="${VLLM_TP_SIZE}" \
   POST_EVAL_MAX_SAMPLES="${POST_EVAL_MAX_SAMPLES}" \
@@ -404,6 +440,7 @@ if [[ "${RUN_TWO_ROUND_EVAL}" == "true" ]]; then
   POST_EVAL_REPETITION_PENALTY="${POST_EVAL_REPETITION_PENALTY}" \
   POST_EVAL_BEST_OF_N="${POST_EVAL_BEST_OF_N}" \
   VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS}" \
+  VLLM_PROGRESS_BATCH_SIZE="${VLLM_PROGRESS_BATCH_SIZE}" \
   VLLM_ENABLE_PREFIX_CACHING="${VLLM_ENABLE_PREFIX_CACHING}" \
   VLLM_SEED="${VLLM_SEED}" \
   bash "${REPO_ROOT}/scripts/supplement_2rounds/G1.sh"

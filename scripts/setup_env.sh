@@ -210,12 +210,49 @@ STUDENT_FLASH_ATTN_WHEEL_DIR="${STUDENT_FLASH_ATTN_WHEEL_DIR:-${CACHE_ROOT}/whee
 STUDENT_FLASH_ATTN_WHEEL_URL="${STUDENT_FLASH_ATTN_WHEEL_URL:-https://github.com/Dao-AILab/flash-attention/releases/download/v${STUDENT_FLASH_ATTN_VERSION}/flash_attn-${STUDENT_FLASH_ATTN_VERSION}+cu12torch2.5cxx11abiFALSE-cp312-cp312-linux_x86_64.whl}"
 STUDENT_TRANSFORMERS_REF="${STUDENT_TRANSFORMERS_REF:-db9f18c370c92e971172e69bc9a88854947d9fc5}"
 
+# Teacher (vLLM serving) version pin.
+#
+# We default to vLLM 0.19.0 because of NVIDIA driver compatibility:
+#
+#   - vLLM 0.20.0 hard-requires torch >= 2.11. PyPI only ships torch 2.11
+#     as a CUDA 13.0 wheel (`torch-2.11.0+cu130`). CUDA 13.0 is a major
+#     version bump that requires NVIDIA driver R580+. Both DSW and the
+#     DLC training pods we ship to are still on R535.x (`nvidia-smi`
+#     reports `CUDA Version: 12.4`), so any cu130 wheel dies at GPU
+#     init with `RuntimeError: The NVIDIA driver on your system is too
+#     old (found version 12040)` -> teacher vLLM never serves -> the
+#     master `[4/5] waiting for teacher health checks` polls a dead
+#     port for TEACHER_WAIT_SECONDS (1h) before giving up.
+#
+#   - vLLM 0.19.0 only needs torch 2.10 (PyPI default wheel is
+#     `torch-2.10.0+cu128`). CUDA 12.x falls under NVIDIA's
+#     minor-version compatibility, so the cu128 wheel runs fine on
+#     R535.x.
+#
+# If you need a vLLM 0.20+ feature (e.g. Gemma-4 fast-prefill PR #38879,
+# fused-routing kernel #39083, Eagle-3 #39450, etc.) you must FIRST
+# confirm the target machine's NVIDIA driver is >= R580 (CUDA 13.0).
+# Then pin a cu13-compatible torch explicitly:
+#
+#   TEACHER_VLLM_VERSION=0.20.0 TEACHER_TORCH_VERSION=2.11.0 \
+#     TEACHER_TORCHVISION_VERSION=0.26.0 \
+#     TEACHER_TORCHAUDIO_VERSION=2.11.0 \
+#     TEACHER_FLASHINFER_VERSION=0.6.8.post1 \
+#     EBFT_REBUILD_VENV=1 bash scripts/setup_env.sh
 TEACHER_VLLM_VERSION="${TEACHER_VLLM_VERSION:-0.19.0}"
 TEACHER_TORCH_VERSION="${TEACHER_TORCH_VERSION:-2.10.0}"
 TEACHER_TORCHVISION_VERSION="${TEACHER_TORCHVISION_VERSION:-0.25.0}"
 TEACHER_TORCHAUDIO_VERSION="${TEACHER_TORCHAUDIO_VERSION:-2.10.0}"
 TEACHER_TRANSFORMERS_VERSION="${TEACHER_TRANSFORMERS_VERSION:-5.5.0}"
 TEACHER_HF_HUB_VERSION="${TEACHER_HF_HUB_VERSION:-1.9.0}"
+# vLLM 0.19.x: pulls flashinfer-python only (no flashinfer-cubin sibling
+# package). vLLM 0.20.x: hard-pins both flashinfer-python==0.6.8.post1
+# AND flashinfer-cubin==0.6.8.post1; the install_teacher() function
+# detects 0.20+ and adds flashinfer-cubin to the install list.
+#
+# Aliyun pypi mirror tends to lag PyPI by ~24-48h on brand-new packages.
+# If a brand-new flashinfer wheel is missing from the mirror, override:
+#   PIP_INDEX_URL=https://pypi.org/simple/ bash scripts/setup_env.sh
 TEACHER_FLASHINFER_VERSION="${TEACHER_FLASHINFER_VERSION:-0.6.6}"
 
 # ---------------------------------------------------------------------------
@@ -567,6 +604,31 @@ install_student() {
   log "Installing this repo (editable) into ${STUDENT_VENV}"
   pip_install "${py}" -e "${REPO_ROOT}"
 
+  # Evaluation analysis stack (used by scripts/analyze_eval_results.py and
+  # openrlhf.utils.math_verifier on the post-training eval path). The
+  # analysis venv defaults to STUDENT_VENV (see ANALYSIS_VENV in the run_*
+  # launchers), so these packages MUST live here, not in the teacher venv.
+  #
+  # Notes:
+  #   * Package name on PyPI is `math-verify` (hyphen) but the import
+  #     name is `math_verify` (underscore).
+  #   * `latex2sympy2` builds against a specific `antlr4-python3-runtime`
+  #     version range (4.11.x). Using --no-build-isolation avoids the
+  #     pip-build-env from pulling a newer antlr that breaks the parser
+  #     at import time. If this still fails on a fresh box, manually
+  #     `pip install antlr4-python3-runtime==4.11` first, then re-run.
+  #   * `pebble` provides ProcessPool with timeouts (used to sandbox
+  #     sympy verification when the teacher emits adversarial latex).
+  #   * `word2number` lets the verifier accept English number words
+  #     (e.g. "forty-two") in `\boxed{}`.
+  log "Installing analysis evaluation stack (math-verify + deps)"
+  pip_install "${py}" --no-build-isolation \
+    "math-verify" \
+    "pebble" \
+    "word2number" \
+    "latex2sympy2" \
+    "antlr4-python3-runtime"
+
   stage_built_wheels
 }
 
@@ -590,6 +652,13 @@ try:
     print("openrlhf", getattr(openrlhf, "__version__", "editable"))
 except Exception as exc:
     print("openrlhf_import_error", exc)
+
+for _pkg in ("math_verify", "latex2sympy2", "antlr4", "pebble", "word2number"):
+    try:
+        _m = __import__(_pkg)
+        print(_pkg, getattr(_m, "__version__", "ok"))
+    except Exception as _exc:
+        print(f"{_pkg}_import_error", _exc)
 PY
 }
 
@@ -606,10 +675,22 @@ install_teacher() {
     "torchaudio==${TEACHER_TORCHAUDIO_VERSION}"
 
   log "Installing teacher vLLM stack (vllm ${TEACHER_VLLM_VERSION})"
-  pip_install "${py}" \
-    "vllm==${TEACHER_VLLM_VERSION}" \
-    "flashinfer-python==${TEACHER_FLASHINFER_VERSION}" \
+  # vllm 0.20+ adds a hard dep on flashinfer-cubin pinned to the same
+  # post-release version as flashinfer-python. vllm 0.19.x does not list
+  # flashinfer-cubin at all, so we only attach it when needed to keep the
+  # 0.19 fallback path clean.
+  local -a teacher_pkgs=(
+    "datasets==4.8.4"
+    "vllm==${TEACHER_VLLM_VERSION}"
+    "flashinfer-python==${TEACHER_FLASHINFER_VERSION}"
     "tqdm==4.67.3"
+  )
+  case "${TEACHER_VLLM_VERSION}" in
+    0.20.*|0.21.*|0.22.*|0.23.*|0.24.*|0.25.*|0.3*|0.4*|1.*)
+      teacher_pkgs+=("flashinfer-cubin==${TEACHER_FLASHINFER_VERSION}")
+      ;;
+  esac
+  pip_install "${py}" "${teacher_pkgs[@]}"
 
   pip_install "${py}" "huggingface_hub==${TEACHER_HF_HUB_VERSION}"
 
@@ -627,6 +708,7 @@ import shutil
 import sys
 from pathlib import Path
 
+import datasets
 import torch
 import transformers
 import vllm
@@ -634,10 +716,43 @@ import vllm
 print("python", sys.version.split()[0])
 print("torch", torch.__version__, "cuda", torch.version.cuda,
       "available", torch.cuda.is_available())
+print("datasets", datasets.__version__)
 print("transformers", transformers.__version__)
 print("vllm", vllm.__version__)
 print("vllm_cli", Path(sys.executable).with_name("vllm"))
 print("vllm_cli_on_path", shutil.which("vllm"))
+
+# Fail fast on driver/wheel mismatch.
+#
+# History: a previous default of vLLM 0.20.0 silently pulled
+# torch-2.11.0+cu130, and on R535.x DLC pods (CUDA 12.4) every vLLM
+# worker would die at GPU init with "The NVIDIA driver on your system
+# is too old (found version 12040)". The launcher's [4/5] teacher
+# health-check loop is silent, so this was only noticed after ~1h of
+# polling dead ports. By probing torch.cuda.* here we surface the
+# mismatch right after install, before any run_*.sh tries to use it.
+if not torch.cuda.is_available():
+    print("teacher_cuda_check FAIL: torch.cuda.is_available() is False",
+          file=sys.stderr)
+    sys.exit(1)
+try:
+    torch.cuda.init()
+    n = torch.cuda.device_count()
+    if n < 1:
+        raise RuntimeError("torch.cuda.device_count() == 0")
+    # Touch device 0 to force the same code path vLLM EngineCore would.
+    torch.zeros(1, device="cuda:0")
+    print(f"teacher_cuda_check OK: {n} device(s) usable")
+except Exception as exc:
+    print(f"teacher_cuda_check FAIL: {type(exc).__name__}: {exc}",
+          file=sys.stderr)
+    print("Hint: torch was likely built against a newer CUDA major than the",
+          file=sys.stderr)
+    print("host driver supports. See the comment block above",
+          file=sys.stderr)
+    print("TEACHER_VLLM_VERSION in scripts/setup_env.sh for the fix.",
+          file=sys.stderr)
+    sys.exit(1)
 PY
 }
 
