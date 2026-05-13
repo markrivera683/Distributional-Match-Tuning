@@ -150,7 +150,7 @@ MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
 VLLM_TP_SIZE="${VLLM_TP_SIZE:-$(count_csv_items "${MODEL_CUDA_VISIBLE_DEVICES}")}"
 VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-128}"
 BASE_SEED="${BASE_SEED:-1234}"
-NUM_REPEATS="${NUM_REPEATS:-3}"
+NUM_REPEATS="${NUM_REPEATS:-1}"
 SMOKE_TEST="${SMOKE_TEST:-false}"
 SKIP_COMPLETED="${SKIP_COMPLETED:-false}"
 
@@ -184,26 +184,39 @@ export NCCL_NET_GDR_DISABLE="${NCCL_NET_GDR_DISABLE:-1}"
 MODEL_SPECS=(
   "baseline_qwen35_4b|/mnt/data/models/Qwen3.5-4B"
   "g1_0507_0206_500step|/mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_g1_qwen35_4b_0507_0206"
-  "g1_0508_2209_500step|/mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_g1_qwen35_4b_0508_2209"
-  "g1_0511_0039_500step|/mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_g1_qwen35_4b_0511_0039"
+  # "g1_0508_2209_500step|/mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_g1_qwen35_4b_0508_2209"
+  # "g1_0511_0039_500step|/mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_g1_qwen35_4b_0511_0039"
   "g2_no_teacher_vicinal|/mnt/data/ebft-distribution-new/outputs/diff_dataset/g2_diff_dataset_no_teacher_vicinal/diff_g2_no_teacher_vicinal_dlc1nta2oa0ac22v"
   "g2_normal|/mnt/data/ebft-distribution-new/outputs/diff_dataset/g2_dlc1ihgqh6motwz1"
   "g2_no_teacher_distribution_single|/mnt/data/ebft-distribution-new/outputs/diff_dataset/g2_outputs_diff_dataset_no_teacher_distribution/diff_g2_no_teacher_distribution_qwen35_4b_1node_0511_1240"
   "g3_dlc8pd4wa5cqtgur|/mnt/data/ebft-distribution-new/outputs/diff_dataset/g3_dlc8pd4wa5cqtgur"
 )
 
-BENCHMARKS=(humaneval mbpp)
+if [[ -n "${SLIME_MODEL_PATH:-}" ]]; then
+  MODEL_SPECS+=("${SLIME_MODEL_LABEL:-slime}|${SLIME_MODEL_PATH}")
+fi
+
+if [[ -n "${ONLY_MODEL_SPECS:-}" ]]; then
+  IFS=',' read -r -a MODEL_SPECS <<< "${ONLY_MODEL_SPECS}"
+fi
+
+BENCHMARKS=(humaneval)
 TASKS=(greedy pass1_temp06)
 
 if [[ "${SMOKE_TEST}" == "true" ]]; then
-  MODEL_SPECS=("baseline_qwen35_4b|/mnt/data/models/Qwen3.5-4B")
+  if [[ -z "${ONLY_MODEL_SPECS:-}" && -z "${SLIME_MODEL_PATH:-}" ]]; then
+    MODEL_SPECS=("baseline_qwen35_4b|/mnt/data/models/Qwen3.5-4B")
+    echo "[smoke] no model override provided; using baseline_qwen35_4b"
+  else
+    echo "[smoke] model override detected; keeping provided MODEL_SPECS"
+  fi
   BENCHMARKS=(humaneval)
   TASKS=(greedy)
   NUM_REPEATS=1
   MAX_SAMPLES_PER_BENCHMARK=1
   MAX_NEW_TOKENS="${SMOKE_MAX_NEW_TOKENS:-64}"
   VLLM_MAX_NUM_SEQS="${SMOKE_VLLM_MAX_NUM_SEQS:-8}"
-  echo "[smoke] enabled: baseline + HumanEval + greedy + 1 sample"
+  echo "[smoke] enabled: HumanEval + greedy + 1 sample"
 fi
 
 mkdir -p "${RUN_DIR}" "${LOG_DIR}"

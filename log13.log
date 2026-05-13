@@ -1,0 +1,1458 @@
+[2026-05-13 00:48:24] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 00:48:24] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 00:48:24] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 00:48:24] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 00:48:24] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 00:48:24] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 00:48:24] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 00:48:24] 
+[2026-05-13 00:48:24] [2026-05-13 00:48:23,713 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:48:29] 
+Train step of epoch 0:  55%|█████▌    | 277/500 [18:55<15:09,  4.08s/it, gpt_loss=0.121, lr=4.98e-6]
+[2026-05-13 00:48:29] 
+Train step of epoch 0:  55%|█████▌    | 277/500 [19:01<15:09,  4.08s/it, gpt_loss=0.109, lr=4.98e-6]
+[2026-05-13 00:48:34] 
+Train step of epoch 0:  56%|█████▌    | 278/500 [19:01<16:30,  4.46s/it, gpt_loss=0.109, lr=4.98e-6]
+[2026-05-13 00:48:34] 
+Train step of epoch 0:  56%|█████▌    | 278/500 [19:06<16:30,  4.46s/it, gpt_loss=0.126, lr=4.98e-6]
+[2026-05-13 00:48:37] [2026-05-13 00:48:37,435 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:48:38] 
+Train step of epoch 0:  56%|█████▌    | 279/500 [19:06<17:20,  4.71s/it, gpt_loss=0.126, lr=4.98e-6]
+[2026-05-13 00:48:38] 
+Train step of epoch 0:  56%|█████▌    | 279/500 [19:10<17:20,  4.71s/it, gpt_loss=0.174, lr=4.86e-6]
+[2026-05-13 00:48:43] 
+Train step of epoch 0:  56%|█████▌    | 280/500 [19:10<16:07,  4.40s/it, gpt_loss=0.174, lr=4.86e-6]
+[2026-05-13 00:48:43] 
+Train step of epoch 0:  56%|█████▌    | 280/500 [19:15<16:07,  4.40s/it, gpt_loss=0.123, lr=4.86e-6]
+[2026-05-13 00:48:48] 
+Train step of epoch 0:  56%|█████▌    | 281/500 [19:15<16:44,  4.59s/it, gpt_loss=0.123, lr=4.86e-6]
+[2026-05-13 00:48:48] 
+Train step of epoch 0:  56%|█████▌    | 281/500 [19:19<16:44,  4.59s/it, gpt_loss=0.125, lr=4.86e-6]
+[2026-05-13 00:48:53] 
+Train step of epoch 0:  56%|█████▋    | 282/500 [19:19<16:37,  4.58s/it, gpt_loss=0.125, lr=4.86e-6]
+[2026-05-13 00:48:53] 
+Train step of epoch 0:  56%|█████▋    | 282/500 [19:25<16:37,  4.58s/it, gpt_loss=0.123, lr=4.86e-6]
+[2026-05-13 00:48:54] [2026-05-13 00:48:53,840 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:48:54] [2026-05-13 00:48:53,840 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:48:58] 
+Train step of epoch 0:  57%|█████▋    | 283/500 [19:25<17:45,  4.91s/it, gpt_loss=0.123, lr=4.86e-6]
+[2026-05-13 00:48:58] 
+Train step of epoch 0:  57%|█████▋    | 283/500 [19:30<17:45,  4.91s/it, gpt_loss=0.112, lr=4.74e-6]
+[2026-05-13 00:49:02] 
+Train step of epoch 0:  57%|█████▋    | 284/500 [19:30<17:47,  4.94s/it, gpt_loss=0.112, lr=4.74e-6]
+[2026-05-13 00:49:02] 
+Train step of epoch 0:  57%|█████▋    | 284/500 [19:33<17:47,  4.94s/it, gpt_loss=0.137, lr=4.74e-6]
+[2026-05-13 00:49:07] 
+Train step of epoch 0:  57%|█████▋    | 285/500 [19:33<15:52,  4.43s/it, gpt_loss=0.137, lr=4.74e-6]
+[2026-05-13 00:49:07] 
+Train step of epoch 0:  57%|█████▋    | 285/500 [19:39<15:52,  4.43s/it, gpt_loss=0.141, lr=4.74e-6]
+[2026-05-13 00:49:10] 
+Train step of epoch 0:  57%|█████▋    | 286/500 [19:39<16:54,  4.74s/it, gpt_loss=0.141, lr=4.74e-6]
+[2026-05-13 00:49:10] 
+Train step of epoch 0:  57%|█████▋    | 286/500 [19:42<16:54,  4.74s/it, gpt_loss=0.0993, lr=4.74e-6]
+[2026-05-13 00:49:16] 
+Train step of epoch 0:  57%|█████▋    | 287/500 [19:42<15:27,  4.35s/it, gpt_loss=0.0993, lr=4.74e-6]
+[2026-05-13 00:49:16] 
+Train step of epoch 0:  57%|█████▋    | 287/500 [19:48<15:27,  4.35s/it, gpt_loss=0.111, lr=4.63e-6] 
+[2026-05-13 00:49:20] 
+Train step of epoch 0:  58%|█████▊    | 288/500 [19:48<16:58,  4.80s/it, gpt_loss=0.111, lr=4.63e-6]
+[2026-05-13 00:49:20] 
+Train step of epoch 0:  58%|█████▊    | 288/500 [19:52<16:58,  4.80s/it, gpt_loss=0.161, lr=4.63e-6]
+[2026-05-13 00:49:23] 
+Train step of epoch 0:  58%|█████▊    | 289/500 [19:52<16:11,  4.60s/it, gpt_loss=0.161, lr=4.63e-6]
+[2026-05-13 00:49:23] 
+Train step of epoch 0:  58%|█████▊    | 289/500 [19:55<16:11,  4.60s/it, gpt_loss=0.122, lr=4.63e-6]
+[2026-05-13 00:49:24] [2026-05-13 00:49:23,985 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:49:24] [2026-05-13 00:49:23,985 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 00:49:26] 
+Train step of epoch 0:  58%|█████▊    | 290/500 [19:55<14:03,  4.02s/it, gpt_loss=0.122, lr=4.63e-6]
+[2026-05-13 00:49:26] 
+Train step of epoch 0:  58%|█████▊    | 290/500 [19:58<14:03,  4.02s/it, gpt_loss=0.119, lr=4.63e-6]
+[2026-05-13 00:49:29] [2026-05-13 00:49:29,402 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 00:49:31] 
+Train step of epoch 0:  58%|█████▊    | 291/500 [19:58<12:51,  3.69s/it, gpt_loss=0.119, lr=4.63e-6]
+[2026-05-13 00:49:31] 
+Train step of epoch 0:  58%|█████▊    | 291/500 [20:02<12:51,  3.69s/it, gpt_loss=0.109, lr=4.51e-6]
+[2026-05-13 00:49:35] 
+Train step of epoch 0:  58%|█████▊    | 292/500 [20:02<13:51,  4.00s/it, gpt_loss=0.109, lr=4.51e-6]
+[2026-05-13 00:49:35] 
+Train step of epoch 0:  58%|█████▊    | 292/500 [20:07<13:51,  4.00s/it, gpt_loss=0.136, lr=4.51e-6]
+[2026-05-13 00:49:37] [2026-05-13 00:49:37,473 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:49:40] 
+Train step of epoch 0:  59%|█████▊    | 293/500 [20:07<14:39,  4.25s/it, gpt_loss=0.136, lr=4.51e-6]
+[2026-05-13 00:49:40] 
+Train step of epoch 0:  59%|█████▊    | 293/500 [20:12<14:39,  4.25s/it, gpt_loss=0.189, lr=4.51e-6]
+[2026-05-13 00:49:45] 
+Train step of epoch 0:  59%|█████▉    | 294/500 [20:12<14:50,  4.32s/it, gpt_loss=0.189, lr=4.51e-6]
+[2026-05-13 00:49:45] 
+Train step of epoch 0:  59%|█████▉    | 294/500 [20:17<14:50,  4.32s/it, gpt_loss=0.115, lr=4.51e-6]
+[2026-05-13 00:49:48] 
+Train step of epoch 0:  59%|█████▉    | 295/500 [20:17<15:25,  4.52s/it, gpt_loss=0.115, lr=4.51e-6]
+[2026-05-13 00:49:48] 
+Train step of epoch 0:  59%|█████▉    | 295/500 [20:20<15:25,  4.52s/it, gpt_loss=0.117, lr=4.4e-6] 
+[2026-05-13 00:49:53] 
+Train step of epoch 0:  59%|█████▉    | 296/500 [20:20<14:09,  4.16s/it, gpt_loss=0.117, lr=4.4e-6]
+[2026-05-13 00:49:53] 
+Train step of epoch 0:  59%|█████▉    | 296/500 [20:25<14:09,  4.16s/it, gpt_loss=0.171, lr=4.4e-6]
+[2026-05-13 00:49:54] [2026-05-13 00:49:54,117 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:49:54] [2026-05-13 00:49:54,117 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:49:58] 
+Train step of epoch 0:  59%|█████▉    | 297/500 [20:25<14:27,  4.27s/it, gpt_loss=0.171, lr=4.4e-6]
+[2026-05-13 00:49:58] 
+Train step of epoch 0:  59%|█████▉    | 297/500 [20:29<14:27,  4.27s/it, gpt_loss=0.155, lr=4.4e-6]
+[2026-05-13 00:50:02] 
+Train step of epoch 0:  60%|█████▉    | 298/500 [20:29<14:53,  4.42s/it, gpt_loss=0.155, lr=4.4e-6]
+[2026-05-13 00:50:02] 
+Train step of epoch 0:  60%|█████▉    | 298/500 [20:34<14:53,  4.42s/it, gpt_loss=0.128, lr=4.4e-6]
+[2026-05-13 00:50:05] 
+Train step of epoch 0:  60%|█████▉    | 299/500 [20:34<14:51,  4.43s/it, gpt_loss=0.128, lr=4.4e-6]
+[2026-05-13 00:50:05] 
+Train step of epoch 0:  60%|█████▉    | 299/500 [20:37<14:51,  4.43s/it, gpt_loss=0.134, lr=4.29e-6]
+[2026-05-13 00:50:10] 
+Train step of epoch 0:  60%|██████    | 300/500 [20:37<13:39,  4.10s/it, gpt_loss=0.134, lr=4.29e-6]
+[2026-05-13 00:50:10] 
+Train step of epoch 0:  60%|██████    | 300/500 [20:41<13:39,  4.10s/it, gpt_loss=0.136, lr=4.29e-6]
+[2026-05-13 00:50:15] 
+Train step of epoch 0:  60%|██████    | 301/500 [20:41<13:46,  4.15s/it, gpt_loss=0.136, lr=4.29e-6]
+[2026-05-13 00:50:15] 
+Train step of epoch 0:  60%|██████    | 301/500 [20:47<13:46,  4.15s/it, gpt_loss=0.143, lr=4.29e-6]
+[2026-05-13 00:50:18] 
+Train step of epoch 0:  60%|██████    | 302/500 [20:47<14:59,  4.54s/it, gpt_loss=0.143, lr=4.29e-6]
+[2026-05-13 00:50:18] 
+Train step of epoch 0:  60%|██████    | 302/500 [20:50<14:59,  4.54s/it, gpt_loss=0.127, lr=4.29e-6]
+[2026-05-13 00:50:21] 
+Train step of epoch 0:  61%|██████    | 303/500 [20:50<13:21,  4.07s/it, gpt_loss=0.127, lr=4.29e-6]
+[2026-05-13 00:50:21] 
+Train step of epoch 0:  61%|██████    | 303/500 [20:53<13:21,  4.07s/it, gpt_loss=0.157, lr=4.18e-6]
+[2026-05-13 00:50:24] [2026-05-13 00:50:24,264 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:50:26] 
+Train step of epoch 0:  61%|██████    | 304/500 [20:53<12:39,  3.87s/it, gpt_loss=0.157, lr=4.18e-6]
+[2026-05-13 00:50:26] 
+Train step of epoch 0:  61%|██████    | 304/500 [20:58<12:39,  3.87s/it, gpt_loss=0.165, lr=4.18e-6]
+[2026-05-13 00:50:29] 
+Train step of epoch 0:  61%|██████    | 305/500 [20:58<13:27,  4.14s/it, gpt_loss=0.165, lr=4.18e-6]
+[2026-05-13 00:50:29] 
+Train step of epoch 0:  61%|██████    | 305/500 [21:01<13:27,  4.14s/it, gpt_loss=0.131, lr=4.18e-6]
+[2026-05-13 00:50:34] 
+Train step of epoch 0:  61%|██████    | 306/500 [21:01<12:11,  3.77s/it, gpt_loss=0.131, lr=4.18e-6]
+[2026-05-13 00:50:34] 
+Train step of epoch 0:  61%|██████    | 306/500 [21:06<12:11,  3.77s/it, gpt_loss=0.11, lr=4.18e-6] 
+[2026-05-13 00:50:37] [2026-05-13 00:50:37,508 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:50:38] 
+Train step of epoch 0:  61%|██████▏   | 307/500 [21:06<13:06,  4.08s/it, gpt_loss=0.11, lr=4.18e-6]
+[2026-05-13 00:50:38] 
+Train step of epoch 0:  61%|██████▏   | 307/500 [21:10<13:06,  4.08s/it, gpt_loss=0.12, lr=4.07e-6]
+[2026-05-13 00:50:42] 
+Train step of epoch 0:  62%|██████▏   | 308/500 [21:10<13:13,  4.13s/it, gpt_loss=0.12, lr=4.07e-6]
+[2026-05-13 00:50:42] 
+Train step of epoch 0:  62%|██████▏   | 308/500 [21:14<13:13,  4.13s/it, gpt_loss=0.138, lr=4.07e-6]
+[2026-05-13 00:50:46] 
+Train step of epoch 0:  62%|██████▏   | 309/500 [21:14<12:48,  4.02s/it, gpt_loss=0.138, lr=4.07e-6]
+[2026-05-13 00:50:46] 
+Train step of epoch 0:  62%|██████▏   | 309/500 [21:18<12:48,  4.02s/it, gpt_loss=0.137, lr=4.07e-6]
+[2026-05-13 00:50:51] 
+Train step of epoch 0:  62%|██████▏   | 310/500 [21:18<12:49,  4.05s/it, gpt_loss=0.137, lr=4.07e-6]
+[2026-05-13 00:50:51] 
+Train step of epoch 0:  62%|██████▏   | 310/500 [21:22<12:49,  4.05s/it, gpt_loss=0.158, lr=4.07e-6]
+[2026-05-13 00:50:54] [2026-05-13 00:50:54,382 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:50:54] [2026-05-13 00:50:54,382 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:50:54] 
+Train step of epoch 0:  62%|██████▏   | 311/500 [21:22<13:16,  4.22s/it, gpt_loss=0.158, lr=4.07e-6]
+[2026-05-13 00:50:54] 
+Train step of epoch 0:  62%|██████▏   | 311/500 [21:26<13:16,  4.22s/it, gpt_loss=0.133, lr=3.95e-6]
+[2026-05-13 00:50:58] 
+Train step of epoch 0:  62%|██████▏   | 312/500 [21:26<12:43,  4.06s/it, gpt_loss=0.133, lr=3.95e-6]
+[2026-05-13 00:50:58] 
+Train step of epoch 0:  62%|██████▏   | 312/500 [21:29<12:43,  4.06s/it, gpt_loss=0.119, lr=3.95e-6]
+[2026-05-13 00:51:00] [2026-05-13 00:51:00,667 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 00:51:01] 
+Train step of epoch 0:  63%|██████▎   | 313/500 [21:29<11:53,  3.82s/it, gpt_loss=0.119, lr=3.95e-6]
+[2026-05-13 00:51:01] 
+Train step of epoch 0:  63%|██████▎   | 313/500 [21:33<11:53,  3.82s/it, gpt_loss=0.114, lr=3.95e-6]
+[2026-05-13 00:51:05] 
+Train step of epoch 0:  63%|██████▎   | 314/500 [21:33<11:38,  3.75s/it, gpt_loss=0.114, lr=3.95e-6]
+[2026-05-13 00:51:05] 
+Train step of epoch 0:  63%|██████▎   | 314/500 [21:37<11:38,  3.75s/it, gpt_loss=0.122, lr=3.95e-6]
+[2026-05-13 00:51:09] 
+Train step of epoch 0:  63%|██████▎   | 315/500 [21:37<11:38,  3.77s/it, gpt_loss=0.122, lr=3.95e-6]
+[2026-05-13 00:51:09] 
+Train step of epoch 0:  63%|██████▎   | 315/500 [21:41<11:38,  3.77s/it, gpt_loss=0.115, lr=3.85e-6]
+[2026-05-13 00:51:14] 
+Train step of epoch 0:  63%|██████▎   | 316/500 [21:41<11:35,  3.78s/it, gpt_loss=0.115, lr=3.85e-6]
+[2026-05-13 00:51:14] 
+Train step of epoch 0:  63%|██████▎   | 316/500 [21:46<11:35,  3.78s/it, gpt_loss=0.121, lr=3.85e-6]
+[2026-05-13 00:51:17] 
+Train step of epoch 0:  63%|██████▎   | 317/500 [21:46<12:46,  4.19s/it, gpt_loss=0.121, lr=3.85e-6]
+[2026-05-13 00:51:17] 
+Train step of epoch 0:  63%|██████▎   | 317/500 [21:49<12:46,  4.19s/it, gpt_loss=0.108, lr=3.85e-6]
+[2026-05-13 00:51:24] 
+Train step of epoch 0:  64%|██████▎   | 318/500 [21:49<11:53,  3.92s/it, gpt_loss=0.108, lr=3.85e-6]
+[2026-05-13 00:51:24] 
+Train step of epoch 0:  64%|██████▎   | 318/500 [21:55<11:53,  3.92s/it, gpt_loss=0.103, lr=3.85e-6]
+[2026-05-13 00:51:24] [2026-05-13 00:51:24,541 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:51:24] [2026-05-13 00:51:24,541 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 00:51:27] 
+Train step of epoch 0:  64%|██████▍   | 319/500 [21:55<14:03,  4.66s/it, gpt_loss=0.103, lr=3.85e-6]
+[2026-05-13 00:51:27] 
+Train step of epoch 0:  64%|██████▍   | 319/500 [21:59<14:03,  4.66s/it, gpt_loss=0.155, lr=3.74e-6]
+[2026-05-13 00:51:33] 
+Train step of epoch 0:  64%|██████▍   | 320/500 [21:59<13:01,  4.34s/it, gpt_loss=0.155, lr=3.74e-6]
+[2026-05-13 00:51:33] 
+Train step of epoch 0:  64%|██████▍   | 320/500 [22:04<13:01,  4.34s/it, gpt_loss=0.165, lr=3.74e-6]
+[2026-05-13 00:51:37] 
+Train step of epoch 0:  64%|██████▍   | 321/500 [22:04<13:54,  4.66s/it, gpt_loss=0.165, lr=3.74e-6]
+[2026-05-13 00:51:37] 
+Train step of epoch 0:  64%|██████▍   | 321/500 [22:09<13:54,  4.66s/it, gpt_loss=0.134, lr=3.74e-6]
+[2026-05-13 00:51:37] [2026-05-13 00:51:37,543 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:51:40] 
+Train step of epoch 0:  64%|██████▍   | 322/500 [22:09<13:22,  4.51s/it, gpt_loss=0.134, lr=3.74e-6]
+[2026-05-13 00:51:40] 
+Train step of epoch 0:  64%|██████▍   | 322/500 [22:12<13:22,  4.51s/it, gpt_loss=0.106, lr=3.74e-6]
+[2026-05-13 00:51:44] 
+Train step of epoch 0:  65%|██████▍   | 323/500 [22:12<12:11,  4.13s/it, gpt_loss=0.106, lr=3.74e-6]
+[2026-05-13 00:51:44] 
+Train step of epoch 0:  65%|██████▍   | 323/500 [22:16<12:11,  4.13s/it, gpt_loss=0.125, lr=3.63e-6]
+[2026-05-13 00:51:50] 
+Train step of epoch 0:  65%|██████▍   | 324/500 [22:16<12:17,  4.19s/it, gpt_loss=0.125, lr=3.63e-6]
+[2026-05-13 00:51:50] 
+Train step of epoch 0:  65%|██████▍   | 324/500 [22:22<12:17,  4.19s/it, gpt_loss=0.114, lr=3.63e-6]
+[2026-05-13 00:51:54] [2026-05-13 00:51:54,664 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:51:54] [2026-05-13 00:51:54,664 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:51:55] 
+Train step of epoch 0:  65%|██████▌   | 325/500 [22:22<13:37,  4.67s/it, gpt_loss=0.114, lr=3.63e-6]
+[2026-05-13 00:51:55] 
+Train step of epoch 0:  65%|██████▌   | 325/500 [22:26<13:37,  4.67s/it, gpt_loss=0.101, lr=3.63e-6]
+[2026-05-13 00:51:59] 
+Train step of epoch 0:  65%|██████▌   | 326/500 [22:26<13:22,  4.61s/it, gpt_loss=0.101, lr=3.63e-6]
+[2026-05-13 00:51:59] 
+Train step of epoch 0:  65%|██████▌   | 326/500 [22:31<13:22,  4.61s/it, gpt_loss=0.148, lr=3.63e-6]
+[2026-05-13 00:52:04] 
+Train step of epoch 0:  65%|██████▌   | 327/500 [22:31<13:28,  4.67s/it, gpt_loss=0.148, lr=3.63e-6]
+[2026-05-13 00:52:04] 
+Train step of epoch 0:  65%|██████▌   | 327/500 [22:36<13:28,  4.67s/it, gpt_loss=0.111, lr=3.52e-6]
+[2026-05-13 00:52:08] 
+Train step of epoch 0:  66%|██████▌   | 328/500 [22:36<13:32,  4.73s/it, gpt_loss=0.111, lr=3.52e-6]
+[2026-05-13 00:52:08] 
+Train step of epoch 0:  66%|██████▌   | 328/500 [22:40<13:32,  4.73s/it, gpt_loss=0.118, lr=3.52e-6]
+[2026-05-13 00:52:12] 
+Train step of epoch 0:  66%|██████▌   | 329/500 [22:40<12:36,  4.42s/it, gpt_loss=0.118, lr=3.52e-6]
+[2026-05-13 00:52:12] 
+Train step of epoch 0:  66%|██████▌   | 329/500 [22:44<12:36,  4.42s/it, gpt_loss=0.152, lr=3.52e-6]
+[2026-05-13 00:52:16] 
+Train step of epoch 0:  66%|██████▌   | 330/500 [22:44<12:22,  4.37s/it, gpt_loss=0.152, lr=3.52e-6]
+[2026-05-13 00:52:16] 
+Train step of epoch 0:  66%|██████▌   | 330/500 [22:48<12:22,  4.37s/it, gpt_loss=0.144, lr=3.52e-6]
+[2026-05-13 00:52:22] 
+Train step of epoch 0:  66%|██████▌   | 331/500 [22:48<11:48,  4.19s/it, gpt_loss=0.144, lr=3.52e-6]
+[2026-05-13 00:52:22] 
+Train step of epoch 0:  66%|██████▌   | 331/500 [22:54<11:48,  4.19s/it, gpt_loss=0.112, lr=3.42e-6]
+[2026-05-13 00:52:24] [2026-05-13 00:52:24,815 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:52:27] 
+Train step of epoch 0:  66%|██████▋   | 332/500 [22:54<13:04,  4.67s/it, gpt_loss=0.112, lr=3.42e-6]
+[2026-05-13 00:52:27] 
+Train step of epoch 0:  66%|██████▋   | 332/500 [22:59<13:04,  4.67s/it, gpt_loss=0.117, lr=3.42e-6]
+[2026-05-13 00:52:31] 
+Train step of epoch 0:  67%|██████▋   | 333/500 [22:59<13:48,  4.96s/it, gpt_loss=0.117, lr=3.42e-6]
+[2026-05-13 00:52:31] 
+Train step of epoch 0:  67%|██████▋   | 333/500 [23:03<13:48,  4.96s/it, gpt_loss=0.11, lr=3.42e-6] 
+[2026-05-13 00:52:32] [2026-05-13 00:52:32,547 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 00:52:35] 
+Train step of epoch 0:  67%|██████▋   | 334/500 [23:03<12:50,  4.64s/it, gpt_loss=0.11, lr=3.42e-6]
+[2026-05-13 00:52:35] 
+Train step of epoch 0:  67%|██████▋   | 334/500 [23:07<12:50,  4.64s/it, gpt_loss=0.146, lr=3.42e-6]
+[2026-05-13 00:52:37] [2026-05-13 00:52:37,578 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:52:40] 
+Train step of epoch 0:  67%|██████▋   | 335/500 [23:07<12:16,  4.46s/it, gpt_loss=0.146, lr=3.42e-6]
+[2026-05-13 00:52:40] 
+Train step of epoch 0:  67%|██████▋   | 335/500 [23:12<12:16,  4.46s/it, gpt_loss=0.126, lr=3.32e-6]
+[2026-05-13 00:52:44] 
+Train step of epoch 0:  67%|██████▋   | 336/500 [23:12<12:04,  4.42s/it, gpt_loss=0.126, lr=3.32e-6]
+[2026-05-13 00:52:44] 
+Train step of epoch 0:  67%|██████▋   | 336/500 [23:16<12:04,  4.42s/it, gpt_loss=0.121, lr=3.32e-6]
+[2026-05-13 00:52:46] 
+Train step of epoch 0:  67%|██████▋   | 337/500 [23:16<11:44,  4.32s/it, gpt_loss=0.121, lr=3.32e-6]
+[2026-05-13 00:52:46] 
+Train step of epoch 0:  67%|██████▋   | 337/500 [23:18<11:44,  4.32s/it, gpt_loss=0.105, lr=3.32e-6]
+[2026-05-13 00:52:50] 
+Train step of epoch 0:  68%|██████▊   | 338/500 [23:18<10:24,  3.86s/it, gpt_loss=0.105, lr=3.32e-6]
+[2026-05-13 00:52:50] 
+Train step of epoch 0:  68%|██████▊   | 338/500 [23:22<10:24,  3.86s/it, gpt_loss=0.111, lr=3.32e-6]
+[2026-05-13 00:52:54] 
+Train step of epoch 0:  68%|██████▊   | 339/500 [23:22<10:07,  3.78s/it, gpt_loss=0.111, lr=3.32e-6]
+[2026-05-13 00:52:54] 
+Train step of epoch 0:  68%|██████▊   | 339/500 [23:26<10:07,  3.78s/it, gpt_loss=0.142, lr=3.22e-6]
+[2026-05-13 00:52:55] [2026-05-13 00:52:54,928 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:52:55] [2026-05-13 00:52:54,928 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:52:59] 
+Train step of epoch 0:  68%|██████▊   | 340/500 [23:26<09:54,  3.72s/it, gpt_loss=0.142, lr=3.22e-6]
+[2026-05-13 00:52:59] 
+Train step of epoch 0:  68%|██████▊   | 340/500 [23:31<09:54,  3.72s/it, gpt_loss=0.134, lr=3.22e-6]
+[2026-05-13 00:53:06] 
+Train step of epoch 0:  68%|██████▊   | 341/500 [23:31<11:25,  4.31s/it, gpt_loss=0.134, lr=3.22e-6]
+[2026-05-13 00:53:06] 
+Train step of epoch 0:  68%|██████▊   | 341/500 [23:38<11:25,  4.31s/it, gpt_loss=0.106, lr=3.22e-6]
+[2026-05-13 00:53:13] 
+Train step of epoch 0:  68%|██████▊   | 342/500 [23:38<12:54,  4.90s/it, gpt_loss=0.106, lr=3.22e-6]
+[2026-05-13 00:53:13] 
+Train step of epoch 0:  68%|██████▊   | 342/500 [23:45<12:54,  4.90s/it, gpt_loss=0.11, lr=3.22e-6] 
+[2026-05-13 00:53:17] 
+Train step of epoch 0:  69%|██████▊   | 343/500 [23:45<14:26,  5.52s/it, gpt_loss=0.11, lr=3.22e-6]
+[2026-05-13 00:53:17] 
+Train step of epoch 0:  69%|██████▊   | 343/500 [23:49<14:26,  5.52s/it, gpt_loss=0.128, lr=3.12e-6]
+[2026-05-13 00:53:21] 
+Train step of epoch 0:  69%|██████▉   | 344/500 [23:49<13:41,  5.26s/it, gpt_loss=0.128, lr=3.12e-6]
+[2026-05-13 00:53:21] 
+Train step of epoch 0:  69%|██████▉   | 344/500 [23:53<13:41,  5.26s/it, gpt_loss=0.117, lr=3.12e-6]
+[2026-05-13 00:53:25] [2026-05-13 00:53:25,065 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 00:53:25] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 00:53:25] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 00:53:25] | Running            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 00:53:25] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 00:53:25] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 00:53:25] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 00:53:25] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 00:53:25] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 00:53:25] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 00:53:25] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 00:53:25] 
+[2026-05-13 00:53:25] [2026-05-13 00:53:25,065 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:53:25] [2026-05-13 00:53:25,065 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 00:53:25] 
+Train step of epoch 0:  69%|██████▉   | 345/500 [23:53<12:38,  4.89s/it, gpt_loss=0.117, lr=3.12e-6]
+[2026-05-13 00:53:25] 
+Train step of epoch 0:  69%|██████▉   | 345/500 [23:57<12:38,  4.89s/it, gpt_loss=0.111, lr=3.12e-6]
+[2026-05-13 00:53:28] 
+Train step of epoch 0:  69%|██████▉   | 346/500 [23:57<11:45,  4.58s/it, gpt_loss=0.111, lr=3.12e-6]
+[2026-05-13 00:53:28] 
+Train step of epoch 0:  69%|██████▉   | 346/500 [24:00<11:45,  4.58s/it, gpt_loss=0.135, lr=3.12e-6]
+[2026-05-13 00:53:32] 
+Train step of epoch 0:  69%|██████▉   | 347/500 [24:00<10:32,  4.14s/it, gpt_loss=0.135, lr=3.12e-6]
+[2026-05-13 00:53:32] 
+Train step of epoch 0:  69%|██████▉   | 347/500 [24:04<10:32,  4.14s/it, gpt_loss=0.103, lr=3.02e-6]
+[2026-05-13 00:53:36] 
+Train step of epoch 0:  70%|██████▉   | 348/500 [24:04<10:30,  4.15s/it, gpt_loss=0.103, lr=3.02e-6]
+[2026-05-13 00:53:36] 
+Train step of epoch 0:  70%|██████▉   | 348/500 [24:08<10:30,  4.15s/it, gpt_loss=0.152, lr=3.02e-6]
+[2026-05-13 00:53:37] [2026-05-13 00:53:37,615 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:53:40] 
+Train step of epoch 0:  70%|██████▉   | 349/500 [24:08<10:14,  4.07s/it, gpt_loss=0.152, lr=3.02e-6]
+[2026-05-13 00:53:40] 
+Train step of epoch 0:  70%|██████▉   | 349/500 [24:12<10:14,  4.07s/it, gpt_loss=0.129, lr=3.02e-6]
+[2026-05-13 00:53:45] 
+Train step of epoch 0:  70%|███████   | 350/500 [24:12<09:44,  3.90s/it, gpt_loss=0.129, lr=3.02e-6]
+[2026-05-13 00:53:45] 
+Train step of epoch 0:  70%|███████   | 350/500 [24:17<09:44,  3.90s/it, gpt_loss=0.116, lr=3.02e-6]
+[2026-05-13 00:53:49] 
+Train step of epoch 0:  70%|███████   | 351/500 [24:17<10:53,  4.39s/it, gpt_loss=0.116, lr=3.02e-6]
+[2026-05-13 00:53:49] 
+Train step of epoch 0:  70%|███████   | 351/500 [24:21<10:53,  4.39s/it, gpt_loss=0.143, lr=2.92e-6]
+[2026-05-13 00:53:52] 
+Train step of epoch 0:  70%|███████   | 352/500 [24:21<10:21,  4.20s/it, gpt_loss=0.143, lr=2.92e-6]
+[2026-05-13 00:53:52] 
+Train step of epoch 0:  70%|███████   | 352/500 [24:24<10:21,  4.20s/it, gpt_loss=0.117, lr=2.92e-6]
+[2026-05-13 00:53:55] [2026-05-13 00:53:55,233 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:53:55] [2026-05-13 00:53:55,233 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:53:55] 
+Train step of epoch 0:  71%|███████   | 353/500 [24:24<09:11,  3.75s/it, gpt_loss=0.117, lr=2.92e-6]
+[2026-05-13 00:53:55] 
+Train step of epoch 0:  71%|███████   | 353/500 [24:27<09:11,  3.75s/it, gpt_loss=0.113, lr=2.92e-6]
+[2026-05-13 00:54:01] 
+Train step of epoch 0:  71%|███████   | 354/500 [24:27<08:48,  3.62s/it, gpt_loss=0.113, lr=2.92e-6]
+[2026-05-13 00:54:01] 
+Train step of epoch 0:  71%|███████   | 354/500 [24:33<08:48,  3.62s/it, gpt_loss=0.129, lr=2.92e-6]
+[2026-05-13 00:54:04] [2026-05-13 00:54:04,707 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 00:54:06] 
+Train step of epoch 0:  71%|███████   | 355/500 [24:33<10:39,  4.41s/it, gpt_loss=0.129, lr=2.92e-6]
+[2026-05-13 00:54:06] 
+Train step of epoch 0:  71%|███████   | 355/500 [24:38<10:39,  4.41s/it, gpt_loss=0.156, lr=2.83e-6]
+[2026-05-13 00:54:09] 
+Train step of epoch 0:  71%|███████   | 356/500 [24:38<10:35,  4.41s/it, gpt_loss=0.156, lr=2.83e-6]
+[2026-05-13 00:54:09] 
+Train step of epoch 0:  71%|███████   | 356/500 [24:41<10:35,  4.41s/it, gpt_loss=0.121, lr=2.83e-6]
+[2026-05-13 00:54:12] 
+Train step of epoch 0:  71%|███████▏  | 357/500 [24:41<09:38,  4.04s/it, gpt_loss=0.121, lr=2.83e-6]
+[2026-05-13 00:54:12] 
+Train step of epoch 0:  71%|███████▏  | 357/500 [24:44<09:38,  4.04s/it, gpt_loss=0.127, lr=2.83e-6]
+[2026-05-13 00:54:16] 
+Train step of epoch 0:  72%|███████▏  | 358/500 [24:44<08:52,  3.75s/it, gpt_loss=0.127, lr=2.83e-6]
+[2026-05-13 00:54:16] 
+Train step of epoch 0:  72%|███████▏  | 358/500 [24:48<08:52,  3.75s/it, gpt_loss=0.124, lr=2.83e-6]
+[2026-05-13 00:54:23] 
+Train step of epoch 0:  72%|███████▏  | 359/500 [24:48<09:05,  3.87s/it, gpt_loss=0.124, lr=2.83e-6]
+[2026-05-13 00:54:23] 
+Train step of epoch 0:  72%|███████▏  | 359/500 [24:55<09:05,  3.87s/it, gpt_loss=0.113, lr=2.73e-6]
+[2026-05-13 00:54:25] [2026-05-13 00:54:25,384 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:54:27] 
+Train step of epoch 0:  72%|███████▏  | 360/500 [24:55<10:54,  4.67s/it, gpt_loss=0.113, lr=2.73e-6]
+[2026-05-13 00:54:27] 
+Train step of epoch 0:  72%|███████▏  | 360/500 [24:58<10:54,  4.67s/it, gpt_loss=0.133, lr=2.73e-6]
+[2026-05-13 00:54:31] 
+Train step of epoch 0:  72%|███████▏  | 361/500 [24:58<10:15,  4.43s/it, gpt_loss=0.133, lr=2.73e-6]
+[2026-05-13 00:54:31] 
+Train step of epoch 0:  72%|███████▏  | 361/500 [25:03<10:15,  4.43s/it, gpt_loss=0.12, lr=2.73e-6] 
+[2026-05-13 00:54:34] 
+Train step of epoch 0:  72%|███████▏  | 362/500 [25:03<09:56,  4.32s/it, gpt_loss=0.12, lr=2.73e-6]
+[2026-05-13 00:54:34] 
+Train step of epoch 0:  72%|███████▏  | 362/500 [25:06<09:56,  4.32s/it, gpt_loss=0.132, lr=2.73e-6]
+[2026-05-13 00:54:37] [2026-05-13 00:54:37,651 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:54:38] 
+Train step of epoch 0:  73%|███████▎  | 363/500 [25:06<09:34,  4.20s/it, gpt_loss=0.132, lr=2.73e-6]
+[2026-05-13 00:54:38] 
+Train step of epoch 0:  73%|███████▎  | 363/500 [25:10<09:34,  4.20s/it, gpt_loss=0.136, lr=2.64e-6]
+[2026-05-13 00:54:42] 
+Train step of epoch 0:  73%|███████▎  | 364/500 [25:10<08:46,  3.87s/it, gpt_loss=0.136, lr=2.64e-6]
+[2026-05-13 00:54:42] 
+Train step of epoch 0:  73%|███████▎  | 364/500 [25:14<08:46,  3.87s/it, gpt_loss=0.144, lr=2.64e-6]
+[2026-05-13 00:54:48] 
+Train step of epoch 0:  73%|███████▎  | 365/500 [25:14<09:24,  4.18s/it, gpt_loss=0.144, lr=2.64e-6]
+[2026-05-13 00:54:48] 
+Train step of epoch 0:  73%|███████▎  | 365/500 [25:20<09:24,  4.18s/it, gpt_loss=0.131, lr=2.64e-6]
+[2026-05-13 00:54:55] [2026-05-13 00:54:55,495 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:54:55] [2026-05-13 00:54:55,495 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:54:56] 
+Train step of epoch 0:  73%|███████▎  | 366/500 [25:20<10:22,  4.64s/it, gpt_loss=0.131, lr=2.64e-6]
+[2026-05-13 00:54:56] 
+Train step of epoch 0:  73%|███████▎  | 366/500 [25:28<10:22,  4.64s/it, gpt_loss=0.129, lr=2.64e-6]
+[2026-05-13 00:54:59] 
+Train step of epoch 0:  73%|███████▎  | 367/500 [25:28<12:12,  5.51s/it, gpt_loss=0.129, lr=2.64e-6]
+[2026-05-13 00:54:59] 
+Train step of epoch 0:  73%|███████▎  | 367/500 [25:31<12:12,  5.51s/it, gpt_loss=0.131, lr=2.55e-6]
+[2026-05-13 00:55:04] 
+Train step of epoch 0:  74%|███████▎  | 368/500 [25:31<10:55,  4.96s/it, gpt_loss=0.131, lr=2.55e-6]
+[2026-05-13 00:55:04] 
+Train step of epoch 0:  74%|███████▎  | 368/500 [25:36<10:55,  4.96s/it, gpt_loss=0.107, lr=2.55e-6]
+[2026-05-13 00:55:08] 
+Train step of epoch 0:  74%|███████▍  | 369/500 [25:36<10:20,  4.74s/it, gpt_loss=0.107, lr=2.55e-6]
+[2026-05-13 00:55:08] 
+Train step of epoch 0:  74%|███████▍  | 369/500 [25:40<10:20,  4.74s/it, gpt_loss=0.109, lr=2.55e-6]
+[2026-05-13 00:55:13] 
+Train step of epoch 0:  74%|███████▍  | 370/500 [25:40<10:19,  4.77s/it, gpt_loss=0.109, lr=2.55e-6]
+[2026-05-13 00:55:13] 
+Train step of epoch 0:  74%|███████▍  | 370/500 [25:45<10:19,  4.77s/it, gpt_loss=0.111, lr=2.55e-6]
+[2026-05-13 00:55:16] 
+Train step of epoch 0:  74%|███████▍  | 371/500 [25:45<09:48,  4.56s/it, gpt_loss=0.111, lr=2.55e-6]
+[2026-05-13 00:55:16] 
+Train step of epoch 0:  74%|███████▍  | 371/500 [25:48<09:48,  4.56s/it, gpt_loss=0.119, lr=2.47e-6]
+[2026-05-13 00:55:20] 
+Train step of epoch 0:  74%|███████▍  | 372/500 [25:48<09:01,  4.23s/it, gpt_loss=0.119, lr=2.47e-6]
+[2026-05-13 00:55:20] 
+Train step of epoch 0:  74%|███████▍  | 372/500 [25:52<09:01,  4.23s/it, gpt_loss=0.152, lr=2.47e-6]
+[2026-05-13 00:55:23] 
+Train step of epoch 0:  75%|███████▍  | 373/500 [25:52<08:50,  4.18s/it, gpt_loss=0.152, lr=2.47e-6]
+[2026-05-13 00:55:23] 
+Train step of epoch 0:  75%|███████▍  | 373/500 [25:55<08:50,  4.18s/it, gpt_loss=0.134, lr=2.47e-6]
+[2026-05-13 00:55:25] [2026-05-13 00:55:25,636 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:55:25] [2026-05-13 00:55:25,636 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 00:55:28] 
+Train step of epoch 0:  75%|███████▍  | 374/500 [25:55<08:04,  3.85s/it, gpt_loss=0.134, lr=2.47e-6]
+[2026-05-13 00:55:28] 
+Train step of epoch 0:  75%|███████▍  | 374/500 [26:00<08:04,  3.85s/it, gpt_loss=0.115, lr=2.47e-6]
+[2026-05-13 00:55:32] 
+Train step of epoch 0:  75%|███████▌  | 375/500 [26:00<08:29,  4.08s/it, gpt_loss=0.115, lr=2.47e-6]
+[2026-05-13 00:55:32] 
+Train step of epoch 0:  75%|███████▌  | 375/500 [26:04<08:29,  4.08s/it, gpt_loss=0.115, lr=2.38e-6]
+[2026-05-13 00:55:36] [2026-05-13 00:55:36,356 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 00:55:36] 
+Train step of epoch 0:  75%|███████▌  | 376/500 [26:04<08:17,  4.01s/it, gpt_loss=0.115, lr=2.38e-6]
+[2026-05-13 00:55:36] 
+Train step of epoch 0:  75%|███████▌  | 376/500 [26:08<08:17,  4.01s/it, gpt_loss=0.126, lr=2.38e-6]
+[2026-05-13 00:55:37] [2026-05-13 00:55:37,687 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:55:41] 
+Train step of epoch 0:  75%|███████▌  | 377/500 [26:08<08:32,  4.17s/it, gpt_loss=0.126, lr=2.38e-6]
+[2026-05-13 00:55:41] 
+Train step of epoch 0:  75%|███████▌  | 377/500 [26:13<08:32,  4.17s/it, gpt_loss=0.134, lr=2.38e-6]
+[2026-05-13 00:55:46] 
+Train step of epoch 0:  76%|███████▌  | 378/500 [26:13<08:51,  4.36s/it, gpt_loss=0.134, lr=2.38e-6]
+[2026-05-13 00:55:46] 
+Train step of epoch 0:  76%|███████▌  | 378/500 [26:18<08:51,  4.36s/it, gpt_loss=0.127, lr=2.38e-6]
+[2026-05-13 00:55:51] 
+Train step of epoch 0:  76%|███████▌  | 379/500 [26:18<09:25,  4.68s/it, gpt_loss=0.127, lr=2.38e-6]
+[2026-05-13 00:55:51] 
+Train step of epoch 0:  76%|███████▌  | 379/500 [26:23<09:25,  4.68s/it, gpt_loss=0.0935, lr=2.3e-6]
+[2026-05-13 00:55:55] 
+Train step of epoch 0:  76%|███████▌  | 380/500 [26:23<09:22,  4.69s/it, gpt_loss=0.0935, lr=2.3e-6]
+[2026-05-13 00:55:55] 
+Train step of epoch 0:  76%|███████▌  | 380/500 [26:27<09:22,  4.69s/it, gpt_loss=0.116, lr=2.3e-6] 
+[2026-05-13 00:55:55] [2026-05-13 00:55:55,761 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:55:55] [2026-05-13 00:55:55,761 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:56:01] 
+Train step of epoch 0:  76%|███████▌  | 381/500 [26:27<08:47,  4.43s/it, gpt_loss=0.116, lr=2.3e-6]
+[2026-05-13 00:56:01] 
+Train step of epoch 0:  76%|███████▌  | 381/500 [26:33<08:47,  4.43s/it, gpt_loss=0.168, lr=2.3e-6]
+[2026-05-13 00:56:05] 
+Train step of epoch 0:  76%|███████▋  | 382/500 [26:33<09:36,  4.89s/it, gpt_loss=0.168, lr=2.3e-6]
+[2026-05-13 00:56:05] 
+Train step of epoch 0:  76%|███████▋  | 382/500 [26:37<09:36,  4.89s/it, gpt_loss=0.1, lr=2.3e-6]  
+[2026-05-13 00:56:09] 
+Train step of epoch 0:  77%|███████▋  | 383/500 [26:37<08:50,  4.53s/it, gpt_loss=0.1, lr=2.3e-6]
+[2026-05-13 00:56:09] 
+Train step of epoch 0:  77%|███████▋  | 383/500 [26:41<08:50,  4.53s/it, gpt_loss=0.141, lr=2.22e-6]
+[2026-05-13 00:56:15] 
+Train step of epoch 0:  77%|███████▋  | 384/500 [26:41<08:41,  4.50s/it, gpt_loss=0.141, lr=2.22e-6]
+[2026-05-13 00:56:15] 
+Train step of epoch 0:  77%|███████▋  | 384/500 [26:47<08:41,  4.50s/it, gpt_loss=0.148, lr=2.22e-6]
+[2026-05-13 00:56:20] 
+Train step of epoch 0:  77%|███████▋  | 385/500 [26:47<09:45,  5.09s/it, gpt_loss=0.148, lr=2.22e-6]
+[2026-05-13 00:56:20] 
+Train step of epoch 0:  77%|███████▋  | 385/500 [26:52<09:45,  5.09s/it, gpt_loss=0.122, lr=2.22e-6]
+[2026-05-13 00:56:24] 
+Train step of epoch 0:  77%|███████▋  | 386/500 [26:52<09:13,  4.85s/it, gpt_loss=0.122, lr=2.22e-6]
+[2026-05-13 00:56:24] 
+Train step of epoch 0:  77%|███████▋  | 386/500 [26:56<09:13,  4.85s/it, gpt_loss=0.147, lr=2.22e-6]
+[2026-05-13 00:56:25] [2026-05-13 00:56:25,925 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:56:27] 
+Train step of epoch 0:  77%|███████▋  | 387/500 [26:56<08:37,  4.58s/it, gpt_loss=0.147, lr=2.22e-6]
+[2026-05-13 00:56:27] 
+Train step of epoch 0:  77%|███████▋  | 387/500 [26:59<08:37,  4.58s/it, gpt_loss=0.142, lr=2.14e-6]
+[2026-05-13 00:56:31] 
+Train step of epoch 0:  78%|███████▊  | 388/500 [26:59<08:03,  4.31s/it, gpt_loss=0.142, lr=2.14e-6]
+[2026-05-13 00:56:31] 
+Train step of epoch 0:  78%|███████▊  | 388/500 [27:03<08:03,  4.31s/it, gpt_loss=0.138, lr=2.14e-6]
+[2026-05-13 00:56:35] 
+Train step of epoch 0:  78%|███████▊  | 389/500 [27:03<07:35,  4.10s/it, gpt_loss=0.138, lr=2.14e-6]
+[2026-05-13 00:56:35] 
+Train step of epoch 0:  78%|███████▊  | 389/500 [27:07<07:35,  4.10s/it, gpt_loss=0.129, lr=2.14e-6]
+[2026-05-13 00:56:37] [2026-05-13 00:56:37,722 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:56:39] 
+Train step of epoch 0:  78%|███████▊  | 390/500 [27:07<07:18,  3.99s/it, gpt_loss=0.129, lr=2.14e-6]
+[2026-05-13 00:56:39] 
+Train step of epoch 0:  78%|███████▊  | 390/500 [27:11<07:18,  3.99s/it, gpt_loss=0.108, lr=2.14e-6]
+[2026-05-13 00:56:43] 
+Train step of epoch 0:  78%|███████▊  | 391/500 [27:11<07:33,  4.16s/it, gpt_loss=0.108, lr=2.14e-6]
+[2026-05-13 00:56:43] 
+Train step of epoch 0:  78%|███████▊  | 391/500 [27:15<07:33,  4.16s/it, gpt_loss=0.11, lr=2.06e-6] 
+[2026-05-13 00:56:47] 
+Train step of epoch 0:  78%|███████▊  | 392/500 [27:15<07:27,  4.14s/it, gpt_loss=0.11, lr=2.06e-6]
+[2026-05-13 00:56:47] 
+Train step of epoch 0:  78%|███████▊  | 392/500 [27:19<07:27,  4.14s/it, gpt_loss=0.105, lr=2.06e-6]
+[2026-05-13 00:56:51] 
+Train step of epoch 0:  79%|███████▊  | 393/500 [27:19<07:20,  4.11s/it, gpt_loss=0.105, lr=2.06e-6]
+[2026-05-13 00:56:51] 
+Train step of epoch 0:  79%|███████▊  | 393/500 [27:23<07:20,  4.11s/it, gpt_loss=0.148, lr=2.06e-6]
+[2026-05-13 00:56:54] 
+Train step of epoch 0:  79%|███████▉  | 394/500 [27:23<06:49,  3.87s/it, gpt_loss=0.148, lr=2.06e-6]
+[2026-05-13 00:56:54] 
+Train step of epoch 0:  79%|███████▉  | 394/500 [27:26<06:49,  3.87s/it, gpt_loss=0.13, lr=2.06e-6] 
+[2026-05-13 00:56:56] [2026-05-13 00:56:56,035 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:56:56] [2026-05-13 00:56:56,035 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:56:59] 
+Train step of epoch 0:  79%|███████▉  | 395/500 [27:26<06:35,  3.77s/it, gpt_loss=0.13, lr=2.06e-6]
+[2026-05-13 00:56:59] 
+Train step of epoch 0:  79%|███████▉  | 395/500 [27:31<06:35,  3.77s/it, gpt_loss=0.12, lr=1.99e-6]
+[2026-05-13 00:57:03] 
+Train step of epoch 0:  79%|███████▉  | 396/500 [27:31<07:01,  4.05s/it, gpt_loss=0.12, lr=1.99e-6]
+[2026-05-13 00:57:03] 
+Train step of epoch 0:  79%|███████▉  | 396/500 [27:35<07:01,  4.05s/it, gpt_loss=0.114, lr=1.99e-6]
+[2026-05-13 00:57:07] 
+Train step of epoch 0:  79%|███████▉  | 397/500 [27:35<06:54,  4.02s/it, gpt_loss=0.114, lr=1.99e-6]
+[2026-05-13 00:57:07] 
+Train step of epoch 0:  79%|███████▉  | 397/500 [27:39<06:54,  4.02s/it, gpt_loss=0.141, lr=1.99e-6]
+[2026-05-13 00:57:08] [2026-05-13 00:57:08,071 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 00:57:10] 
+Train step of epoch 0:  80%|███████▉  | 398/500 [27:39<06:57,  4.09s/it, gpt_loss=0.141, lr=1.99e-6]
+[2026-05-13 00:57:10] 
+Train step of epoch 0:  80%|███████▉  | 398/500 [27:42<06:57,  4.09s/it, gpt_loss=0.102, lr=1.99e-6]
+[2026-05-13 00:57:13] 
+Train step of epoch 0:  80%|███████▉  | 399/500 [27:42<06:12,  3.69s/it, gpt_loss=0.102, lr=1.99e-6]
+[2026-05-13 00:57:13] 
+Train step of epoch 0:  80%|███████▉  | 399/500 [27:45<06:12,  3.69s/it, gpt_loss=0.104, lr=1.92e-6]
+[2026-05-13 00:57:18] 
+Train step of epoch 0:  80%|████████  | 400/500 [27:45<05:52,  3.52s/it, gpt_loss=0.104, lr=1.92e-6]
+[2026-05-13 00:57:18] 
+Train step of epoch 0:  80%|████████  | 400/500 [27:50<05:52,  3.52s/it, gpt_loss=0.147, lr=1.92e-6]
+[2026-05-13 00:57:22] 
+Train step of epoch 0:  80%|████████  | 401/500 [27:50<06:44,  4.09s/it, gpt_loss=0.147, lr=1.92e-6]
+[2026-05-13 00:57:22] 
+Train step of epoch 0:  80%|████████  | 401/500 [27:54<06:44,  4.09s/it, gpt_loss=0.131, lr=1.92e-6]
+[2026-05-13 00:57:25] 
+Train step of epoch 0:  80%|████████  | 402/500 [27:54<06:26,  3.95s/it, gpt_loss=0.131, lr=1.92e-6]
+[2026-05-13 00:57:25] 
+Train step of epoch 0:  80%|████████  | 402/500 [27:58<06:26,  3.95s/it, gpt_loss=0.138, lr=1.92e-6]
+[2026-05-13 00:57:26] [2026-05-13 00:57:26,180 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:57:26] [2026-05-13 00:57:26,180 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 00:57:32] 
+Train step of epoch 0:  81%|████████  | 403/500 [27:58<06:10,  3.82s/it, gpt_loss=0.138, lr=1.92e-6]
+[2026-05-13 00:57:32] 
+Train step of epoch 0:  81%|████████  | 403/500 [28:04<06:10,  3.82s/it, gpt_loss=0.13, lr=1.85e-6] 
+[2026-05-13 00:57:36] 
+Train step of epoch 0:  81%|████████  | 404/500 [28:04<07:20,  4.58s/it, gpt_loss=0.13, lr=1.85e-6]
+[2026-05-13 00:57:36] 
+Train step of epoch 0:  81%|████████  | 404/500 [28:08<07:20,  4.58s/it, gpt_loss=0.155, lr=1.85e-6]
+[2026-05-13 00:57:37] [2026-05-13 00:57:37,757 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:57:42] 
+Train step of epoch 0:  81%|████████  | 405/500 [28:08<07:08,  4.51s/it, gpt_loss=0.155, lr=1.85e-6]
+[2026-05-13 00:57:42] 
+Train step of epoch 0:  81%|████████  | 405/500 [28:14<07:08,  4.51s/it, gpt_loss=0.146, lr=1.85e-6]
+[2026-05-13 00:57:48] 
+Train step of epoch 0:  81%|████████  | 406/500 [28:14<07:50,  5.00s/it, gpt_loss=0.146, lr=1.85e-6]
+[2026-05-13 00:57:48] 
+Train step of epoch 0:  81%|████████  | 406/500 [28:20<07:50,  5.00s/it, gpt_loss=0.109, lr=1.85e-6]
+[2026-05-13 00:57:52] 
+Train step of epoch 0:  81%|████████▏ | 407/500 [28:20<08:09,  5.27s/it, gpt_loss=0.109, lr=1.85e-6]
+[2026-05-13 00:57:52] 
+Train step of epoch 0:  81%|████████▏ | 407/500 [28:24<08:09,  5.27s/it, gpt_loss=0.116, lr=1.78e-6]
+[2026-05-13 00:57:56] 
+Train step of epoch 0:  82%|████████▏ | 408/500 [28:24<07:14,  4.72s/it, gpt_loss=0.116, lr=1.78e-6]
+[2026-05-13 00:57:56] 
+Train step of epoch 0:  82%|████████▏ | 408/500 [28:28<07:14,  4.72s/it, gpt_loss=0.124, lr=1.78e-6]
+[2026-05-13 00:57:57] [2026-05-13 00:57:56,313 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:57:57] [2026-05-13 00:57:56,313 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:58:00] 
+Train step of epoch 0:  82%|████████▏ | 409/500 [28:28<06:59,  4.61s/it, gpt_loss=0.124, lr=1.78e-6]
+[2026-05-13 00:58:00] 
+Train step of epoch 0:  82%|████████▏ | 409/500 [28:32<06:59,  4.61s/it, gpt_loss=0.134, lr=1.78e-6]
+[2026-05-13 00:58:03] 
+Train step of epoch 0:  82%|████████▏ | 410/500 [28:32<06:28,  4.32s/it, gpt_loss=0.134, lr=1.78e-6]
+[2026-05-13 00:58:03] 
+Train step of epoch 0:  82%|████████▏ | 410/500 [28:36<06:28,  4.32s/it, gpt_loss=0.102, lr=1.78e-6]
+[2026-05-13 00:58:09] 
+Train step of epoch 0:  82%|████████▏ | 411/500 [28:36<06:12,  4.18s/it, gpt_loss=0.102, lr=1.78e-6]
+[2026-05-13 00:58:09] 
+Train step of epoch 0:  82%|████████▏ | 411/500 [28:41<06:12,  4.18s/it, gpt_loss=0.11, lr=1.71e-6] 
+[2026-05-13 00:58:12] 
+Train step of epoch 0:  82%|████████▏ | 412/500 [28:41<06:30,  4.44s/it, gpt_loss=0.11, lr=1.71e-6]
+[2026-05-13 00:58:12] 
+Train step of epoch 0:  82%|████████▏ | 412/500 [28:44<06:30,  4.44s/it, gpt_loss=0.161, lr=1.71e-6]
+[2026-05-13 00:58:16] 
+Train step of epoch 0:  83%|████████▎ | 413/500 [28:44<06:00,  4.14s/it, gpt_loss=0.161, lr=1.71e-6]
+[2026-05-13 00:58:16] 
+Train step of epoch 0:  83%|████████▎ | 413/500 [28:49<06:00,  4.14s/it, gpt_loss=0.139, lr=1.71e-6]
+[2026-05-13 00:58:22] 
+Train step of epoch 0:  83%|████████▎ | 414/500 [28:49<06:04,  4.24s/it, gpt_loss=0.139, lr=1.71e-6]
+[2026-05-13 00:58:22] 
+Train step of epoch 0:  83%|████████▎ | 414/500 [28:54<06:04,  4.24s/it, gpt_loss=0.096, lr=1.71e-6]
+[2026-05-13 00:58:26] 
+Train step of epoch 0:  83%|████████▎ | 415/500 [28:54<06:28,  4.56s/it, gpt_loss=0.096, lr=1.71e-6]
+[2026-05-13 00:58:26] 
+Train step of epoch 0:  83%|████████▎ | 415/500 [28:58<06:28,  4.56s/it, gpt_loss=0.139, lr=1.65e-6]
+[2026-05-13 00:58:27] [2026-05-13 00:58:26,480 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 00:58:27] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 00:58:27] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 00:58:27] | Running            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 00:58:27] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 00:58:27] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 00:58:27] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 00:58:27] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 00:58:27] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 00:58:27] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 00:58:27] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 00:58:27] 
+[2026-05-13 00:58:27] [2026-05-13 00:58:26,480 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:58:28] 
+Train step of epoch 0:  83%|████████▎ | 416/500 [28:58<06:06,  4.37s/it, gpt_loss=0.139, lr=1.65e-6]
+[2026-05-13 00:58:28] 
+Train step of epoch 0:  83%|████████▎ | 416/500 [29:01<06:06,  4.37s/it, gpt_loss=0.191, lr=1.65e-6]
+[2026-05-13 00:58:32] 
+Train step of epoch 0:  83%|████████▎ | 417/500 [29:01<05:23,  3.90s/it, gpt_loss=0.191, lr=1.65e-6]
+[2026-05-13 00:58:32] 
+Train step of epoch 0:  83%|████████▎ | 417/500 [29:04<05:23,  3.90s/it, gpt_loss=0.115, lr=1.65e-6]
+[2026-05-13 00:58:35] 
+Train step of epoch 0:  84%|████████▎ | 418/500 [29:04<05:07,  3.75s/it, gpt_loss=0.115, lr=1.65e-6]
+[2026-05-13 00:58:35] 
+Train step of epoch 0:  84%|████████▎ | 418/500 [29:07<05:07,  3.75s/it, gpt_loss=0.102, lr=1.65e-6]
+[2026-05-13 00:58:38] [2026-05-13 00:58:37,792 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:58:40] 
+Train step of epoch 0:  84%|████████▍ | 419/500 [29:07<04:53,  3.63s/it, gpt_loss=0.102, lr=1.65e-6]
+[2026-05-13 00:58:40] 
+Train step of epoch 0:  84%|████████▍ | 419/500 [29:12<04:53,  3.63s/it, gpt_loss=0.126, lr=1.59e-6]
+[2026-05-13 00:58:41] [2026-05-13 00:58:40,156 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 00:58:44] 
+Train step of epoch 0:  84%|████████▍ | 420/500 [29:12<05:12,  3.91s/it, gpt_loss=0.126, lr=1.59e-6]
+[2026-05-13 00:58:44] 
+Train step of epoch 0:  84%|████████▍ | 420/500 [29:16<05:12,  3.91s/it, gpt_loss=0.12, lr=1.59e-6] 
+[2026-05-13 00:58:47] 
+Train step of epoch 0:  84%|████████▍ | 421/500 [29:16<05:09,  3.92s/it, gpt_loss=0.12, lr=1.59e-6]
+[2026-05-13 00:58:47] 
+Train step of epoch 0:  84%|████████▍ | 421/500 [29:19<05:09,  3.92s/it, gpt_loss=0.137, lr=1.59e-6]
+[2026-05-13 00:58:50] 
+Train step of epoch 0:  84%|████████▍ | 422/500 [29:19<04:58,  3.83s/it, gpt_loss=0.137, lr=1.59e-6]
+[2026-05-13 00:58:50] 
+Train step of epoch 0:  84%|████████▍ | 422/500 [29:23<04:58,  3.83s/it, gpt_loss=0.123, lr=1.59e-6]
+[2026-05-13 00:58:56] 
+Train step of epoch 0:  85%|████████▍ | 423/500 [29:23<04:37,  3.60s/it, gpt_loss=0.123, lr=1.59e-6]
+[2026-05-13 00:58:56] 
+Train step of epoch 0:  85%|████████▍ | 423/500 [29:29<04:37,  3.60s/it, gpt_loss=0.114, lr=1.54e-6]
+[2026-05-13 00:58:57] [2026-05-13 00:58:56,598 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:58:57] [2026-05-13 00:58:56,598 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 00:59:01] 
+Train step of epoch 0:  85%|████████▍ | 424/500 [29:29<05:29,  4.33s/it, gpt_loss=0.114, lr=1.54e-6]
+[2026-05-13 00:59:01] 
+Train step of epoch 0:  85%|████████▍ | 424/500 [29:33<05:29,  4.33s/it, gpt_loss=0.0998, lr=1.54e-6]
+[2026-05-13 00:59:05] 
+Train step of epoch 0:  85%|████████▌ | 425/500 [29:33<05:22,  4.30s/it, gpt_loss=0.0998, lr=1.54e-6]
+[2026-05-13 00:59:05] 
+Train step of epoch 0:  85%|████████▌ | 425/500 [29:38<05:22,  4.30s/it, gpt_loss=0.0961, lr=1.54e-6]
+[2026-05-13 00:59:08] 
+Train step of epoch 0:  85%|████████▌ | 426/500 [29:38<05:27,  4.42s/it, gpt_loss=0.0961, lr=1.54e-6]
+[2026-05-13 00:59:08] 
+Train step of epoch 0:  85%|████████▌ | 426/500 [29:40<05:27,  4.42s/it, gpt_loss=0.121, lr=1.54e-6] 
+[2026-05-13 00:59:14] 
+Train step of epoch 0:  85%|████████▌ | 427/500 [29:40<04:45,  3.91s/it, gpt_loss=0.121, lr=1.54e-6]
+[2026-05-13 00:59:14] 
+Train step of epoch 0:  85%|████████▌ | 427/500 [29:46<04:45,  3.91s/it, gpt_loss=0.113, lr=1.48e-6]
+[2026-05-13 00:59:19] 
+Train step of epoch 0:  86%|████████▌ | 428/500 [29:46<05:25,  4.53s/it, gpt_loss=0.113, lr=1.48e-6]
+[2026-05-13 00:59:19] 
+Train step of epoch 0:  86%|████████▌ | 428/500 [29:51<05:25,  4.53s/it, gpt_loss=0.121, lr=1.48e-6]
+[2026-05-13 00:59:22] 
+Train step of epoch 0:  86%|████████▌ | 429/500 [29:51<05:29,  4.64s/it, gpt_loss=0.121, lr=1.48e-6]
+[2026-05-13 00:59:22] 
+Train step of epoch 0:  86%|████████▌ | 429/500 [29:55<05:29,  4.64s/it, gpt_loss=0.162, lr=1.48e-6]
+[2026-05-13 00:59:27] [2026-05-13 00:59:26,753 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:59:27] [2026-05-13 00:59:26,754 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 00:59:27] 
+Train step of epoch 0:  86%|████████▌ | 430/500 [29:55<04:59,  4.28s/it, gpt_loss=0.162, lr=1.48e-6]
+[2026-05-13 00:59:27] 
+Train step of epoch 0:  86%|████████▌ | 430/500 [29:59<04:59,  4.28s/it, gpt_loss=0.139, lr=1.48e-6]
+[2026-05-13 00:59:31] 
+Train step of epoch 0:  86%|████████▌ | 431/500 [29:59<05:07,  4.45s/it, gpt_loss=0.139, lr=1.48e-6]
+[2026-05-13 00:59:31] 
+Train step of epoch 0:  86%|████████▌ | 431/500 [30:03<05:07,  4.45s/it, gpt_loss=0.124, lr=1.43e-6]
+[2026-05-13 00:59:35] 
+Train step of epoch 0:  86%|████████▋ | 432/500 [30:03<04:40,  4.13s/it, gpt_loss=0.124, lr=1.43e-6]
+[2026-05-13 00:59:35] 
+Train step of epoch 0:  86%|████████▋ | 432/500 [30:07<04:40,  4.13s/it, gpt_loss=0.105, lr=1.43e-6]
+[2026-05-13 00:59:37] 
+Train step of epoch 0:  87%|████████▋ | 433/500 [30:07<04:32,  4.07s/it, gpt_loss=0.105, lr=1.43e-6]
+[2026-05-13 00:59:37] 
+Train step of epoch 0:  87%|████████▋ | 433/500 [30:09<04:32,  4.07s/it, gpt_loss=0.114, lr=1.43e-6]
+[2026-05-13 00:59:38] [2026-05-13 00:59:37,862 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 00:59:41] 
+Train step of epoch 0:  87%|████████▋ | 434/500 [30:09<03:54,  3.55s/it, gpt_loss=0.114, lr=1.43e-6]
+[2026-05-13 00:59:41] 
+Train step of epoch 0:  87%|████████▋ | 434/500 [30:13<03:54,  3.55s/it, gpt_loss=0.127, lr=1.43e-6]
+[2026-05-13 00:59:45] 
+Train step of epoch 0:  87%|████████▋ | 435/500 [30:13<04:02,  3.73s/it, gpt_loss=0.127, lr=1.43e-6]
+[2026-05-13 00:59:45] 
+Train step of epoch 0:  87%|████████▋ | 435/500 [30:17<04:02,  3.73s/it, gpt_loss=0.139, lr=1.38e-6]
+[2026-05-13 00:59:48] 
+Train step of epoch 0:  87%|████████▋ | 436/500 [30:17<03:57,  3.71s/it, gpt_loss=0.139, lr=1.38e-6]
+[2026-05-13 00:59:48] 
+Train step of epoch 0:  87%|████████▋ | 436/500 [30:21<03:57,  3.71s/it, gpt_loss=0.0963, lr=1.38e-6]
+[2026-05-13 00:59:53] 
+Train step of epoch 0:  87%|████████▋ | 437/500 [30:21<03:54,  3.72s/it, gpt_loss=0.0963, lr=1.38e-6]
+[2026-05-13 00:59:53] 
+Train step of epoch 0:  87%|████████▋ | 437/500 [30:25<03:54,  3.72s/it, gpt_loss=0.11, lr=1.38e-6]  
+[2026-05-13 00:59:56] 
+Train step of epoch 0:  88%|████████▊ | 438/500 [30:25<04:00,  3.88s/it, gpt_loss=0.11, lr=1.38e-6]
+[2026-05-13 00:59:56] 
+Train step of epoch 0:  88%|████████▊ | 438/500 [30:28<04:00,  3.88s/it, gpt_loss=0.144, lr=1.38e-6]
+[2026-05-13 00:59:57] [2026-05-13 00:59:56,881 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 00:59:57] [2026-05-13 00:59:56,881 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:00:00] 
+Train step of epoch 0:  88%|████████▊ | 439/500 [30:28<03:42,  3.64s/it, gpt_loss=0.144, lr=1.38e-6]
+[2026-05-13 01:00:00] 
+Train step of epoch 0:  88%|████████▊ | 439/500 [30:32<03:42,  3.64s/it, gpt_loss=0.106, lr=1.34e-6]
+[2026-05-13 01:00:03] 
+Train step of epoch 0:  88%|████████▊ | 440/500 [30:32<03:44,  3.74s/it, gpt_loss=0.106, lr=1.34e-6]
+[2026-05-13 01:00:03] 
+Train step of epoch 0:  88%|████████▊ | 440/500 [30:36<03:44,  3.74s/it, gpt_loss=0.104, lr=1.34e-6]
+[2026-05-13 01:00:07] 
+Train step of epoch 0:  88%|████████▊ | 441/500 [30:36<03:40,  3.74s/it, gpt_loss=0.104, lr=1.34e-6]
+[2026-05-13 01:00:07] 
+Train step of epoch 0:  88%|████████▊ | 441/500 [30:40<03:40,  3.74s/it, gpt_loss=0.139, lr=1.34e-6]
+[2026-05-13 01:00:11] 
+Train step of epoch 0:  88%|████████▊ | 442/500 [30:40<03:40,  3.79s/it, gpt_loss=0.139, lr=1.34e-6]
+[2026-05-13 01:00:11] 
+Train step of epoch 0:  88%|████████▊ | 442/500 [30:43<03:40,  3.79s/it, gpt_loss=0.15, lr=1.34e-6] 
+[2026-05-13 01:00:13] [2026-05-13 01:00:12,131 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:00:15] 
+Train step of epoch 0:  89%|████████▊ | 443/500 [30:43<03:25,  3.61s/it, gpt_loss=0.15, lr=1.34e-6]
+[2026-05-13 01:00:15] 
+Train step of epoch 0:  89%|████████▊ | 443/500 [30:47<03:25,  3.61s/it, gpt_loss=0.123, lr=1.29e-6]
+[2026-05-13 01:00:20] 
+Train step of epoch 0:  89%|████████▉ | 444/500 [30:47<03:40,  3.93s/it, gpt_loss=0.123, lr=1.29e-6]
+[2026-05-13 01:00:20] 
+Train step of epoch 0:  89%|████████▉ | 444/500 [30:52<03:40,  3.93s/it, gpt_loss=0.134, lr=1.29e-6]
+[2026-05-13 01:00:25] 
+Train step of epoch 0:  89%|████████▉ | 445/500 [30:52<03:52,  4.23s/it, gpt_loss=0.134, lr=1.29e-6]
+[2026-05-13 01:00:25] 
+Train step of epoch 0:  89%|████████▉ | 445/500 [30:58<03:52,  4.23s/it, gpt_loss=0.0985, lr=1.29e-6]
+[2026-05-13 01:00:28] [2026-05-13 01:00:27,109 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:00:29] 
+Train step of epoch 0:  89%|████████▉ | 446/500 [30:58<04:03,  4.51s/it, gpt_loss=0.0985, lr=1.29e-6]
+[2026-05-13 01:00:29] 
+Train step of epoch 0:  89%|████████▉ | 446/500 [31:02<04:03,  4.51s/it, gpt_loss=0.139, lr=1.29e-6] 
+[2026-05-13 01:00:33] 
+Train step of epoch 0:  89%|████████▉ | 447/500 [31:02<03:50,  4.36s/it, gpt_loss=0.139, lr=1.29e-6]
+[2026-05-13 01:00:33] 
+Train step of epoch 0:  89%|████████▉ | 447/500 [31:05<03:50,  4.36s/it, gpt_loss=0.124, lr=1.25e-6]
+[2026-05-13 01:00:38] [2026-05-13 01:00:37,897 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:00:38] 
+Train step of epoch 0:  90%|████████▉ | 448/500 [31:05<03:30,  4.06s/it, gpt_loss=0.124, lr=1.25e-6]
+[2026-05-13 01:00:38] 
+Train step of epoch 0:  90%|████████▉ | 448/500 [31:11<03:30,  4.06s/it, gpt_loss=0.127, lr=1.25e-6]
+[2026-05-13 01:00:43] 
+Train step of epoch 0:  90%|████████▉ | 449/500 [31:11<03:52,  4.56s/it, gpt_loss=0.127, lr=1.25e-6]
+[2026-05-13 01:00:43] 
+Train step of epoch 0:  90%|████████▉ | 449/500 [31:15<03:52,  4.56s/it, gpt_loss=0.109, lr=1.25e-6]
+[2026-05-13 01:00:45] 
+Train step of epoch 0:  90%|█████████ | 450/500 [31:15<03:41,  4.43s/it, gpt_loss=0.109, lr=1.25e-6]
+[2026-05-13 01:00:45] 
+Train step of epoch 0:  90%|█████████ | 450/500 [31:18<03:41,  4.43s/it, gpt_loss=0.12, lr=1.25e-6] 
+[2026-05-13 01:00:48] 
+Train step of epoch 0:  90%|█████████ | 451/500 [31:18<03:12,  3.94s/it, gpt_loss=0.12, lr=1.25e-6]
+[2026-05-13 01:00:48] 
+Train step of epoch 0:  90%|█████████ | 451/500 [31:20<03:12,  3.94s/it, gpt_loss=0.142, lr=1.22e-6]
+[2026-05-13 01:00:52] 
+Train step of epoch 0:  90%|█████████ | 452/500 [31:20<02:54,  3.63s/it, gpt_loss=0.142, lr=1.22e-6]
+[2026-05-13 01:00:52] 
+Train step of epoch 0:  90%|█████████ | 452/500 [31:24<02:54,  3.63s/it, gpt_loss=0.124, lr=1.22e-6]
+[2026-05-13 01:00:56] 
+Train step of epoch 0:  91%|█████████ | 453/500 [31:24<02:53,  3.70s/it, gpt_loss=0.124, lr=1.22e-6]
+[2026-05-13 01:00:56] 
+Train step of epoch 0:  91%|█████████ | 453/500 [31:28<02:53,  3.70s/it, gpt_loss=0.131, lr=1.22e-6]
+[2026-05-13 01:00:58] [2026-05-13 01:00:57,226 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:00:58] [2026-05-13 01:00:57,226 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:00:59] 
+Train step of epoch 0:  91%|█████████ | 454/500 [31:28<02:55,  3.81s/it, gpt_loss=0.131, lr=1.22e-6]
+[2026-05-13 01:00:59] 
+Train step of epoch 0:  91%|█████████ | 454/500 [31:32<02:55,  3.81s/it, gpt_loss=0.125, lr=1.22e-6]
+[2026-05-13 01:01:03] 
+Train step of epoch 0:  91%|█████████ | 455/500 [31:32<02:42,  3.62s/it, gpt_loss=0.125, lr=1.22e-6]
+[2026-05-13 01:01:03] 
+Train step of epoch 0:  91%|█████████ | 455/500 [31:35<02:42,  3.62s/it, gpt_loss=0.115, lr=1.18e-6]
+[2026-05-13 01:01:07] 
+Train step of epoch 0:  91%|█████████ | 456/500 [31:35<02:43,  3.71s/it, gpt_loss=0.115, lr=1.18e-6]
+[2026-05-13 01:01:07] 
+Train step of epoch 0:  91%|█████████ | 456/500 [31:39<02:43,  3.71s/it, gpt_loss=0.127, lr=1.18e-6]
+[2026-05-13 01:01:11] 
+Train step of epoch 0:  91%|█████████▏| 457/500 [31:39<02:39,  3.71s/it, gpt_loss=0.127, lr=1.18e-6]
+[2026-05-13 01:01:11] 
+Train step of epoch 0:  91%|█████████▏| 457/500 [31:43<02:39,  3.71s/it, gpt_loss=0.13, lr=1.18e-6] 
+[2026-05-13 01:01:15] 
+Train step of epoch 0:  92%|█████████▏| 458/500 [31:43<02:39,  3.81s/it, gpt_loss=0.13, lr=1.18e-6]
+[2026-05-13 01:01:15] 
+Train step of epoch 0:  92%|█████████▏| 458/500 [31:47<02:39,  3.81s/it, gpt_loss=0.164, lr=1.18e-6]
+[2026-05-13 01:01:20] 
+Train step of epoch 0:  92%|█████████▏| 459/500 [31:47<02:40,  3.90s/it, gpt_loss=0.164, lr=1.18e-6]
+[2026-05-13 01:01:20] 
+Train step of epoch 0:  92%|█████████▏| 459/500 [31:52<02:40,  3.90s/it, gpt_loss=0.143, lr=1.15e-6]
+[2026-05-13 01:01:22] 
+Train step of epoch 0:  92%|█████████▏| 460/500 [31:52<02:42,  4.07s/it, gpt_loss=0.143, lr=1.15e-6]
+[2026-05-13 01:01:22] 
+Train step of epoch 0:  92%|█████████▏| 460/500 [31:55<02:42,  4.07s/it, gpt_loss=0.136, lr=1.15e-6]
+[2026-05-13 01:01:26] 
+Train step of epoch 0:  92%|█████████▏| 461/500 [31:55<02:24,  3.69s/it, gpt_loss=0.136, lr=1.15e-6]
+[2026-05-13 01:01:26] 
+Train step of epoch 0:  92%|█████████▏| 461/500 [31:58<02:24,  3.69s/it, gpt_loss=0.122, lr=1.15e-6]
+[2026-05-13 01:01:28] [2026-05-13 01:01:27,369 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:01:28] [2026-05-13 01:01:27,369 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:01:31] 
+Train step of epoch 0:  92%|█████████▏| 462/500 [31:58<02:18,  3.66s/it, gpt_loss=0.122, lr=1.15e-6]
+[2026-05-13 01:01:31] 
+Train step of epoch 0:  92%|█████████▏| 462/500 [32:03<02:18,  3.66s/it, gpt_loss=0.11, lr=1.15e-6] 
+[2026-05-13 01:01:34] 
+Train step of epoch 0:  93%|█████████▎| 463/500 [32:03<02:30,  4.07s/it, gpt_loss=0.11, lr=1.15e-6]
+[2026-05-13 01:01:34] 
+Train step of epoch 0:  93%|█████████▎| 463/500 [32:07<02:30,  4.07s/it, gpt_loss=0.122, lr=1.12e-6]
+[2026-05-13 01:01:38] [2026-05-13 01:01:37,932 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:01:38] 
+Train step of epoch 0:  93%|█████████▎| 464/500 [32:07<02:19,  3.87s/it, gpt_loss=0.122, lr=1.12e-6]
+[2026-05-13 01:01:38] 
+Train step of epoch 0:  93%|█████████▎| 464/500 [32:10<02:19,  3.87s/it, gpt_loss=0.131, lr=1.12e-6]
+[2026-05-13 01:01:42] 
+Train step of epoch 0:  93%|█████████▎| 465/500 [32:10<02:11,  3.76s/it, gpt_loss=0.131, lr=1.12e-6]
+[2026-05-13 01:01:42] 
+Train step of epoch 0:  93%|█████████▎| 465/500 [32:15<02:11,  3.76s/it, gpt_loss=0.115, lr=1.12e-6]
+[2026-05-13 01:01:44] [2026-05-13 01:01:43,742 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:01:47] 
+Train step of epoch 0:  93%|█████████▎| 466/500 [32:15<02:14,  3.96s/it, gpt_loss=0.115, lr=1.12e-6]
+[2026-05-13 01:01:47] 
+Train step of epoch 0:  93%|█████████▎| 466/500 [32:19<02:14,  3.96s/it, gpt_loss=0.135, lr=1.12e-6]
+[2026-05-13 01:01:51] 
+Train step of epoch 0:  93%|█████████▎| 467/500 [32:19<02:14,  4.08s/it, gpt_loss=0.135, lr=1.12e-6]
+[2026-05-13 01:01:51] 
+Train step of epoch 0:  93%|█████████▎| 467/500 [32:23<02:14,  4.08s/it, gpt_loss=0.124, lr=1.1e-6] 
+[2026-05-13 01:01:54] 
+Train step of epoch 0:  94%|█████████▎| 468/500 [32:23<02:14,  4.20s/it, gpt_loss=0.124, lr=1.1e-6]
+[2026-05-13 01:01:54] 
+Train step of epoch 0:  94%|█████████▎| 468/500 [32:26<02:14,  4.20s/it, gpt_loss=0.123, lr=1.1e-6]
+[2026-05-13 01:01:58] [2026-05-13 01:01:57,484 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:01:58] [2026-05-13 01:01:57,484 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:01:59] 
+Train step of epoch 0:  94%|█████████▍| 469/500 [32:26<01:58,  3.83s/it, gpt_loss=0.123, lr=1.1e-6]
+[2026-05-13 01:01:59] 
+Train step of epoch 0:  94%|█████████▍| 469/500 [32:31<01:58,  3.83s/it, gpt_loss=0.152, lr=1.1e-6]
+[2026-05-13 01:02:03] 
+Train step of epoch 0:  94%|█████████▍| 470/500 [32:31<02:04,  4.14s/it, gpt_loss=0.152, lr=1.1e-6]
+[2026-05-13 01:02:03] 
+Train step of epoch 0:  94%|█████████▍| 470/500 [32:36<02:04,  4.14s/it, gpt_loss=0.0962, lr=1.1e-6]
+[2026-05-13 01:02:09] 
+Train step of epoch 0:  94%|█████████▍| 471/500 [32:36<02:02,  4.21s/it, gpt_loss=0.0962, lr=1.1e-6]
+[2026-05-13 01:02:09] 
+Train step of epoch 0:  94%|█████████▍| 471/500 [32:41<02:02,  4.21s/it, gpt_loss=0.123, lr=1.07e-6]
+[2026-05-13 01:02:11] 
+Train step of epoch 0:  94%|█████████▍| 472/500 [32:41<02:08,  4.59s/it, gpt_loss=0.123, lr=1.07e-6]
+[2026-05-13 01:02:11] 
+Train step of epoch 0:  94%|█████████▍| 472/500 [32:44<02:08,  4.59s/it, gpt_loss=0.108, lr=1.07e-6]
+[2026-05-13 01:02:15] 
+Train step of epoch 0:  95%|█████████▍| 473/500 [32:44<01:48,  4.01s/it, gpt_loss=0.108, lr=1.07e-6]
+[2026-05-13 01:02:15] 
+Train step of epoch 0:  95%|█████████▍| 473/500 [32:47<01:48,  4.01s/it, gpt_loss=0.111, lr=1.07e-6]
+[2026-05-13 01:02:18] 
+Train step of epoch 0:  95%|█████████▍| 474/500 [32:47<01:38,  3.79s/it, gpt_loss=0.111, lr=1.07e-6]
+[2026-05-13 01:02:18] 
+Train step of epoch 0:  95%|█████████▍| 474/500 [32:51<01:38,  3.79s/it, gpt_loss=0.147, lr=1.07e-6]
+[2026-05-13 01:02:22] 
+Train step of epoch 0:  95%|█████████▌| 475/500 [32:51<01:32,  3.70s/it, gpt_loss=0.147, lr=1.07e-6]
+[2026-05-13 01:02:22] 
+Train step of epoch 0:  95%|█████████▌| 475/500 [32:54<01:32,  3.70s/it, gpt_loss=0.104, lr=1.05e-6]
+[2026-05-13 01:02:26] 
+Train step of epoch 0:  95%|█████████▌| 476/500 [32:54<01:27,  3.64s/it, gpt_loss=0.104, lr=1.05e-6]
+[2026-05-13 01:02:26] 
+Train step of epoch 0:  95%|█████████▌| 476/500 [32:58<01:27,  3.64s/it, gpt_loss=0.141, lr=1.05e-6]
+[2026-05-13 01:02:28] [2026-05-13 01:02:27,633 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:02:30] 
+Train step of epoch 0:  95%|█████████▌| 477/500 [32:58<01:27,  3.79s/it, gpt_loss=0.141, lr=1.05e-6]
+[2026-05-13 01:02:30] 
+Train step of epoch 0:  95%|█████████▌| 477/500 [33:02<01:27,  3.79s/it, gpt_loss=0.12, lr=1.05e-6] 
+[2026-05-13 01:02:32] 
+Train step of epoch 0:  96%|█████████▌| 478/500 [33:02<01:23,  3.82s/it, gpt_loss=0.12, lr=1.05e-6]
+[2026-05-13 01:02:32] 
+Train step of epoch 0:  96%|█████████▌| 478/500 [33:05<01:23,  3.82s/it, gpt_loss=0.12, lr=1.05e-6]
+[2026-05-13 01:02:36] 
+Train step of epoch 0:  96%|█████████▌| 479/500 [33:05<01:12,  3.47s/it, gpt_loss=0.12, lr=1.05e-6]
+[2026-05-13 01:02:36] 
+Train step of epoch 0:  96%|█████████▌| 479/500 [33:08<01:12,  3.47s/it, gpt_loss=0.161, lr=1.04e-6]
+[2026-05-13 01:02:38] [2026-05-13 01:02:37,968 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:02:39] 
+Train step of epoch 0:  96%|█████████▌| 480/500 [33:08<01:09,  3.46s/it, gpt_loss=0.161, lr=1.04e-6]
+[2026-05-13 01:02:39] 
+Train step of epoch 0:  96%|█████████▌| 480/500 [33:11<01:09,  3.46s/it, gpt_loss=0.0996, lr=1.04e-6]
+[2026-05-13 01:02:43] 
+Train step of epoch 0:  96%|█████████▌| 481/500 [33:11<01:04,  3.37s/it, gpt_loss=0.0996, lr=1.04e-6]
+[2026-05-13 01:02:43] 
+Train step of epoch 0:  96%|█████████▌| 481/500 [33:15<01:04,  3.37s/it, gpt_loss=0.148, lr=1.04e-6] 
+[2026-05-13 01:02:48] 
+Train step of epoch 0:  96%|█████████▋| 482/500 [33:15<01:02,  3.50s/it, gpt_loss=0.148, lr=1.04e-6]
+[2026-05-13 01:02:48] 
+Train step of epoch 0:  96%|█████████▋| 482/500 [33:20<01:02,  3.50s/it, gpt_loss=0.124, lr=1.04e-6]
+[2026-05-13 01:02:52] 
+Train step of epoch 0:  97%|█████████▋| 483/500 [33:20<01:08,  4.02s/it, gpt_loss=0.124, lr=1.04e-6]
+[2026-05-13 01:02:52] 
+Train step of epoch 0:  97%|█████████▋| 483/500 [33:24<01:08,  4.02s/it, gpt_loss=0.141, lr=1.02e-6]
+[2026-05-13 01:02:55] 
+Train step of epoch 0:  97%|█████████▋| 484/500 [33:24<01:03,  3.96s/it, gpt_loss=0.141, lr=1.02e-6]
+[2026-05-13 01:02:55] 
+Train step of epoch 0:  97%|█████████▋| 484/500 [33:27<01:03,  3.96s/it, gpt_loss=0.106, lr=1.02e-6]
+[2026-05-13 01:02:58] [2026-05-13 01:02:57,782 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:02:58] [2026-05-13 01:02:57,782 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:02:58] 
+Train step of epoch 0:  97%|█████████▋| 485/500 [33:27<00:54,  3.67s/it, gpt_loss=0.106, lr=1.02e-6]
+[2026-05-13 01:02:58] 
+Train step of epoch 0:  97%|█████████▋| 485/500 [33:30<00:54,  3.67s/it, gpt_loss=0.126, lr=1.02e-6]
+[2026-05-13 01:03:01] 
+Train step of epoch 0:  97%|█████████▋| 486/500 [33:30<00:49,  3.53s/it, gpt_loss=0.126, lr=1.02e-6]
+[2026-05-13 01:03:01] 
+Train step of epoch 0:  97%|█████████▋| 486/500 [33:33<00:49,  3.53s/it, gpt_loss=0.131, lr=1.02e-6]
+[2026-05-13 01:03:05] 
+Train step of epoch 0:  97%|█████████▋| 487/500 [33:33<00:42,  3.30s/it, gpt_loss=0.131, lr=1.02e-6]
+[2026-05-13 01:03:05] 
+Train step of epoch 0:  97%|█████████▋| 487/500 [33:37<00:42,  3.30s/it, gpt_loss=0.11, lr=1.01e-6] 
+[2026-05-13 01:03:11] 
+Train step of epoch 0:  98%|█████████▊| 488/500 [33:37<00:42,  3.56s/it, gpt_loss=0.11, lr=1.01e-6]
+[2026-05-13 01:03:11] 
+Train step of epoch 0:  98%|█████████▊| 488/500 [33:43<00:42,  3.56s/it, gpt_loss=0.122, lr=1.01e-6]
+[2026-05-13 01:03:15] 
+Train step of epoch 0:  98%|█████████▊| 489/500 [33:43<00:46,  4.22s/it, gpt_loss=0.122, lr=1.01e-6]
+[2026-05-13 01:03:15] 
+Train step of epoch 0:  98%|█████████▊| 489/500 [33:48<00:46,  4.22s/it, gpt_loss=0.12, lr=1.01e-6] 
+[2026-05-13 01:03:16] [2026-05-13 01:03:15,469 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:03:18] 
+Train step of epoch 0:  98%|█████████▊| 490/500 [33:48<00:42,  4.29s/it, gpt_loss=0.12, lr=1.01e-6]
+[2026-05-13 01:03:18] 
+Train step of epoch 0:  98%|█████████▊| 490/500 [33:50<00:42,  4.29s/it, gpt_loss=0.105, lr=1.01e-6]
+[2026-05-13 01:03:22] 
+Train step of epoch 0:  98%|█████████▊| 491/500 [33:50<00:34,  3.82s/it, gpt_loss=0.105, lr=1.01e-6]
+[2026-05-13 01:03:22] 
+Train step of epoch 0:  98%|█████████▊| 491/500 [33:54<00:34,  3.82s/it, gpt_loss=0.136, lr=1.01e-6]
+[2026-05-13 01:03:26] 
+Train step of epoch 0:  98%|█████████▊| 492/500 [33:54<00:30,  3.81s/it, gpt_loss=0.136, lr=1.01e-6]
+[2026-05-13 01:03:26] 
+Train step of epoch 0:  98%|█████████▊| 492/500 [33:59<00:30,  3.81s/it, gpt_loss=0.128, lr=1.01e-6]
+[2026-05-13 01:03:28] [2026-05-13 01:03:27,922 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 01:03:28] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 01:03:28] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 01:03:28] | Running            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 01:03:28] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 01:03:28] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 01:03:28] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 01:03:28] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 01:03:28] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 01:03:28] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 01:03:28] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 01:03:28] 
+[2026-05-13 01:03:28] [2026-05-13 01:03:27,922 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:03:28] [2026-05-13 01:03:27,922 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:03:30] 
+Train step of epoch 0:  99%|█████████▊| 493/500 [33:59<00:28,  4.10s/it, gpt_loss=0.128, lr=1.01e-6]
+[2026-05-13 01:03:30] 
+Train step of epoch 0:  99%|█████████▊| 493/500 [34:03<00:28,  4.10s/it, gpt_loss=0.113, lr=1.01e-6]
+[2026-05-13 01:03:33] 
+Train step of epoch 0:  99%|█████████▉| 494/500 [34:03<00:24,  4.01s/it, gpt_loss=0.113, lr=1.01e-6]
+[2026-05-13 01:03:33] 
+Train step of epoch 0:  99%|█████████▉| 494/500 [34:06<00:24,  4.01s/it, gpt_loss=0.113, lr=1.01e-6]
+[2026-05-13 01:03:38] [2026-05-13 01:03:38,002 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:03:39] 
+Train step of epoch 0:  99%|█████████▉| 495/500 [34:06<00:18,  3.77s/it, gpt_loss=0.113, lr=1.01e-6]
+[2026-05-13 01:03:39] 
+Train step of epoch 0:  99%|█████████▉| 495/500 [34:11<00:18,  3.77s/it, gpt_loss=0.14, lr=1e-6]    
+[2026-05-13 01:03:42] 
+Train step of epoch 0:  99%|█████████▉| 496/500 [34:11<00:16,  4.20s/it, gpt_loss=0.14, lr=1e-6]
+[2026-05-13 01:03:42] 
+Train step of epoch 0:  99%|█████████▉| 496/500 [34:14<00:16,  4.20s/it, gpt_loss=0.101, lr=1e-6]
+[2026-05-13 01:03:50] 
+Train step of epoch 0:  99%|█████████▉| 497/500 [34:14<00:11,  3.93s/it, gpt_loss=0.101, lr=1e-6]
+[2026-05-13 01:03:50] 
+Train step of epoch 0:  99%|█████████▉| 497/500 [34:22<00:11,  3.93s/it, gpt_loss=0.109, lr=1e-6]
+[2026-05-13 01:03:54] 
+Train step of epoch 0: 100%|█████████▉| 498/500 [34:22<00:10,  5.07s/it, gpt_loss=0.109, lr=1e-6]
+[2026-05-13 01:03:54] 
+Train step of epoch 0: 100%|█████████▉| 498/500 [34:26<00:10,  5.07s/it, gpt_loss=0.147, lr=1e-6]
+[2026-05-13 01:03:58] [2026-05-13 01:03:58,043 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:03:58] [2026-05-13 01:03:58,043 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:03:58] 
+Train step of epoch 0: 100%|█████████▉| 499/500 [34:26<00:04,  4.71s/it, gpt_loss=0.147, lr=1e-6]
+[2026-05-13 01:03:58] 
+Train step of epoch 0: 100%|█████████▉| 499/500 [34:30<00:04,  4.71s/it, gpt_loss=0.135, lr=1e-6]
+[2026-05-13 01:03:58] 
+Train step of epoch 0: 100%|██████████| 500/500 [34:30<00:00,  4.61s/it, gpt_loss=0.135, lr=1e-6]
+Train epoch: 100%|██████████| 1/1 [34:30<00:00, 2070.79s/it]
+Train epoch: 100%|██████████| 1/1 [34:30<00:00, 2070.79s/it]
+[2026-05-13 01:03:58] 
+Train step of epoch 0: 100%|██████████| 500/500 [34:30<00:00,  4.14s/it, gpt_loss=0.135, lr=1e-6]
+[2026-05-13 01:04:11] 
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]
+Writing model shards: 100%|██████████| 1/1 [00:09<00:00,  9.32s/it]
+Writing model shards: 100%|██████████| 1/1 [00:09<00:00,  9.32s/it]
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1960:3970 [2] NCCL INFO [Service thread] Connection closed by localRank 2
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1963:3978 [5] NCCL INFO [Service thread] Connection closed by localRank 5
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1959:3966 [1] NCCL INFO [Service thread] Connection closed by localRank 1
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1962:3974 [4] NCCL INFO [Service thread] Connection closed by localRank 4
+[2026-05-13 01:04:12] [rank0]:[W513 01:04:12.710822140 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1958:3968 [0] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1961:3964 [3] NCCL INFO [Service thread] Connection closed by localRank 3
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1965:3972 [7] NCCL INFO [Service thread] Connection closed by localRank 7
+[2026-05-13 01:04:12] dlcjzcphmua6lik1-master-0:1964:3976 [6] NCCL INFO [Service thread] Connection closed by localRank 6
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1960:6121 [2] NCCL INFO comm 0x562f4ec19cc0 rank 2 nranks 8 cudaDev 2 busId 9000 - Abort COMPLETE
+[2026-05-13 01:04:13] [rank2]:[W513 01:04:13.254192435 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1960:4033 [2] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1959:6123 [1] NCCL INFO comm 0x557d75ceb3c0 rank 1 nranks 8 cudaDev 1 busId 4000 - Abort COMPLETE
+[2026-05-13 01:04:13] [rank1]:[W513 01:04:13.292917189 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1959:4020 [1] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1963:6122 [5] NCCL INFO comm 0x55f83e29f5d0 rank 5 nranks 8 cudaDev 5 busId 11000 - Abort COMPLETE
+[2026-05-13 01:04:13] [rank5]:[W513 01:04:13.294722393 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1963:4072 [5] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1962:6124 [4] NCCL INFO comm 0x561bf0334b00 rank 4 nranks 8 cudaDev 4 busId 10000 - Abort COMPLETE
+[2026-05-13 01:04:13] [rank4]:[W513 01:04:13.295565785 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1962:4059 [4] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1958:6125 [0] NCCL INFO comm 0x5590339e80d0 rank 0 nranks 8 cudaDev 0 busId 3000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1958:4007 [0] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1961:6126 [3] NCCL INFO comm 0x55e385af61b0 rank 3 nranks 8 cudaDev 3 busId a000 - Abort COMPLETE
+[2026-05-13 01:04:13] [rank3]:[W513 01:04:13.309736924 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1961:4046 [3] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1965:6127 [7] NCCL INFO comm 0x5601f9c35a80 rank 7 nranks 8 cudaDev 7 busId 17000 - Abort COMPLETE
+[2026-05-13 01:04:13] [rank7]:[W513 01:04:13.313933877 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1965:4098 [7] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1964:6129 [6] NCCL INFO comm 0x55fc32c70ec0 rank 6 nranks 8 cudaDev 6 busId 16000 - Abort COMPLETE
+[2026-05-13 01:04:13] [rank6]:[W513 01:04:13.385415796 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1964:4085 [6] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1960:6130 [2] NCCL INFO comm 0x562f4ec20040 rank 0 nranks 1 cudaDev 2 busId 9000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1960:4137 [2] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1959:6131 [1] NCCL INFO comm 0x557d75cf1740 rank 0 nranks 1 cudaDev 1 busId 4000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1959:4124 [1] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1963:6132 [5] NCCL INFO comm 0x55f83e2a5960 rank 0 nranks 1 cudaDev 5 busId 11000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1963:4176 [5] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1962:6133 [4] NCCL INFO comm 0x561bf033ae80 rank 0 nranks 1 cudaDev 4 busId 10000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1962:4163 [4] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1958:6134 [0] NCCL INFO comm 0x5590339ee2f0 rank 0 nranks 1 cudaDev 0 busId 3000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1958:4111 [0] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1961:6135 [3] NCCL INFO comm 0x55e385afc530 rank 0 nranks 1 cudaDev 3 busId a000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1961:4150 [3] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1965:6136 [7] NCCL INFO comm 0x5601f9c3bdd0 rank 0 nranks 1 cudaDev 7 busId 17000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1965:4193 [7] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1964:6137 [6] NCCL INFO comm 0x55fc32c77240 rank 0 nranks 1 cudaDev 6 busId 16000 - Abort COMPLETE
+[2026-05-13 01:04:13] dlcjzcphmua6lik1-master-0:1964:4189 [6] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1960:6138 [2] NCCL INFO comm 0x562f4ec25960 rank 0 nranks 1 cudaDev 2 busId 9000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1959:6139 [1] NCCL INFO comm 0x557d75cf7080 rank 0 nranks 1 cudaDev 1 busId 4000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1962:6141 [4] NCCL INFO comm 0x561bf03407c0 rank 0 nranks 1 cudaDev 4 busId 10000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1965:6144 [7] NCCL INFO comm 0x5601f9c41750 rank 0 nranks 1 cudaDev 7 busId 17000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1961:6143 [3] NCCL INFO comm 0x55e385b01e70 rank 0 nranks 1 cudaDev 3 busId a000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1958:6142 [0] NCCL INFO comm 0x5590339f3af0 rank 0 nranks 1 cudaDev 0 busId 3000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1963:6140 [5] NCCL INFO comm 0x55f83e2ab370 rank 0 nranks 1 cudaDev 5 busId 11000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1960:3917 [2] NCCL INFO [Service thread] Connection closed by localRank 2
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1964:6145 [6] NCCL INFO comm 0x55fc32c7cb60 rank 0 nranks 1 cudaDev 6 busId 16000 - Abort COMPLETE
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1962:3927 [4] NCCL INFO [Service thread] Connection closed by localRank 4
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1959:3921 [1] NCCL INFO [Service thread] Connection closed by localRank 1
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1961:3924 [3] NCCL INFO [Service thread] Connection closed by localRank 3
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1963:3926 [5] NCCL INFO [Service thread] Connection closed by localRank 5
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1965:3930 [7] NCCL INFO [Service thread] Connection closed by localRank 7
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1958:3920 [0] NCCL INFO [Service thread] Connection closed by localRank 0
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1964:3916 [6] NCCL INFO [Service thread] Connection closed by localRank 6
+[2026-05-13 01:04:14] dlcjzcphmua6lik1-master-0:1960:6146 [2] NCCL INFO comm 0x562f4eaba780 rank 2 nranks 8 cudaDev 2 busId 9000 - Abort COMPLETE
+[2026-05-13 01:04:15] dlcjzcphmua6lik1-master-0:1958:6152 [0] NCCL INFO comm 0x559033357db0 rank 0 nranks 8 cudaDev 0 busId 3000 - Abort COMPLETE
+[2026-05-13 01:04:15] dlcjzcphmua6lik1-master-0:1962:6147 [4] NCCL INFO comm 0x561bf01d52b0 rank 4 nranks 8 cudaDev 4 busId 10000 - Abort COMPLETE
+[2026-05-13 01:04:15] dlcjzcphmua6lik1-master-0:1965:6151 [7] NCCL INFO comm 0x5601f9ad6160 rank 7 nranks 8 cudaDev 7 busId 17000 - Abort COMPLETE
+[2026-05-13 01:04:15] dlcjzcphmua6lik1-master-0:1961:6149 [3] NCCL INFO comm 0x55e385996900 rank 3 nranks 8 cudaDev 3 busId a000 - Abort COMPLETE
+[2026-05-13 01:04:15] dlcjzcphmua6lik1-master-0:1959:6148 [1] NCCL INFO comm 0x557d75b8be80 rank 1 nranks 8 cudaDev 1 busId 4000 - Abort COMPLETE
+[2026-05-13 01:04:15] dlcjzcphmua6lik1-master-0:1963:6150 [5] NCCL INFO comm 0x55f83e13fd60 rank 5 nranks 8 cudaDev 5 busId 11000 - Abort COMPLETE
+[2026-05-13 01:04:15] dlcjzcphmua6lik1-master-0:1964:6153 [6] NCCL INFO comm 0x55fc32b11490 rank 6 nranks 8 cudaDev 6 busId 16000 - Abort COMPLETE
+[2026-05-13 01:04:15] [2026-05-13 01:04:15,664] [INFO] [launch.py:367:main] Process 1960 exits successfully.
+[2026-05-13 01:04:16] [2026-05-13 01:04:16,665] [INFO] [launch.py:367:main] Process 1958 exits successfully.
+[2026-05-13 01:04:16] [2026-05-13 01:04:16,665] [INFO] [launch.py:367:main] Process 1962 exits successfully.
+[2026-05-13 01:04:17] [2026-05-13 01:04:17,665] [INFO] [launch.py:367:main] Process 1959 exits successfully.
+[2026-05-13 01:04:17] [2026-05-13 01:04:17,666] [INFO] [launch.py:367:main] Process 1964 exits successfully.
+[2026-05-13 01:04:17] [2026-05-13 01:04:17,666] [INFO] [launch.py:367:main] Process 1965 exits successfully.
+[2026-05-13 01:04:17] [2026-05-13 01:04:17,666] [INFO] [launch.py:367:main] Process 1963 exits successfully.
+[2026-05-13 01:04:17] [2026-05-13 01:04:17,666] [INFO] [launch.py:367:main] Process 1961 exits successfully.
+[2026-05-13 01:04:21] 
+[2026-05-13 01:04:21] ===== code post-eval: sample_pass1_temp06 =====
+[2026-05-13 01:04:21] output_dir:          /mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_sft_qwen35_4b_1node_0513_0021/code_benchmarks/sample_pass1_temp06
+[2026-05-13 01:04:21] greedy_temperature:  0.0
+[2026-05-13 01:04:21] sample_temperature:  0.6
+[2026-05-13 01:04:21] n_samples:           1
+[2026-05-13 01:04:21] passk_list:          1
+[2026-05-13 01:04:21] /mnt/data/ebft-distribution-new/code/scripts/diff_dataset/run_sft_baseline_1node_once.sh: line 85: HUMANEVAL_EVAL_SPLIT: unbound variable
+[2026-05-13 01:04:21] 
+[2026-05-13 01:04:21] ===== code post-eval: sample_pass16_temp06 =====
+[2026-05-13 01:04:21] output_dir:          /mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_sft_qwen35_4b_1node_0513_0021/code_benchmarks/sample_pass16_temp06
+[2026-05-13 01:04:21] greedy_temperature:  0.0
+[2026-05-13 01:04:21] sample_temperature:  0.6
+[2026-05-13 01:04:21] n_samples:           16
+[2026-05-13 01:04:21] passk_list:          16
+[2026-05-13 01:04:21] /mnt/data/ebft-distribution-new/code/scripts/diff_dataset/run_sft_baseline_1node_once.sh: line 85: HUMANEVAL_EVAL_SPLIT: unbound variable
+[2026-05-13 01:04:21] [done] RUN_DIR=/mnt/data/ebft-distribution-new/outputs/diff_dataset/diff_sft_qwen35_4b_1node_0513_0021 FINAL_RC=1
+[2026-05-13 01:04:28] [2026-05-13 01:04:28,196 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:04:28] [2026-05-13 01:04:28,196 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:04:34] [2026-05-13 01:04:33,276 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:04:34] [2026-05-13 01:04:33,276 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:04:38] [2026-05-13 01:04:38,037 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,379 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 01:04:49] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 01:04:49] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 01:04:49] | Failed             |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 01:04:49] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 01:04:49] | Running            |       0 | 0.0%         |                             |
+[2026-05-13 01:04:49] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 01:04:49] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 01:04:49] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 01:04:49] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 01:04:49] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 01:04:49] 
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,379 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 0, failed: 1, pending: 0
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,379 AIMaster] (job_monitor_controller_k8s.py 1573) WARNING: Handle failed workers: {'master': ['0']}
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,548 AIMaster] (utils.py 153) INFO: Function parse_failed_worker run time is 0.1684s
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,548 AIMaster] (job_monitor_controller_k8s.py 1336) INFO: Detecting anomalous node from 1 workers.
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,548 AIMaster] (kubernetes_job_tracker.py 572) INFO: Fetching logs from 1 pods in namespace 't1245621648665098' using pre-created thread pool (15 workers). Total timeout: 300s, Pod timeout: 2s, Additional args: {'tail_lines': 200}
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,588 AIMaster] (kubernetes_job_tracker.py 663) INFO: Batch log fetching completed in 0.0398s with 1/1 pods successful
+[2026-05-13 01:04:49] 
+Detecting anomalous node from pods:   0%|          | 0/1 [00:00<?, ?it/s]
+Detecting anomalous node from pods: 100%|██████████| 1/1 [00:00<00:00, 121.60it/s]
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,599 AIMaster] (utils.py 153) INFO: Function AnomalousNodeDetector.detect run time is 0.0511s
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,600 AIMaster] (anomalous_nodes_manager.py 204) INFO: Job level blacklist node error history
+[2026-05-13 01:04:49] # History accumulation for node error information of job level blacklist, not indicate this round restarting!!!
+[2026-05-13 01:04:49] # Please check log(or others) like "Handle failed workers: xxx" for this round restarting.
+[2026-05-13 01:04:49] | NodeName                            | ErrorMessage   |   ErrorCount |   ErrorScore | IsBlacklisted   | UpdateTime           |
+[2026-05-13 01:04:49] |:------------------------------------|:---------------|-------------:|-------------:|:----------------|:---------------------|
+[2026-05-13 01:04:49] | lingj1b9k3ka8k5u-mgqkuqdmyzh7p6bx-0 | Failed         |            1 |            0 | No              | 2026-05-12T17:04:48Z |
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,606 AIMaster] (manager.py 120) INFO: Add a new job message, version: 1, level: Warning, source: System
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,606 AIMaster] (job_monitor_controller_k8s.py 2108) WARNING: Restarting job.
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,606 AIMaster] (job_monitor_controller_k8s.py 1663) INFO: perftracker controller set job status: Restarting
+[2026-05-13 01:04:49] [2026-05-13 01:04:48.606 AIMaster] (perftracker_manager.cc 39) INFO: Set perftracker job status `Restarting`
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,614 AIMaster] (job_status_manager.py 70) WARNING: Update job status to Restarting, reason: 
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,623 AIMaster] (kubernetes_job_tracker.py 184) INFO: New job patch: [{'op': 'add', 'path': '/metadata/annotations/kubedl.io~1expected-job-status', 'value': '{"JobState": "Restarting", "Message": "", "Source": "System"}'}]
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,674 AIMaster] (job_monitor_controller_k8s.py 1663) INFO: perftracker controller set job status: Restarting
+[2026-05-13 01:04:49] [2026-05-13 01:04:48.674 AIMaster] (perftracker_manager.cc 39) INFO: Set perftracker job status `Restarting`
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,683 AIMaster] (kubernetes_job_tracker.py 184) INFO: New job patch: [{'op': 'add', 'path': '/spec/pytorchReplicaSpecs/Master/template/spec/containers/0/env/25', 'value': {'name': 'JOB_FAILOVER_GENERATION', 'value': '1'}}, {'op': 'add', 'path': '/metadata/annotations/kubedl.io~1immediately-start-worker', 'value': 'true'}, {'op': 'add', 'path': '/metadata/annotations/pai.alibabacloud.com~1job-restart-info', 'value': '{"OccurTime": "2026-05-12T17:04:48Z", "OccurPhase": "Running", "Reason": "WorkerFailed", "TriggerID": "dqFc_YL9SmKV0h5h3RgUHw", "JobRestartCount": 1, "DetailErrorInfoList": [{"Node": "lingj1b9k3ka8k5u-mgqkuqdmyzh7p6bx-0", "Pod": "dlcjzcphmua6lik1-master-0", "ErrorCode": "499", "ErrorMsg": "WorkerFailed", "AddNodeToBlacklist": false, "AddJobLevelBlacklist": false, "ErrorSource": "AIMaster", "IsGlobal": false, "Count": 1}]}'}, {'op': 'add', 'path': '/metadata/annotations/kubedl.io~1job-failover-generation', 'value': '1'}, {'op': 'add', 'path': '/metadata/annotations/pai.alibabacloud.com~1job-failover-generation', 'value': '1'}]
+[2026-05-13 01:04:49] [2026-05-13 01:04:48,710 AIMaster] (job_monitor_controller_k8s.py 2168) INFO: Waiting for restart job patch to be triggered...
+[2026-05-13 01:04:49] [2026-05-13 01:04:49,231 AIMaster] (kubernetes_job_tracker.py 184) INFO: New job patch: [{'op': 'add', 'path': '/metadata/annotations/kubedl.io~1add-aimaster-message', 'value': '{"MessageContent": "\\u4efb\\u52a1\\u90e8\\u5206\\u5b9e\\u4f8b\\u8fd0\\u884c\\u5931\\u8d25, \\u5305\\u62ec {\'master\': [\'0\']}", "MessageVersion": 1, "MessageLevel": "Warning", "MessageSource": "System", "MessageCreateTime": "2026-05-13T01:04:48.379620+08:00", "JobRestartCount": 1, "RestartType": "Job", "MessageEvent": "\\u4efb\\u52a1\\u7b2c **1** \\u6b21\\u91cd\\u542f", "Extended": "{}"}'}]
+[2026-05-13 01:04:51] [2026-05-13 01:04:50,720 AIMaster] (job_monitor_controller_k8s.py 2170) INFO: Restart job patch has been triggered.
+[2026-05-13 01:04:51] [2026-05-13 01:04:50,759 AIMaster] (job_status_manager.py 90) INFO: Remove expected job status setting.
+[2026-05-13 01:04:51] [2026-05-13 01:04:50,760 AIMaster] (kubernetes_job_tracker.py 184) INFO: New job patch: [{'op': 'replace', 'path': '/metadata/annotations/kubedl.io~1expected-job-status', 'value': ''}]
+[2026-05-13 01:04:51] [2026-05-13 01:04:50,784 AIMaster] (job_restart_info_manager.py 108) INFO: Recorded job restart #1 at 1778605490.7840173
+[2026-05-13 01:04:51] [2026-05-13 01:04:50,791 AIMaster] (kubernetes_job_tracker.py 184) INFO: New job patch: [{'op': 'add', 'path': '/metadata/annotations/pai.alibabacloud.com~1job-restart-finish-info', 'value': '{"OccurTime": "2026-05-12T17:04:50Z", "RestartStatus": "Succeeded", "TriggerID": "dqFc_YL9SmKV0h5h3RgUHw", "RestartDurationInSec": 0, "JobRestartCount": 1}'}, {'op': 'replace', 'path': '/metadata/annotations/pai.alibabacloud.com~1job-restart-info', 'value': ''}]
+[2026-05-13 01:04:51] [2026-05-13 01:04:50,827 AIMaster] (runtime_error_detector.py 517) INFO: Set training metric expired time to 1778605490.8271163
+[2026-05-13 01:05:01] [2026-05-13 01:05:00,869 AIMaster] (job_monitor_controller_k8s.py 956) INFO: Job monitor controller started.
+[2026-05-13 01:05:01] [2026-05-13 01:05:00,902 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 01:05:01] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 01:05:01] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 01:05:01] | Pending            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 01:05:01] | Running            |       0 | 0.0%         |                             |
+[2026-05-13 01:05:01] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 01:05:01] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 01:05:01] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 01:05:01] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 01:05:01] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 01:05:01] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 01:05:01] 
+[2026-05-13 01:05:01] [2026-05-13 01:05:00,902 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 0, failed: 0, pending: 1
+[2026-05-13 01:05:01] [2026-05-13 01:05:00,902 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:05:06] [2026-05-13 01:05:05,946 AIMaster] (pod_manager.py 288) INFO: Job Pod-to-Node Mapping (Count: 1):
+[2026-05-13 01:05:06] |    |   RestartIndex | PodName                   | NodeName     | LRN                                 |
+[2026-05-13 01:05:06] |---:|---------------:|:--------------------------|:-------------|:------------------------------------|
+[2026-05-13 01:05:06] |  0 |              1 | dlcjzcphmua6lik1-master-0 | m21798n16014 | lingj1b9k3ka8k5u-mgqkuqdmyzh7p6bx-0 |
+[2026-05-13 01:05:06] [2026-05-13 01:05:05,946 AIMaster] (pod_manager.py 289) INFO: Job allocated 1 nodes: m21798n16014
+[2026-05-13 01:05:06] [2026-05-13 01:05:05,946 AIMaster] (node_manager.py 43) INFO: Set current job nodes, node count: 1
+[2026-05-13 01:05:06] [2026-05-13 01:05:05,946 AIMaster] (pod_manager.py 299) INFO: Job allocated node changes (restart index: 1)
+[2026-05-13 01:05:06] Added nodes: none
+[2026-05-13 01:05:06] Removed nodes: none
+[2026-05-13 01:05:06] [2026-05-13 01:05:05,983 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 0, failed: 0, pending: 1
+[2026-05-13 01:05:06] [2026-05-13 01:05:05,983 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:05:31] [2026-05-13 01:05:31,109 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 0, failed: 0, pending: 1
+[2026-05-13 01:05:31] [2026-05-13 01:05:31,110 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:05:38] [2026-05-13 01:05:38,073 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:05:51] [2026-05-13 01:05:51,215 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 0, failed: 0, pending: 1
+[2026-05-13 01:05:51] [2026-05-13 01:05:51,215 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:05:56] [2026-05-13 01:05:56,253 AIMaster] (pod_manager.py 338) INFO: Job Pod-to-IPs Mapping (Count: 1):
+[2026-05-13 01:05:56] |    |   RestartIndex | PodName                   | InterfaceIps                                                                                                                                        | NodeName     | LRN                                 |
+[2026-05-13 01:05:56] |---:|---------------:|:--------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------|:-------------|:------------------------------------|
+[2026-05-13 01:05:56] |  0 |              1 | dlcjzcphmua6lik1-master-0 | {"eth0":["22.27.121.49"],"eth1":["22.27.115.149"],"eth2":["22.27.113.169"],"eth3":["22.27.126.17"],"lo":["127.0.0.1","::1"],"net0":["10.1.53.230"]} | m21798n16014 | lingj1b9k3ka8k5u-mgqkuqdmyzh7p6bx-0 |
+[2026-05-13 01:05:56] 
+[2026-05-13 01:05:56] [2026-05-13 01:05:56,279 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 0, failed: 0, pending: 1
+[2026-05-13 01:05:56] [2026-05-13 01:05:56,280 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:06:02] [2026-05-13 01:06:01,364 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 0, failed: 0, pending: 1
+[2026-05-13 01:06:02] [2026-05-13 01:06:01,364 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:06:07] [2026-05-13 01:06:06,418 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 01:06:07] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 01:06:07] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 01:06:07] | Running            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 01:06:07] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 01:06:07] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 01:06:07] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 01:06:07] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 01:06:07] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 01:06:07] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 01:06:07] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 01:06:07] 
+[2026-05-13 01:06:07] [2026-05-13 01:06:06,418 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:06:07] [2026-05-13 01:06:06,418 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:06:08] WARN: ./requirements.txt not found, skip installing requirements.
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] REPO_ROOT       = /mnt/data/ebft-distribution-new/code
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] LOCAL_ROOT      = /mnt/workspace        (local ext4; survives reboots, lost on container rebuild)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] CACHE_ROOT      = /mnt/data/ebft-distribution-new/caches        (persistent OSS)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] STUDENT_VENV    = /mnt/workspace/venvs/.venv
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] TEACHER_VENV    = /mnt/workspace/venvs/.teacherVenv
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] PYTHON_VERSION  = 3.12.12
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] PIP_CACHE_DIR        = /root/.cache/pip        (local ext4; OSS can't zipfile)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] PIP_INDEX_URL        = https://mirrors.aliyun.com/pypi/simple/
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] PIP_RETRIES          = 10 (timeout=120s, attempts=3)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] WHEEL_HOUSE_DIR      = /mnt/data/ebft-distribution-new/caches/wheels        (OSS, --find-links)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] SNAPSHOTS_DIR        = /mnt/data/ebft-distribution-new/caches/snapshots        (OSS, venv tarballs)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04]   EBFT_USE_VENV_SNAPSHOT=1  EBFT_REBUILD_VENV=0
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] HF_HOME              = /mnt/data/ebft-distribution-new/caches/hf        (OSS, persistent model blobs)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] TORCH_EXTENSIONS_DIR = /mnt/workspace/.torch_extensions        (local ext4; OSS can't host g++/nvcc builds)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] TRITON_CACHE_DIR     = /mnt/workspace/.triton_cache        (local ext4; same reason)
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] UV_CACHE_DIR         = /mnt/workspace/.uv/cache
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:04] UV_PYTHON_INSTALL_DIR= /mnt/workspace/.uv/python
+[2026-05-13 01:06:08] 
+[2026-05-13 01:06:08] [01:06:05] Installing uv into /mnt/workspace/.uv/bin
+[2026-05-13 01:06:08] downloading uv 0.11.13 x86_64-unknown-linux-gnu
+[2026-05-13 01:06:17] [2026-05-13 01:06:16,484 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:06:17] [2026-05-13 01:06:16,484 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:06:23] installing to /mnt/workspace/.uv/bin
+[2026-05-13 01:06:23]   uv
+[2026-05-13 01:06:23]   uvx
+[2026-05-13 01:06:23] everything's installed!
+[2026-05-13 01:06:23] 
+[2026-05-13 01:06:23] To add /mnt/workspace/.uv/bin to your PATH, either restart your shell or run:
+[2026-05-13 01:06:23] 
+[2026-05-13 01:06:23]     source /mnt/workspace/.uv/bin/env (sh, bash, zsh)
+[2026-05-13 01:06:23]     source /mnt/workspace/.uv/bin/env.fish (fish)
+[2026-05-13 01:06:23] 
+[2026-05-13 01:06:23] [01:06:22] Creating virtualenv at /mnt/workspace/venvs/.venv (python 3.12.12)
+[2026-05-13 01:06:23] Using CPython 3.12.12 interpreter at: /usr/local/bin/python3.12
+[2026-05-13 01:06:23] Creating virtual environment with seed packages at: /mnt/workspace/venvs/.venv
+[2026-05-13 01:06:32] [2026-05-13 01:06:31,578 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:06:38] [2026-05-13 01:06:38,108 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:07:02] [2026-05-13 01:07:01,691 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:07:32] [2026-05-13 01:07:31,801 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:07:32] [2026-05-13 01:07:31,801 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:07:32] [2026-05-13 01:07:31,826 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:07:38] [2026-05-13 01:07:38,159 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:07:43] [2026-05-13 01:07:43,232 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:07:52]  + pip==26.1.1
+[2026-05-13 01:07:52] Activate with: source /mnt/workspace/venvs/.venv/bin/activate
+[2026-05-13 01:07:53] Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+[2026-05-13 01:07:53] Looking in links: /mnt/data/ebft-distribution-new/caches/wheels
+[2026-05-13 01:07:53] Requirement already satisfied: pip in /mnt/workspace/venvs/.venv/lib/python3.12/site-packages (26.1.1)
+[2026-05-13 01:07:53] Collecting setuptools==82.0.1
+[2026-05-13 01:07:53]   Downloading setuptools-82.0.1-py3-none-any.whl (1.0 MB)
+[2026-05-13 01:07:54]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 626.7 kB/s  0:00:01
+[2026-05-13 01:07:55] Collecting wheel==0.46.3
+[2026-05-13 01:07:55]   Downloading wheel-0.46.3-py3-none-any.whl (30 kB)
+[2026-05-13 01:07:55] Collecting packaging>=24.0 (from wheel==0.46.3)
+[2026-05-13 01:07:55]   Downloading packaging-26.2-py3-none-any.whl (100 kB)
+[2026-05-13 01:07:55] Installing collected packages: setuptools, packaging, wheel
+[2026-05-13 01:07:55] 
+[2026-05-13 01:07:55] Successfully installed packaging-26.2 setuptools-82.0.1 wheel-0.46.3
+[2026-05-13 01:07:55] 
+[2026-05-13 01:07:55] [01:07:55] Installing student PyTorch CUDA 12.4 stack (via https://mirrors.aliyun.com/pytorch-wheels/cu124/)
+[2026-05-13 01:07:57] Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+[2026-05-13 01:07:57] Looking in links: /mnt/data/ebft-distribution-new/caches/wheels, https://mirrors.aliyun.com/pytorch-wheels/cu124/
+[2026-05-13 01:07:57] Collecting torch==2.5.1+cu124
+[2026-05-13 01:07:57]   Downloading torch-2.5.1%2Bcu124-cp312-cp312-linux_x86_64.whl (908.2 MB)
+[2026-05-13 01:08:02] [2026-05-13 01:08:01,968 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:08:32] [2026-05-13 01:08:32,091 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:08:32] [2026-05-13 01:08:32,091 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:08:38] [2026-05-13 01:08:38,195 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:09:02] [2026-05-13 01:09:02,230 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:09:15] [2026-05-13 01:09:15,176 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:09:32] [2026-05-13 01:09:32,350 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:09:32] [2026-05-13 01:09:32,350 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:09:32] [2026-05-13 01:09:32,376 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:09:38] [2026-05-13 01:09:38,231 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:10:03] [2026-05-13 01:10:02,525 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:10:33] [2026-05-13 01:10:32,668 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:10:33] [2026-05-13 01:10:32,668 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:10:38] [2026-05-13 01:10:38,267 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:10:46] [2026-05-13 01:10:46,383 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:11:03] [2026-05-13 01:11:02,817 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:11:33] [2026-05-13 01:11:32,928 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 01:11:33] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 01:11:33] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 01:11:33] | Running            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 01:11:33] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 01:11:33] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 01:11:33] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 01:11:33] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 01:11:33] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 01:11:33] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 01:11:33] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 01:11:33] 
+[2026-05-13 01:11:33] [2026-05-13 01:11:32,928 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:11:33] [2026-05-13 01:11:32,928 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:11:33] [2026-05-13 01:11:32,953 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:11:38] [2026-05-13 01:11:38,303 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:12:03] [2026-05-13 01:12:03,072 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:12:18] [2026-05-13 01:12:18,457 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:12:33] [2026-05-13 01:12:33,194 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:12:33] [2026-05-13 01:12:33,194 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:12:38] [2026-05-13 01:12:38,339 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:13:03] [2026-05-13 01:13:03,349 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:13:33] [2026-05-13 01:13:33,486 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:13:33] [2026-05-13 01:13:33,486 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:13:33] [2026-05-13 01:13:33,513 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:13:38] [2026-05-13 01:13:38,376 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:13:51] [2026-05-13 01:13:50,618 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:14:04] [2026-05-13 01:14:03,634 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:14:34] [2026-05-13 01:14:33,749 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:14:34] [2026-05-13 01:14:33,749 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:14:38] [2026-05-13 01:14:38,412 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:15:04] [2026-05-13 01:15:03,891 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:15:22] [2026-05-13 01:15:22,614 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:15:34] [2026-05-13 01:15:34,012 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:15:34] [2026-05-13 01:15:34,012 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:15:34] [2026-05-13 01:15:34,039 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:15:38] [2026-05-13 01:15:38,448 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:16:04] [2026-05-13 01:16:04,165 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:16:34] [2026-05-13 01:16:34,275 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 01:16:34] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 01:16:34] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 01:16:34] | Running            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 01:16:34] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 01:16:34] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 01:16:34] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 01:16:34] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 01:16:34] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 01:16:34] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 01:16:34] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 01:16:34] 
+[2026-05-13 01:16:34] [2026-05-13 01:16:34,275 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:16:34] [2026-05-13 01:16:34,275 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:16:38] [2026-05-13 01:16:38,484 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:16:54] [2026-05-13 01:16:53,938 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:17:04] [2026-05-13 01:17:04,441 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:17:34] [2026-05-13 01:17:34,551 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:17:34] [2026-05-13 01:17:34,551 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:17:34] [2026-05-13 01:17:34,578 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:17:38] [2026-05-13 01:17:38,520 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:18:04] [2026-05-13 01:18:04,696 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:18:25] [2026-05-13 01:18:25,547 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:18:35] [2026-05-13 01:18:34,809 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:18:35] [2026-05-13 01:18:34,809 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:18:38] [2026-05-13 01:18:38,553 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:19:05] [2026-05-13 01:19:04,962 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:19:35] [2026-05-13 01:19:35,077 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:19:35] [2026-05-13 01:19:35,077 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:19:35] [2026-05-13 01:19:35,104 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:19:38] [2026-05-13 01:19:38,590 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:19:56] [2026-05-13 01:19:56,809 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:20:05] [2026-05-13 01:20:05,231 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:20:25]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 908.2/908.2 MB 1.1 MB/s  0:12:27
+[2026-05-13 01:20:26] Collecting torchvision==0.20.1+cu124
+[2026-05-13 01:20:27]   Downloading torchvision-0.20.1%2Bcu124-cp312-cp312-linux_x86_64.whl (7.3 MB)
+[2026-05-13 01:20:33]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.3/7.3 MB 1.1 MB/s  0:00:06
+[2026-05-13 01:20:34] Collecting torchaudio==2.5.1+cu124
+[2026-05-13 01:20:34]   Downloading torchaudio-2.5.1%2Bcu124-cp312-cp312-linux_x86_64.whl (3.4 MB)
+[2026-05-13 01:20:35] [2026-05-13 01:20:35,349 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:20:35] [2026-05-13 01:20:35,349 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:20:37]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 924.2 kB/s  0:00:03
+[2026-05-13 01:20:38] [2026-05-13 01:20:38,624 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:20:38] Collecting filelock (from torch==2.5.1+cu124)
+[2026-05-13 01:20:38]   Downloading filelock-3.29.0-py3-none-any.whl (39 kB)
+[2026-05-13 01:20:38] Collecting typing-extensions>=4.8.0 (from torch==2.5.1+cu124)
+[2026-05-13 01:20:38]   Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+[2026-05-13 01:20:38] Collecting networkx (from torch==2.5.1+cu124)
+[2026-05-13 01:20:38]   Downloading networkx-3.6.1-py3-none-any.whl (2.1 MB)
+[2026-05-13 01:20:40]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 899.0 kB/s  0:00:02
+[2026-05-13 01:20:41] Collecting jinja2 (from torch==2.5.1+cu124)
+[2026-05-13 01:20:41]   Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+[2026-05-13 01:20:41] Collecting fsspec (from torch==2.5.1+cu124)
+[2026-05-13 01:20:41]   Downloading fsspec-2026.4.0-py3-none-any.whl (203 kB)
+[2026-05-13 01:20:42] Collecting nvidia-cuda-nvrtc-cu12==12.4.127 (from torch==2.5.1+cu124)
+[2026-05-13 01:20:42]   Downloading nvidia_cuda_nvrtc_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl (24.6 MB)
+[2026-05-13 01:21:05] [2026-05-13 01:21:05,493 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:21:07]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.6/24.6 MB 984.4 kB/s  0:00:24
+[2026-05-13 01:21:07] Collecting nvidia-cuda-runtime-cu12==12.4.127 (from torch==2.5.1+cu124)
+[2026-05-13 01:21:07]   Downloading nvidia_cuda_runtime_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl (883 kB)
+[2026-05-13 01:21:08]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 883.7/883.7 kB 1.0 MB/s  0:00:00
+[2026-05-13 01:21:08] Collecting nvidia-cuda-cupti-cu12==12.4.127 (from torch==2.5.1+cu124)
+[2026-05-13 01:21:08]   Downloading nvidia_cuda_cupti_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl (13.8 MB)
+[2026-05-13 01:21:20]      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.8/13.8 MB 1.1 MB/s  0:00:11
+[2026-05-13 01:21:21] Collecting nvidia-cudnn-cu12==9.1.0.70 (from torch==2.5.1+cu124)
+[2026-05-13 01:21:21]   Downloading nvidia_cudnn_cu12-9.1.0.70-py3-none-manylinux2014_x86_64.whl (664.8 MB)
+[2026-05-13 01:21:28] [2026-05-13 01:21:28,758 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:21:35] [2026-05-13 01:21:35,611 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 1)
+[2026-05-13 01:21:35] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-13 01:21:35] |--------------------|---------|--------------|-----------------------------|
+[2026-05-13 01:21:35] | Running            |       1 | 100.0%       | [dlcjzcphmua6lik1-master-0] |
+[2026-05-13 01:21:35] | Pending            |       0 | 0.0%         |                             |
+[2026-05-13 01:21:35] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-13 01:21:35] | Failed             |       0 | 0.0%         |                             |
+[2026-05-13 01:21:35] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-13 01:21:35] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-13 01:21:35] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-13 01:21:35] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-13 01:21:35] 
+[2026-05-13 01:21:35] [2026-05-13 01:21:35,611 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:21:35] [2026-05-13 01:21:35,611 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:21:35] [2026-05-13 01:21:35,636 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:21:38] [2026-05-13 01:21:38,660 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:22:05] [2026-05-13 01:22:05,782 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:22:35] [2026-05-13 01:22:35,894 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:22:35] [2026-05-13 01:22:35,895 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:22:38] [2026-05-13 01:22:38,696 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-13 01:23:00] [2026-05-13 01:23:00,368 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-13 01:23:06] [2026-05-13 01:23:06,058 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:23:36] [2026-05-13 01:23:36,189 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 1, running: 1, failed: 0, pending: 0
+[2026-05-13 01:23:36] [2026-05-13 01:23:36,189 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-13 01:23:36] [2026-05-13 01:23:36,219 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-13 01:23:38] [2026-05-13 01:23:38,732 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.

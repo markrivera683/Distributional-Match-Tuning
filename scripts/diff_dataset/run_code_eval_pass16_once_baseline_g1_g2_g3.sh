@@ -149,7 +149,7 @@ MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
 VLLM_TP_SIZE="${VLLM_TP_SIZE:-$(count_csv_items "${MODEL_CUDA_VISIBLE_DEVICES}")}"
 VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-128}"
 BASE_SEED="${BASE_SEED:-1234}"
-NUM_REPEATS="${NUM_REPEATS:-1}"
+NUM_REPEATS="${NUM_REPEATS:-3}"
 SMOKE_TEST="${SMOKE_TEST:-false}"
 SKIP_COMPLETED="${SKIP_COMPLETED:-false}"
 
@@ -191,18 +191,31 @@ MODEL_SPECS=(
   "g3_dlc8pd4wa5cqtgur|/mnt/data/ebft-distribution-new/outputs/diff_dataset/g3_dlc8pd4wa5cqtgur"
 )
 
+if [[ -n "${SLIME_MODEL_PATH:-}" ]]; then
+  MODEL_SPECS+=("${SLIME_MODEL_LABEL:-slime}|${SLIME_MODEL_PATH}")
+fi
+
+if [[ -n "${ONLY_MODEL_SPECS:-}" ]]; then
+  IFS=',' read -r -a MODEL_SPECS <<< "${ONLY_MODEL_SPECS}"
+fi
+
 BENCHMARKS=(humaneval)
 TASKS=(pass16_temp06)
 
 if [[ "${SMOKE_TEST}" == "true" ]]; then
-  MODEL_SPECS=("baseline_qwen35_4b|/mnt/data/models/Qwen3.5-4B")
+  if [[ -z "${ONLY_MODEL_SPECS:-}" && -z "${SLIME_MODEL_PATH:-}" ]]; then
+    MODEL_SPECS=("baseline_qwen35_4b|/mnt/data/models/Qwen3.5-4B")
+    echo "[smoke] no model override provided; using baseline_qwen35_4b"
+  else
+    echo "[smoke] model override detected; keeping provided MODEL_SPECS"
+  fi
   BENCHMARKS=(humaneval)
   TASKS=(pass16_temp06)
   NUM_REPEATS=1
   MAX_SAMPLES_PER_BENCHMARK=1
   MAX_NEW_TOKENS="${SMOKE_MAX_NEW_TOKENS:-64}"
   VLLM_MAX_NUM_SEQS="${SMOKE_VLLM_MAX_NUM_SEQS:-8}"
-  echo "[smoke] enabled: baseline + HumanEval + pass@16 + 1 benchmark prompt"
+  echo "[smoke] enabled: HumanEval + pass@16 + 1 benchmark prompt"
 fi
 
 mkdir -p "${RUN_DIR}" "${LOG_DIR}"
