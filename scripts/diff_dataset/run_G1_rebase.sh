@@ -2,7 +2,7 @@
 # Standalone diff-dataset G1 launcher.
 #
 # Dataset: OpenCodeInstruct train pool, MBPP + HumanEval post-eval.
-# Model:   Qwen3.5-4B student by default.
+# Model:   Qwen3.5-2B student by default.
 # Reward:  pointwise, cf_target_mode=single, no teacher.
 
 set -euo pipefail
@@ -44,49 +44,76 @@ write_jsonl_datasets() {
 }
 
 run_code_benchmark_posteval() {
-  local output_dir="${RUN_DIR}/code_benchmarks"
-  local log_path="${RUN_DIR}/supplement_logs/code_benchmarks/run_code_generation_benchmarks.log"
-  local prefix_cache_args=()
-  mkdir -p "${output_dir}" "$(dirname "${log_path}")"
-  [[ "${VLLM_ENABLE_PREFIX_CACHING}" == "true" ]] && prefix_cache_args+=(--enable_prefix_caching)
+  local output_root="${RUN_DIR}/code_benchmarks"
+  local log_dir="${RUN_DIR}/supplement_logs/code_benchmarks"
+  local model_label="${POST_EVAL_MODEL_LABEL:-g1_${RUN_NAME}}"
+  local only_model_specs="${model_label}|${SAVE_PATH}"
+  local rc=0
+  local script_rc=0
+  mkdir -p "${output_root}" "${log_dir}"
 
   echo ""
-  echo "===== code post-eval via scripts/benchmarks/run_code_generation_benchmarks.py ====="
-  CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES}" \
-  "${CODE_BENCHMARK_PYTHON_BIN}" "${CODE_BENCHMARK_SCRIPT}" \
-    --model_path "${SAVE_PATH}" \
-    --output_dir "${output_dir}" \
-    --benchmarks "${CODE_BENCHMARKS}" \
-    --backend "${CODE_BENCHMARK_BACKEND}" \
-    --humaneval_dataset "${HUMANEVAL_EVAL_DATA}" \
-    --humaneval_split "${HUMANEVAL_EVAL_SPLIT}" \
-    --mbpp_dataset "${MBPP_EVAL_DATA}" \
-    --mbpp_config "${MBPP_EVAL_CONFIG}" \
-    --mbpp_split "${MBPP_EVAL_SPLIT}" \
-    --prompt_max_len "${POST_EVAL_PROMPT_MAX_LEN}" \
-    --max_new_tokens "${CODE_EVAL_MAX_NEW_TOKENS}" \
-    --greedy_temperature "${CODE_EVAL_TEMPERATURE}" \
-    --sample_temperature "${CODE_EVAL_TEMPERATURE}" \
-    --top_p "${CODE_EVAL_TOP_P}" \
-    --repetition_penalty "${CODE_EVAL_REPETITION_PENALTY}" \
-    --n_samples "${CODE_EVAL_N_SAMPLES}" \
-    --passk_list "${CODE_EVAL_PASSK_LIST}" \
-    --max_samples_per_benchmark "${POST_EVAL_MAX_SAMPLES}" \
-    --timeout_seconds "${CODE_EVAL_TIMEOUT_SECONDS}" \
-    --tp_size "${VLLM_TP_SIZE}" \
-    --max_num_seqs "${VLLM_MAX_NUM_SEQS}" \
-    --seed "${VLLM_SEED}" \
-    --greedy_batch_size "${CODE_EVAL_GREEDY_BATCH_SIZE}" \
-    --sample_batch_size "${CODE_EVAL_SAMPLE_BATCH_SIZE}" \
-    "${prefix_cache_args[@]}" \
-    2>&1 | tee "${log_path}"
+  echo "===== code post-eval via diff_dataset code-eval launchers ====="
+  echo "[post-eval] only_model_specs=${only_model_specs}"
+
+  RUN_NAME="${RUN_NAME}_code_eval_repeats" \
+  OUTPUT_ROOT="${output_root}" \
+  ONLY_MODEL_SPECS="${only_model_specs}" \
+  CODE_BENCHMARK_PYTHON_BIN="${CODE_BENCHMARK_PYTHON_BIN}" \
+  CODE_BENCHMARK_SCRIPT="${CODE_BENCHMARK_SCRIPT}" \
+  PREPARED_DATA_DIR="${PREPARED_DATA_DIR}" \
+  HUMANEVAL_EVAL_DATA="${HUMANEVAL_EVAL_DATA}" \
+  MBPP_EVAL_DATA="${MBPP_EVAL_DATA}" \
+  MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES}" \
+  VLLM_TP_SIZE="${VLLM_TP_SIZE}" \
+  VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS}" \
+  BASE_SEED="${VLLM_SEED}" \
+  PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN}" \
+  MAX_NEW_TOKENS="${CODE_EVAL_MAX_NEW_TOKENS}" \
+  TOP_P="${CODE_EVAL_TOP_P}" \
+  REPETITION_PENALTY="${CODE_EVAL_REPETITION_PENALTY}" \
+  GREEDY_BATCH_SIZE="${CODE_EVAL_GREEDY_BATCH_SIZE}" \
+  SAMPLE_BATCH_SIZE="${CODE_EVAL_SAMPLE_BATCH_SIZE}" \
+  MAX_SAMPLES_PER_BENCHMARK="${POST_EVAL_MAX_SAMPLES}" \
+  TIMEOUT_SECONDS="${CODE_EVAL_TIMEOUT_SECONDS}" \
+  bash "${SCRIPT_DIR}/run_code_eval_repeats_baseline_g1_g2_g3.sh" \
+    2>&1 | tee "${log_dir}/run_code_eval_repeats.log"
+  script_rc=${PIPESTATUS[0]}
+  (( script_rc != 0 )) && rc=${script_rc}
+
+  RUN_NAME="${RUN_NAME}_code_eval_pass16_once" \
+  OUTPUT_ROOT="${output_root}" \
+  ONLY_MODEL_SPECS="${only_model_specs}" \
+  CODE_BENCHMARK_PYTHON_BIN="${CODE_BENCHMARK_PYTHON_BIN}" \
+  CODE_BENCHMARK_SCRIPT="${CODE_BENCHMARK_SCRIPT}" \
+  PREPARED_DATA_DIR="${PREPARED_DATA_DIR}" \
+  HUMANEVAL_EVAL_DATA="${HUMANEVAL_EVAL_DATA}" \
+  MBPP_EVAL_DATA="${MBPP_EVAL_DATA}" \
+  MODEL_CUDA_VISIBLE_DEVICES="${MODEL_CUDA_VISIBLE_DEVICES}" \
+  VLLM_TP_SIZE="${VLLM_TP_SIZE}" \
+  VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS}" \
+  BASE_SEED="${VLLM_SEED}" \
+  PROMPT_MAX_LEN="${POST_EVAL_PROMPT_MAX_LEN}" \
+  MAX_NEW_TOKENS="${CODE_EVAL_MAX_NEW_TOKENS}" \
+  TOP_P="${CODE_EVAL_TOP_P}" \
+  REPETITION_PENALTY="${CODE_EVAL_REPETITION_PENALTY}" \
+  GREEDY_BATCH_SIZE="${CODE_EVAL_GREEDY_BATCH_SIZE}" \
+  SAMPLE_BATCH_SIZE="${CODE_EVAL_SAMPLE_BATCH_SIZE}" \
+  MAX_SAMPLES_PER_BENCHMARK="${POST_EVAL_MAX_SAMPLES}" \
+  TIMEOUT_SECONDS="${CODE_EVAL_TIMEOUT_SECONDS}" \
+  bash "${SCRIPT_DIR}/run_code_eval_pass16_once_baseline_g1_g2_g3.sh" \
+    2>&1 | tee "${log_dir}/run_code_eval_pass16_once.log"
+  script_rc=${PIPESTATUS[0]}
+  (( rc == 0 && script_rc != 0 )) && rc=${script_rc}
+
+  return "${rc}"
 }
 
 # ---------------------------------------------------------------------------
 # 1) Explicit paths / data / model
 # ---------------------------------------------------------------------------
 REPO_ROOT="${REPO_ROOT:-/mnt/data/ebft-distribution-new/code}"
-MODEL_PATH="${MODEL_PATH:-/mnt/data/models/Qwen3.5-4B}"
+MODEL_PATH="${MODEL_PATH:-/mnt/data/models/Qwen3.5-2B}"
 PREPARED_DATA_DIR="${PREPARED_DATA_DIR:-/mnt/data/ebft-distribution-new/outputs/diff_dataset_prepared}"
 TRAIN_SAMPLE_POOL="${TRAIN_SAMPLE_POOL:-100000}"
 TRAIN_DATA="${TRAIN_DATA:-${PREPARED_DATA_DIR}/opencodeinstruct_qa_100k.jsonl}"
@@ -120,6 +147,10 @@ export TOKENIZERS_PARALLELISM=false
 export RAY_DISABLE_DOCKER_CPU_WARNING=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
+export RAY_TMPDIR="${RAY_TMPDIR:-/root/ray_tmp}"
+export TMPDIR="${TMPDIR:-${RAY_TMPDIR}}"
+export TEMP="${TEMP:-${TMPDIR}}"
+export TMP="${TMP:-${TMPDIR}}"
 export PYTHONUNBUFFERED=1
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
 export NCCL_LAUNCH_MODE="${NCCL_LAUNCH_MODE:-GROUP}"
@@ -129,6 +160,7 @@ export CUDA_DEVICE_MAX_CONNECTIONS="${CUDA_DEVICE_MAX_CONNECTIONS:-1}"
 if [[ -d "${STUDENT_VENV}/bin" ]]; then
   export PATH="${STUDENT_VENV}/bin:${PATH}"
 fi
+mkdir -p "${RAY_TMPDIR}"
 
 # ---------------------------------------------------------------------------
 # 3) GPU layout
@@ -159,8 +191,7 @@ GENERATE_MAX_LEN="${GENERATE_MAX_LEN:-8}"
 STRIDE="${STRIDE:-8}"
 NUM_EPISODES="${NUM_EPISODES:-1}"
 MAX_EPOCHS="${MAX_EPOCHS:-1}"
-TARGET_STEPS="${TARGET_STEPS:-500}"
-MAX_SAMPLES="${MAX_SAMPLES:-$((TARGET_STEPS * TRAIN_BATCH_SIZE / N_SAMPLES_PER_PROMPT / NUM_EPISODES / MAX_EPOCHS))}"
+MAX_SAMPLES="${MAX_SAMPLES:--1}"
 
 DISTRIBUTION_REWARD_TYPE="${DISTRIBUTION_REWARD_TYPE:-pointwise}"
 FEATURE_MAP_TYPE="${FEATURE_MAP_TYPE:-identity}"
@@ -180,7 +211,7 @@ CF_TEACHER_N_SAMPLES="${CF_TEACHER_N_SAMPLES:-${N_SAMPLES_PER_PROMPT}}"
 # Paper knobs, explicit:
 #   gamma = CE_LOSS_COEF
 #   alpha ~= DIVERSITY_REW_COEF / ALIGNMENT_REW_COEF
-CE_LOSS_COEF="${CE_LOSS_COEF:-0.01}"
+CE_LOSS_COEF="${CE_LOSS_COEF:-0.03}"
 ALIGNMENT_REW_COEF="${ALIGNMENT_REW_COEF:-1.0}"
 DIVERSITY_REW_COEF="${DIVERSITY_REW_COEF:-1.0}"
 
@@ -222,7 +253,7 @@ VLLM_ENABLE_PREFIX_CACHING="${VLLM_ENABLE_PREFIX_CACHING:-false}"
 VLLM_SEED="${VLLM_SEED:-1234}"
 CODE_BENCHMARK_SCRIPT="${CODE_BENCHMARK_SCRIPT:-${REPO_ROOT}/scripts/benchmarks/run_code_generation_benchmarks.py}"
 CODE_BENCHMARK_PYTHON_BIN="${CODE_BENCHMARK_PYTHON_BIN:-${TEACHER_PYTHON_BIN}}"
-CODE_BENCHMARKS="${CODE_BENCHMARKS:-humaneval,mbpp}"
+CODE_BENCHMARKS="${CODE_BENCHMARKS:-humaneval}"
 CODE_BENCHMARK_BACKEND="${CODE_BENCHMARK_BACKEND:-vllm}"
 CODE_EVAL_MAX_NEW_TOKENS="${CODE_EVAL_MAX_NEW_TOKENS:-1024}"
 CODE_EVAL_TEMPERATURE="${CODE_EVAL_TEMPERATURE:-0.0}"
@@ -241,7 +272,7 @@ MBPP_EVAL_SPLIT="${MBPP_EVAL_SPLIT:-test}"
 # 6) Output
 # ---------------------------------------------------------------------------
 OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/ebft-distribution-new/outputs/diff_dataset}"
-RUN_NAME="${RUN_NAME:-diff_g1_qwen35_4b_$(date +%m%d_%H%M)}"
+RUN_NAME="${RUN_NAME:-diff_g1_qwen35_2b_$(date +%m%d_%H%M)}"
 RUN_DIR="${RUN_DIR:-${OUTPUT_ROOT}/${RUN_NAME}}"
 SAVE_PATH="${RUN_DIR}/model"
 TB_DIR="${RUN_DIR}/tensorboard"
@@ -312,9 +343,10 @@ ADAM_OFFLOAD_ARGS=()
   echo "# UTC: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
   for name in \
     RUN_NAME RUN_DIR SAVE_PATH MODEL_PATH TRAIN_DATA POST_EVAL_DATASETS \
+    RAY_TMPDIR TMPDIR \
     CUDA_VISIBLE_DEVICES ACTOR_GPUS CRITIC_GPUS REF_GPUS REWARD_GPUS \
     N_SAMPLES_PER_PROMPT ROLLOUT_BATCH_SIZE TRAIN_BATCH_SIZE MICRO_TRAIN_BATCH_SIZE MICRO_ROLLOUT_BATCH_SIZE MICRO_REWARD_BATCH_SIZE \
-    PROMPT_MAX_LEN CONTEXT_MAX_LEN GENERATE_MAX_LEN STRIDE TARGET_STEPS MAX_SAMPLES \
+    PROMPT_MAX_LEN CONTEXT_MAX_LEN GENERATE_MAX_LEN STRIDE NUM_EPISODES MAX_EPOCHS MAX_SAMPLES \
     DISTRIBUTION_REWARD_TYPE CF_TARGET_MODE CF_TEACHER_LAMBDA CF_TEACHER_N_SAMPLES \
     CE_LOSS_COEF ALIGNMENT_REW_COEF DIVERSITY_REW_COEF \
     ACTOR_LR CRITIC_LR CRITIC_LR_HEAD ADVANTAGE_ESTIMATOR INIT_KL_COEF KL_ESTIMATOR TEMPERATURE TOP_P ZERO_STAGE \
@@ -350,7 +382,8 @@ echo "cf_target_mode:           ${CF_TARGET_MODE}"
 echo "teacher_in_reward:        false"
 echo "gamma / CE coef:          ${CE_LOSS_COEF}"
 echo "alpha proxy:              ${DIVERSITY_REW_COEF}/${ALIGNMENT_REW_COEF}"
-echo "target_steps/max_samples: ${TARGET_STEPS}/${MAX_SAMPLES}"
+echo "num_episodes/max_epochs:  ${NUM_EPISODES}/${MAX_EPOCHS}"
+echo "max_samples:             ${MAX_SAMPLES} (-1 means full train split)"
 echo "online_eval:              ${ONLINE_EVAL}"
 echo "code_post_eval:           ${RUN_CODE_POST_EVAL}"
 echo "code_benchmark_script:    ${CODE_BENCHMARK_SCRIPT}"

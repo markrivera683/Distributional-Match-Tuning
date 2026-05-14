@@ -1,0 +1,22 @@
+EBFT Dense 4D Mask Cache Delivery
+Date: 2026-05-14
+Base archive: /root/autodl-tmp/Distributional-Match-Tuning.zip
+
+Changed / added files relative to the base archive:
+- DENSEMASK_CACHE_README.md
+- docs/DENSEMASK_CACHE_DELIVERY.md
+- docs/DENSEMASK_CACHE_SMOKE_RESULT.md
+- openrlhf/models/utils.py
+- scripts/benchmark_densemask_cache.py
+- scripts/validate_densemask_cache_equivalence.py
+
+Validation performed:
+- python -m py_compile openrlhf/models/utils.py scripts/validate_densemask_cache_equivalence.py scripts/benchmark_densemask_cache.py
+- python scripts/validate_densemask_cache_equivalence.py --device cpu --include-bf16
+- python scripts/benchmark_densemask_cache.py --device cpu --iters 20 --warmup 2
+- single-GPU training smoke reached Global step 1 with EBFT_CACHE_STRIDED_MASKS=1
+
+Notes:
+- Cache is opt-in: EBFT_CACHE_STRIDED_MASKS=1
+- Cache budget: EBFT_CACHE_STRIDED_MASKS_MAX_MB, default 1024
+- No sparse mask, BlockMask, teacher, reward, or hyperparameter changes are included.

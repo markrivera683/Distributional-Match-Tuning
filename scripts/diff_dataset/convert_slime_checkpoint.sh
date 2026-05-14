@@ -3,9 +3,12 @@
 #
 # Usage:
 #   bash scripts/diff_dataset/convert_slime_checkpoint.sh /path/to/hf_model
+#   bash scripts/diff_dataset/convert_slime_checkpoint.sh mcore_to_hf /path/to/slime_torch_dist
 #
 # Optional env:
 #   MCORE_CHECKPOINT=/path/to/output_torch_dist
+#   HF_CHECKPOINT=/path/to/original_hf_model
+#   HF_OUTPUT=/path/to/output_hf_model
 #   SLIME_ROOT=/mnt/data/distribution-matching-slime/code/slime-0.2.4
 #   MEGATRON_PATH=/root/slime_runtime/Megatron-LM
 #   MODEL_ARGS_SCRIPT=/mnt/data/distribution-matching-slime/code/slime-0.2.4/slime/scripts/models/qwen3.5-4B.sh
@@ -13,18 +16,37 @@
 set -euo pipefail
 
 MODE="${MODE:-hf_to_mcore}"
-if [[ "${1:-}" == "hf_to_mcore" || "${1:-}" == "hf_to_torch_dist" ]]; then
+if [[ "${1:-}" == "hf_to_mcore" || "${1:-}" == "hf_to_torch_dist" || "${1:-}" == "mcore_to_hf" || "${1:-}" == "torch_dist_to_hf" ]]; then
   MODE="$1"
   shift
 fi
 
-HF_CHECKPOINT="${1:-${MODEL_PATH:-${HF_CHECKPOINT:-}}}"
-if [[ -z "${HF_CHECKPOINT}" ]]; then
-  echo "[ERROR] missing model path. Usage: $0 /path/to/hf_model" >&2
-  exit 2
-fi
-HF_CHECKPOINT="$(cd "${HF_CHECKPOINT}" && pwd)"
-MODEL_NAME="$(basename "${HF_CHECKPOINT%/}")"
+case "${MODE}" in
+  hf_to_mcore|hf_to_torch_dist)
+    HF_CHECKPOINT="${1:-${MODEL_PATH:-${HF_CHECKPOINT:-}}}"
+    if [[ -z "${HF_CHECKPOINT}" ]]; then
+      echo "[ERROR] missing model path. Usage: $0 /path/to/hf_model" >&2
+      exit 2
+    fi
+    HF_CHECKPOINT="$(cd "${HF_CHECKPOINT}" && pwd)"
+    MODEL_NAME="$(basename "${HF_CHECKPOINT%/}")"
+    ;;
+  mcore_to_hf|torch_dist_to_hf)
+    MCORE_CHECKPOINT="${1:-${MCORE_CHECKPOINT:-}}"
+    HF_CHECKPOINT="${HF_CHECKPOINT:-${MODEL_PATH:-/mnt/data/models/Qwen3.5-4B}}"
+    if [[ -z "${MCORE_CHECKPOINT}" ]]; then
+      echo "[ERROR] missing Megatron checkpoint path. Usage: $0 mcore_to_hf /path/to/slime_torch_dist" >&2
+      exit 2
+    fi
+    MCORE_CHECKPOINT="$(cd "${MCORE_CHECKPOINT}" && pwd)"
+    HF_CHECKPOINT="$(cd "${HF_CHECKPOINT}" && pwd)"
+    MODEL_NAME="$(basename "${HF_CHECKPOINT%/}")"
+    ;;
+  *)
+    echo "[ERROR] unknown MODE=${MODE}" >&2
+    exit 2
+    ;;
+esac
 
 if [[ -z "${SLIME_ROOT:-}" ]]; then
   for candidate in "/mnt/data/distribution-matching-slime/code/slime-0.2.4" "/root/slime_runtime/slime"; do
@@ -48,6 +70,7 @@ MEGATRON_PATH="${MEGATRON_PATH:-}"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 MCORE_ROOT="${MCORE_ROOT:-/root/slime_runtime/checkpoints}"
 MCORE_CHECKPOINT="${MCORE_CHECKPOINT:-${MCORE_ROOT}/${MODEL_NAME}_torch_dist}"
+HF_OUTPUT="${HF_OUTPUT:-${MCORE_CHECKPOINT%/}_hf}"
 DRY_RUN="${DRY_RUN:-false}"
 
 require_dir() {
@@ -63,7 +86,16 @@ require_file() {
 require_dir "${HF_CHECKPOINT}"
 require_file "${HF_CHECKPOINT}/config.json"
 require_dir "${SLIME_ROOT}"
-require_file "${SLIME_ROOT}/tools/convert_hf_to_torch_dist.py"
+case "${MODE}" in
+  hf_to_mcore|hf_to_torch_dist)
+    require_file "${SLIME_ROOT}/tools/convert_hf_to_torch_dist.py"
+    ;;
+  mcore_to_hf|torch_dist_to_hf)
+    require_dir "${MCORE_CHECKPOINT}"
+    require_file "${MCORE_CHECKPOINT}/common.pt"
+    require_file "${SLIME_ROOT}/tools/convert_torch_dist_to_hf.py"
+    ;;
+esac
 
 if [[ -n "${MEGATRON_PATH}" ]]; then
   require_dir "${MEGATRON_PATH}"
@@ -71,6 +103,38 @@ if [[ -n "${MEGATRON_PATH}" ]]; then
 else
   echo "[warn] MEGATRON_PATH not found; relying on the active Python environment to provide megatron" >&2
   export PYTHONPATH="${SLIME_ROOT}:${PYTHONPATH:-}"
+fi
+
+if [[ "${MODE}" == "mcore_to_hf" || "${MODE}" == "torch_dist_to_hf" ]]; then
+  echo "[convert] mode=${MODE}"
+  echo "[convert] mcore_checkpoint=${MCORE_CHECKPOINT}"
+  echo "[convert] origin_hf=${HF_CHECKPOINT}"
+  echo "[convert] hf_output=${HF_OUTPUT}"
+  echo "[convert] slime_root=${SLIME_ROOT}"
+  echo "[convert] megatron_path=${MEGATRON_PATH}"
+
+  CMD=(
+    "${PYTHON_BIN}" "${SLIME_ROOT}/tools/convert_torch_dist_to_hf.py"
+    --input-dir "${MCORE_CHECKPOINT}"
+    --output-dir "${HF_OUTPUT}"
+    --origin-hf-dir "${HF_CHECKPOINT}"
+    --force
+  )
+
+  if [[ -n "${HF_VOCAB_SIZE:-}" ]]; then
+    CMD+=(--vocab-size "${HF_VOCAB_SIZE}")
+  fi
+
+  cd "${SLIME_ROOT}"
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    printf '[dry-run] '
+    printf '%q ' "${CMD[@]}"
+    echo
+    exit 0
+  fi
+
+  "${CMD[@]}"
+  exit 0
 fi
 
 MODEL_ARGS=()

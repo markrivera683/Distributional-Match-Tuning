@@ -25,6 +25,7 @@ if [[ -z "${SLIME_ROOT:-}" ]]; then
   done
 fi
 SLIME_ROOT="${SLIME_ROOT:-/mnt/data/distribution-matching-slime/code/slime-0.2.4}"
+TRAIN_DRIVER="${TRAIN_DRIVER:-train.py}"
 
 if [[ -z "${MEGATRON_PATH:-}" ]]; then
   for candidate in "/root/slime_runtime/Megatron-LM" "/mnt/data/utils/slime_runtime/Megatron-LM" "/root/Megatron-LM"; do
@@ -42,9 +43,23 @@ if [[ -z "${PYTHON_BIN:-}" ]]; then
     PYTHON_BIN="$(command -v python3)"
   fi
 fi
+RAY_BIN="${RAY_BIN:-$(dirname "${PYTHON_BIN}")/ray}"
 MODEL_NAME="${MODEL_NAME:-Qwen3.5-4B}"
 MODEL_PATH="${MODEL_PATH:-/mnt/data/models/${MODEL_NAME}}"
 MODEL_NAME="$(basename "${MODEL_PATH%/}")"
+if [[ -z "${MODEL_ARGS_SCRIPT:-}" ]]; then
+  for candidate in \
+    "${SLIME_ROOT}/slime/scripts/models/${MODEL_NAME}.sh" \
+    "${SLIME_ROOT}/slime/scripts/models/${MODEL_NAME,,}.sh" \
+    "${SLIME_ROOT}/scripts/models/${MODEL_NAME}.sh" \
+    "${SLIME_ROOT}/scripts/models/${MODEL_NAME,,}.sh"; do
+    if [[ -f "${candidate}" ]]; then
+      MODEL_ARGS_SCRIPT="${candidate}"
+      break
+    fi
+  done
+fi
+ALLOW_INFER_MODEL_ARGS="${ALLOW_INFER_MODEL_ARGS:-false}"
 if [[ -z "${REF_LOAD:-}" ]]; then
   for candidate in \
     "/root/slime_runtime/checkpoints/${MODEL_NAME}_torch_dist" \
@@ -80,6 +95,8 @@ RM_TYPE="${RM_TYPE:-deepscaler}"
 USE_EBFT_CUSTOM_RM="${USE_EBFT_CUSTOM_RM:-true}"
 GROUP_RM="${GROUP_RM:-false}"
 CUSTOM_RM_PATH="${CUSTOM_RM_PATH:-}"
+CUSTOM_REWARD_POST_PROCESS_PATH="${CUSTOM_REWARD_POST_PROCESS_PATH:-}"
+RM_URL="${RM_URL:-}"
 EBFT_RM_MODE="${EBFT_RM_MODE:-nonempty}"
 EBFT_FEATURE_MODEL_PATH="${EBFT_FEATURE_MODEL_PATH:-}"
 EBFT_CF_TARGET_MODE="${EBFT_CF_TARGET_MODE:-single}"
@@ -97,7 +114,9 @@ GLOBAL_BATCH_SIZE="${GLOBAL_BATCH_SIZE:-$((ROLLOUT_BATCH_SIZE * N_SAMPLES_PER_PR
 ROLLOUT_MAX_RESPONSE_LEN="${ROLLOUT_MAX_RESPONSE_LEN:-1024}"
 ROLLOUT_TEMPERATURE="${ROLLOUT_TEMPERATURE:-0.6}"
 ROLLOUT_TOP_P="${ROLLOUT_TOP_P:-1.0}"
+BALANCE_DATA="${BALANCE_DATA:-true}"
 EVAL_INTERVAL="${EVAL_INTERVAL:-10}"
+ENABLE_SLIME_EVAL="${ENABLE_SLIME_EVAL:-true}"
 N_SAMPLES_PER_EVAL_PROMPT="${N_SAMPLES_PER_EVAL_PROMPT:-4}"
 EVAL_MAX_RESPONSE_LEN="${EVAL_MAX_RESPONSE_LEN:-1024}"
 
@@ -107,6 +126,9 @@ EPS_CLIP="${EPS_CLIP:-0.2}"
 EPS_CLIP_HIGH="${EPS_CLIP_HIGH:-0.28}"
 KL_LOSS_COEF="${KL_LOSS_COEF:-0.0}"
 ENTROPY_COEF="${ENTROPY_COEF:-0.0}"
+USE_OPD="${USE_OPD:-false}"
+OPD_TYPE="${OPD_TYPE:-}"
+OPD_KL_COEF="${OPD_KL_COEF:-1.0}"
 
 # ---------------------------------------------------------------------------
 # Resource allocation. Defaults are colocated single-node 8-GPU smoke settings.
@@ -129,6 +151,7 @@ SGLANG_CONTEXT_LENGTH="${SGLANG_CONTEXT_LENGTH:-4096}"
 TENSOR_MODEL_PARALLEL_SIZE="${TENSOR_MODEL_PARALLEL_SIZE:-2}"
 PIPELINE_MODEL_PARALLEL_SIZE="${PIPELINE_MODEL_PARALLEL_SIZE:-1}"
 CONTEXT_PARALLEL_SIZE="${CONTEXT_PARALLEL_SIZE:-1}"
+USE_DYNAMIC_BATCH_SIZE="${USE_DYNAMIC_BATCH_SIZE:-true}"
 MAX_TOKENS_PER_GPU="${MAX_TOKENS_PER_GPU:-9216}"
 SAVE_INTERVAL="${SAVE_INTERVAL:-20}"
 
@@ -140,6 +163,7 @@ export TOKENIZERS_PARALLELISM="${TOKENIZERS_PARALLELISM:-false}"
 export CUDA_DEVICE_MAX_CONNECTIONS="${CUDA_DEVICE_MAX_CONNECTIONS:-1}"
 export SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK="${SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK:-1}"
 export PYTHONUNBUFFERED=1
+export PATH="$(dirname "${PYTHON_BIN}"):${PATH}"
 export PYTHONPATH="${MEGATRON_PATH}:${SLIME_ROOT}:${REPO_ROOT}:${PYTHONPATH:-}"
 export VIRTUAL_ENV="${VIRTUAL_ENV:-$(cd "$(dirname "${PYTHON_BIN}")/.." && pwd)}"
 
@@ -156,9 +180,10 @@ require_dir() {
 
 require_dir "${SLIME_ROOT}"
 require_dir "${MEGATRON_PATH}"
-require_file "${SLIME_ROOT}/train.py"
+require_file "${SLIME_ROOT}/${TRAIN_DRIVER}"
 require_dir "${MODEL_PATH}"
 require_dir "${REF_LOAD}"
+require_file "${RAY_BIN}"
 
 if [[ ! -s "${TRAIN_DATA}" ]]; then
   "${PYTHON_BIN}" "${SCRIPT_DIR}/prepare_code_datasets.py" --output-dir "${PREPARED_DATA_DIR}"
@@ -189,6 +214,10 @@ elif [[ -f "${SLIME_ROOT}/scripts/models/${MODEL_NAME}.sh" ]]; then
   source "${SLIME_ROOT}/scripts/models/${MODEL_NAME}.sh"
   echo "[model-args] using ${SLIME_ROOT}/scripts/models/${MODEL_NAME}.sh"
 else
+  if [[ "${ALLOW_INFER_MODEL_ARGS}" != "true" ]]; then
+    echo "[ERROR] MODEL_ARGS_SCRIPT not found for ${MODEL_NAME}; set MODEL_ARGS_SCRIPT explicitly or ALLOW_INFER_MODEL_ARGS=true" >&2
+    exit 1
+  fi
   echo "[model-args] inferring Megatron args from ${MODEL_PATH}/config.json"
   mapfile -t MODEL_ARGS < <("${PYTHON_BIN}" - "${MODEL_PATH}" <<'PYARGS'
 import json
@@ -294,22 +323,33 @@ ROLLOUT_ARGS=(
   --rollout-temperature "${ROLLOUT_TEMPERATURE}"
   --rollout-top-p "${ROLLOUT_TOP_P}"
   --global-batch-size "${GLOBAL_BATCH_SIZE}"
-  --balance-data
 )
+if [[ "${BALANCE_DATA}" == "true" ]]; then
+  ROLLOUT_ARGS+=(--balance-data)
+fi
 if [[ -n "${CUSTOM_RM_PATH}" ]]; then
   ROLLOUT_ARGS+=(--custom-rm-path "${CUSTOM_RM_PATH}")
+fi
+if [[ -n "${CUSTOM_REWARD_POST_PROCESS_PATH}" ]]; then
+  ROLLOUT_ARGS+=(--custom-reward-post-process-path "${CUSTOM_REWARD_POST_PROCESS_PATH}")
+fi
+if [[ -n "${RM_URL}" ]]; then
+  ROLLOUT_ARGS+=(--rm-url "${RM_URL}")
 fi
 if [[ "${GROUP_RM}" == "true" ]]; then
   ROLLOUT_ARGS+=(--group-rm)
 fi
 
-EVAL_ARGS=(
-  --eval-interval "${EVAL_INTERVAL}"
-  --eval-prompt-data humaneval "${SLIME_EVAL_DATA}"
-  --n-samples-per-eval-prompt "${N_SAMPLES_PER_EVAL_PROMPT}"
-  --eval-max-response-len "${EVAL_MAX_RESPONSE_LEN}"
-  --eval-top-p 1
-)
+EVAL_ARGS=()
+if [[ "${ENABLE_SLIME_EVAL}" == "true" ]]; then
+  EVAL_ARGS=(
+    --eval-interval "${EVAL_INTERVAL}"
+    --eval-prompt-data humaneval "${SLIME_EVAL_DATA}"
+    --n-samples-per-eval-prompt "${N_SAMPLES_PER_EVAL_PROMPT}"
+    --eval-max-response-len "${EVAL_MAX_RESPONSE_LEN}"
+    --eval-top-p 1
+  )
+fi
 
 PERF_ARGS=(
   --tensor-model-parallel-size "${TENSOR_MODEL_PARALLEL_SIZE}"
@@ -321,9 +361,10 @@ PERF_ARGS=(
   --recompute-granularity full
   --recompute-method uniform
   --recompute-num-layers 1
-  --use-dynamic-batch-size
-  --max-tokens-per-gpu "${MAX_TOKENS_PER_GPU}"
 )
+if [[ "${USE_DYNAMIC_BATCH_SIZE}" == "true" ]]; then
+  PERF_ARGS+=(--use-dynamic-batch-size --max-tokens-per-gpu "${MAX_TOKENS_PER_GPU}")
+fi
 
 RL_ARGS=(
   --advantage-estimator "${ADVANTAGE_ESTIMATOR}"
@@ -334,6 +375,9 @@ RL_ARGS=(
   --eps-clip "${EPS_CLIP}"
   --eps-clip-high "${EPS_CLIP_HIGH}"
 )
+if [[ "${USE_OPD}" == "true" ]]; then
+  RL_ARGS+=(--use-opd --opd-type "${OPD_TYPE:-sglang}" --opd-kl-coef "${OPD_KL_COEF}")
+fi
 
 OPTIMIZER_ARGS=(
   --optimizer adam
@@ -372,8 +416,13 @@ fi
   printf 'RUN_NAME=%s\n' "${RUN_NAME}"
   printf 'RUN_DIR=%s\n' "${RUN_DIR}"
   printf 'SLIME_ROOT=%s\n' "${SLIME_ROOT}"
+  printf 'TRAIN_DRIVER=%s\n' "${TRAIN_DRIVER}"
   printf 'MEGATRON_PATH=%s\n' "${MEGATRON_PATH}"
+  printf 'PYTHON_BIN=%s\n' "${PYTHON_BIN}"
+  printf 'RAY_BIN=%s\n' "${RAY_BIN}"
   printf 'MODEL_PATH=%s\n' "${MODEL_PATH}"
+  printf 'MODEL_ARGS_SCRIPT=%s\n' "${MODEL_ARGS_SCRIPT:-}"
+  printf 'ALLOW_INFER_MODEL_ARGS=%s\n' "${ALLOW_INFER_MODEL_ARGS}"
   printf 'REF_LOAD=%s\n' "${REF_LOAD}"
   printf 'LOAD_PATH=%s\n' "${LOAD_PATH}"
   printf 'SAVE_PATH=%s\n' "${SAVE_PATH}"
@@ -381,6 +430,8 @@ fi
   printf 'ADVANTAGE_ESTIMATOR=%s\n' "${ADVANTAGE_ESTIMATOR}"
   printf 'RM_TYPE=%s\n' "${RM_TYPE}"
   printf 'CUSTOM_RM_PATH=%s\n' "${CUSTOM_RM_PATH}"
+  printf 'CUSTOM_REWARD_POST_PROCESS_PATH=%s\n' "${CUSTOM_REWARD_POST_PROCESS_PATH}"
+  printf 'RM_URL=%s\n' "${RM_URL}"
   printf 'USE_EBFT_CUSTOM_RM=%s\n' "${USE_EBFT_CUSTOM_RM}"
   printf 'GROUP_RM=%s\n' "${GROUP_RM}"
   printf 'EBFT_RM_MODE=%s\n' "${EBFT_RM_MODE}"
@@ -390,6 +441,12 @@ fi
   printf 'ROLLOUT_BATCH_SIZE=%s\n' "${ROLLOUT_BATCH_SIZE}"
   printf 'N_SAMPLES_PER_PROMPT=%s\n' "${N_SAMPLES_PER_PROMPT}"
   printf 'GLOBAL_BATCH_SIZE=%s\n' "${GLOBAL_BATCH_SIZE}"
+  printf 'ENABLE_SLIME_EVAL=%s\n' "${ENABLE_SLIME_EVAL}"
+  printf 'BALANCE_DATA=%s\n' "${BALANCE_DATA}"
+  printf 'USE_DYNAMIC_BATCH_SIZE=%s\n' "${USE_DYNAMIC_BATCH_SIZE}"
+  printf 'USE_OPD=%s\n' "${USE_OPD}"
+  printf 'OPD_TYPE=%s\n' "${OPD_TYPE}"
+  printf 'OPD_KL_COEF=%s\n' "${OPD_KL_COEF}"
   printf 'CUDA_VISIBLE_DEVICES=%s\n' "${CUDA_VISIBLE_DEVICES}"
   printf 'NUM_GPUS=%s\n' "${NUM_GPUS}"
   printf 'COLOCATE=%s\n' "${COLOCATE}"
@@ -399,17 +456,17 @@ fi
 
 if [[ "${DRY_RUN:-false}" == "true" ]]; then
   echo "[dry-run] slime command would be submitted from ${SLIME_ROOT}"
-  printf '%q ' "${PYTHON_BIN}" "${SLIME_ROOT}/train.py" "${RESOURCE_ARGS[@]}" "${MODEL_ARGS[@]}" "${CKPT_ARGS[@]}" "${ROLLOUT_ARGS[@]}" "${OPTIMIZER_ARGS[@]}" "${RL_ARGS[@]}" "${PERF_ARGS[@]}" "${EVAL_ARGS[@]}" "${SGLANG_ARGS[@]}" "${MISC_ARGS[@]}"
+  printf '%q ' "${PYTHON_BIN}" "${SLIME_ROOT}/${TRAIN_DRIVER}" "${RESOURCE_ARGS[@]}" "${MODEL_ARGS[@]}" "${CKPT_ARGS[@]}" "${ROLLOUT_ARGS[@]}" "${OPTIMIZER_ARGS[@]}" "${RL_ARGS[@]}" "${PERF_ARGS[@]}" "${EVAL_ARGS[@]}" "${SGLANG_ARGS[@]}" "${MISC_ARGS[@]}"
   echo
   exit 0
 fi
 
-ray stop --force 2>/dev/null || true
+"${RAY_BIN}" stop --force 2>/dev/null || true
 pkill -9 sglang 2>/dev/null || true
 sleep 3
 
 export MASTER_ADDR="${MASTER_ADDR:-127.0.0.1}"
-CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES}" ray start --head --node-ip-address "${MASTER_ADDR}" --num-gpus "${NUM_GPUS}" --disable-usage-stats --dashboard-host=0.0.0.0 --dashboard-port="${RAY_DASHBOARD_PORT:-8265}" --temp-dir "${RAY_TMPDIR}"
+CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES}" "${RAY_BIN}" start --head --node-ip-address "${MASTER_ADDR}" --num-gpus "${NUM_GPUS}" --disable-usage-stats --dashboard-host=0.0.0.0 --dashboard-port="${RAY_DASHBOARD_PORT:-8265}" --temp-dir "${RAY_TMPDIR}"
 
 RUNTIME_ENV_JSON="$("${PYTHON_BIN}" - <<'PYJSON'
 import json
@@ -441,9 +498,9 @@ PYJSON
 
 cd "${SLIME_ROOT}"
 set +e
-CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES}" ray job submit --address="http://127.0.0.1:${RAY_DASHBOARD_PORT:-8265}" \
+CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES}" "${RAY_BIN}" job submit --address="http://127.0.0.1:${RAY_DASHBOARD_PORT:-8265}" \
   --runtime-env-json="${RUNTIME_ENV_JSON}" \
-  -- "${PYTHON_BIN}" "${SLIME_ROOT}/train.py" \
+  -- "${PYTHON_BIN}" "${SLIME_ROOT}/${TRAIN_DRIVER}" \
   "${RESOURCE_ARGS[@]}" \
   "${MODEL_ARGS[@]}" \
   "${CKPT_ARGS[@]}" \

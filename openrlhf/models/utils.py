@@ -1,8 +1,86 @@
+from collections import OrderedDict
 from typing import Optional, Tuple, Union
 
 import os
 import torch
 import torch.nn.functional as F
+
+
+_STRIDED_MASK_CACHE: OrderedDict[tuple, tuple[torch.Tensor, torch.Tensor, int]] = OrderedDict()
+_STRIDED_MASK_CACHE_BYTES = 0
+_STRIDED_MASK_CACHE_STATS = {
+    "hits": 0,
+    "misses": 0,
+    "stores": 0,
+    "skips": 0,
+    "evictions": 0,
+}
+
+
+def _strided_mask_cache_enabled(document_masking: bool) -> bool:
+    """Whether to reuse dense EBFT strided masks across repeated rollout calls.
+
+    This is a pure representation cache for the existing dense 4D additive
+    mask. It is intentionally disabled when document masking is active because
+    that path depends on per-sample document IDs.
+    """
+
+    return (
+        not document_masking
+        and os.getenv("EBFT_CACHE_STRIDED_MASKS", "0") == "1"
+    )
+
+
+def _strided_mask_cache_limit_bytes() -> int:
+    raw = os.getenv("EBFT_CACHE_STRIDED_MASKS_MAX_MB", "1024")
+    try:
+        mb = float(raw)
+    except ValueError as exc:
+        raise ValueError(f"EBFT_CACHE_STRIDED_MASKS_MAX_MB must be numeric, got {raw!r}") from exc
+    return max(0, int(mb * 1024 * 1024))
+
+
+def _cache_tensor_bytes(*tensors: torch.Tensor) -> int:
+    return sum(t.numel() * t.element_size() for t in tensors)
+
+
+def _device_cache_key(device: torch.device) -> tuple[str, Optional[int]]:
+    device = torch.device(device)
+    return device.type, device.index
+
+
+def clear_strided_mask_cache() -> None:
+    """Clear the EBFT dense strided-mask cache.
+
+    The training path does not need to call this, but tests and long-running
+    interactive processes can use it to reset memory accounting explicitly.
+    """
+
+    global _STRIDED_MASK_CACHE_BYTES
+    _STRIDED_MASK_CACHE.clear()
+    _STRIDED_MASK_CACHE_BYTES = 0
+    for key in _STRIDED_MASK_CACHE_STATS:
+        _STRIDED_MASK_CACHE_STATS[key] = 0
+
+
+def get_strided_mask_cache_stats() -> dict[str, int]:
+    """Return lightweight diagnostics for the opt-in dense mask cache."""
+
+    stats = dict(_STRIDED_MASK_CACHE_STATS)
+    stats["entries"] = len(_STRIDED_MASK_CACHE)
+    stats["bytes"] = _STRIDED_MASK_CACHE_BYTES
+    return stats
+
+
+def _evict_strided_mask_cache_until_fits(extra_bytes: int, limit_bytes: int) -> bool:
+    global _STRIDED_MASK_CACHE_BYTES
+    if extra_bytes > limit_bytes:
+        return False
+    while _STRIDED_MASK_CACHE and _STRIDED_MASK_CACHE_BYTES + extra_bytes > limit_bytes:
+        _, (_, _, removed_bytes) = _STRIDED_MASK_CACHE.popitem(last=False)
+        _STRIDED_MASK_CACHE_BYTES -= removed_bytes
+        _STRIDED_MASK_CACHE_STATS["evictions"] += 1
+    return _STRIDED_MASK_CACHE_BYTES + extra_bytes <= limit_bytes
 
 
 def compute_approx_kl(
@@ -118,10 +196,35 @@ def build_strided_attention_mask_and_positions(
                      Position embeddings for each token in the sequence
     """
 
+    doc_ids = doc_ids.to(device)
+    cache_key = None
+    cache_enabled = _strided_mask_cache_enabled(document_masking)
+    if cache_enabled:
+        # In the non-document-masking path the dense mask and position IDs are
+        # fully determined by shape/grid metadata. doc_ids is intentionally not
+        # part of the key because it is ignored after same_doc_mask is filled true.
+        cache_key = (
+            _device_cache_key(device),
+            str(dtype),
+            int(doc_ids.shape[0]),
+            int(full_sequence_length),
+            int(prompt_length),
+            int(context_length),
+            int(generation_step),
+            int(max_generation_length),
+            int(stride),
+            int(num_blocks),
+        )
+        cached = _STRIDED_MASK_CACHE.get(cache_key)
+        if cached is not None:
+            _STRIDED_MASK_CACHE.move_to_end(cache_key)
+            _STRIDED_MASK_CACHE_STATS["hits"] += 1
+            attention_mask, position_ids, _ = cached
+            return attention_mask, position_ids
+        _STRIDED_MASK_CACHE_STATS["misses"] += 1
+
     min_value = torch.finfo(dtype).min
     attention_mask = torch.full((doc_ids.shape[0],1,full_sequence_length, full_sequence_length), min_value, dtype=dtype, device=device)
-
-    doc_ids = doc_ids.to(device)
 
     # We want to create a mask of shape (B, 1, S, S) where mask[b, 0, i, j] is true
     # if token i and token j in batch item b belong to the same document.
@@ -227,7 +330,7 @@ def build_strided_attention_mask_and_positions(
         position_ids = torch.empty((doc_ids.shape[0], full_sequence_length), dtype=torch.long, device=device)
 
         # Prompt tokens use standard sequential position IDs
-        position_ids[:, :prompt_length] = pos_ids
+        position_ids[:, :prompt_length] = pos_ids[:, :prompt_length]
 
         # Generated tokens use position IDs that continue from their context windows
         # Each block continues from the last position it can see in the prompt
@@ -262,6 +365,17 @@ def build_strided_attention_mask_and_positions(
 
             # Each block's tokens get sequential position IDs starting from their context end
             position_ids[:, step_start_idx:step_end_idx] = block_starting_positions + gen_step
+
+    if cache_key is not None:
+        global _STRIDED_MASK_CACHE_BYTES
+        entry_bytes = _cache_tensor_bytes(attention_mask, position_ids)
+        limit_bytes = _strided_mask_cache_limit_bytes()
+        if limit_bytes > 0 and _evict_strided_mask_cache_until_fits(entry_bytes, limit_bytes):
+            _STRIDED_MASK_CACHE[cache_key] = (attention_mask, position_ids, entry_bytes)
+            _STRIDED_MASK_CACHE_BYTES += entry_bytes
+            _STRIDED_MASK_CACHE_STATS["stores"] += 1
+        else:
+            _STRIDED_MASK_CACHE_STATS["skips"] += 1
     return attention_mask, position_ids
 
 

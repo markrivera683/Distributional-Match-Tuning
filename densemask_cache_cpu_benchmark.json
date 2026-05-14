@@ -1,0 +1,34 @@
+{
+  "cache_off": {
+    "cache": false,
+    "cache_stats": {
+      "bytes": 0,
+      "entries": 0,
+      "evictions": 0,
+      "hits": 0,
+      "misses": 0,
+      "skips": 0,
+      "stores": 0
+    },
+    "elapsed_sec": 0.05053321272134781,
+    "iters": 20,
+    "sec_per_call": 0.0025266606360673906
+  },
+  "cache_on": {
+    "cache": true,
+    "cache_stats": {
+      "bytes": 668160,
+      "entries": 1,
+      "evictions": 0,
+      "hits": 21,
+      "misses": 1,
+      "skips": 0,
+      "stores": 1
+    },
+    "elapsed_sec": 7.131695747375488e-05,
+    "iters": 20,
+    "sec_per_call": 3.5658478736877443e-06
+  },
+  "schema": "ebft_densemask_cache_microbenchmark_v1",
+  "speedup": 708.5721897200167
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Batch code eval for baseline/G1/G2/G3 checkpoints.
 # For each model and each benchmark (HumanEval, MBPP), run once:
-#   sample pass@166 with temperature=0.6
+#   sample pass@16 with temperature=0.6
 
 set -euo pipefail
 
@@ -15,6 +15,16 @@ count_csv_items() {
     return
   fi
   awk -F',' '{print NF}' <<<"${csv}"
+}
+
+read_csv_array() {
+  local csv="${1// /}"
+  local -n out_array="$2"
+  if [[ -z "${csv}" ]]; then
+    out_array=()
+  else
+    IFS=',' read -r -a out_array <<< "${csv}"
+  fi
 }
 
 resolve_model_path() {
@@ -199,8 +209,10 @@ if [[ -n "${ONLY_MODEL_SPECS:-}" ]]; then
   IFS=',' read -r -a MODEL_SPECS <<< "${ONLY_MODEL_SPECS}"
 fi
 
-BENCHMARKS=(humaneval)
-TASKS=(pass16_temp06)
+BENCHMARKS_CSV="${BENCHMARKS_CSV:-humaneval,mbpp}"
+TASKS_CSV="${TASKS_CSV:-pass16_temp06}"
+read_csv_array "${BENCHMARKS_CSV}" BENCHMARKS
+read_csv_array "${TASKS_CSV}" TASKS
 
 if [[ "${SMOKE_TEST}" == "true" ]]; then
   if [[ -z "${ONLY_MODEL_SPECS:-}" && -z "${SLIME_MODEL_PATH:-}" ]]; then

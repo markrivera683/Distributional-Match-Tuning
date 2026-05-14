@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AOPS: single-node 8 GPU, online teacher + student training (G3 recipe).
+# AOPS: single-node 8 GPU, local white-box teacher + student training (G3 recipe).
 #
 # G2 vs G3 (this script = single-node G3):
 #   G2: cf_l1oo + frozen critic head (critic_lr_head=0). NO feature adapter,
@@ -9,15 +9,12 @@
 #   G3: G2 + enable_ema + feature_adapter (embedding-space training) +
 #       trainable critic head (critic_lr_head=5e-5) + critic direct
 #       discrepancy (coef=0.1, target=ema_gt) + explicit diversity/alignment
-#       reward coefs + ce_loss (coef=0.03). Same teacher serving config
-#       and same 128-completion/step teacher load profile as G2 single-node
-#       because N_SAMPLES_PER_PROMPT=4 and ROLLOUT_BATCH_SIZE=32 are
-#       unchanged; the G3 extras only touch the student side.
+#       reward coefs + ce_loss (coef=0.03). Same local teacher target as G2;
+#       the G3 extras only touch the student/critic side.
 #
-# Manual resource split:
-#   - teacher GPU ids: TEACHER_CUDA_VISIBLE_DEVICES (default 0-5, 6 vLLM workers TP=1)
-#   - student GPU ids: STUDENT_CUDA_VISIBLE_DEVICES (default 6-7)
-#   - student actor/critic GPU counts: ACTOR_GPUS / CRITIC_GPUS (default 1/1)
+# Manual resource layout:
+#   - training GPU ids: TRAIN_CUDA_VISIBLE_DEVICES (default 0-7)
+#   - student actor/critic GPU counts: ACTOR_GPUS / CRITIC_GPUS (default 2/2)
 #   - ref/reward follow actor/critic automatically (colocate)
 set -euo pipefail
 
@@ -38,22 +35,23 @@ count_csv_items() {
 # --------------------------------------------------------------------
 # 0) MANUAL GPU ASSIGNMENT (edit these first)
 # --------------------------------------------------------------------
-TEACHER_CUDA_VISIBLE_DEVICES="${TEACHER_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5}"
-STUDENT_CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES:-6,7}"
+TRAIN_CUDA_VISIBLE_DEVICES="${TRAIN_CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
+# Kept for legacy vLLM teacher launch / post-eval compatibility.
+TEACHER_CUDA_VISIBLE_DEVICES="${TEACHER_CUDA_VISIBLE_DEVICES:-${TRAIN_CUDA_VISIBLE_DEVICES}}"
+STUDENT_CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES:-${TRAIN_CUDA_VISIBLE_DEVICES}}"
 
-ACTOR_GPUS="${ACTOR_GPUS:-1}"
-CRITIC_GPUS="${CRITIC_GPUS:-1}"
+ACTOR_GPUS="${ACTOR_GPUS:-2}"
+CRITIC_GPUS="${CRITIC_GPUS:-2}"
 # Keep ref/reward colocated and follow actor/critic world-size.
 REF_GPUS="${ACTOR_GPUS}"
 REWARD_GPUS="${CRITIC_GPUS}"
 
 # --------------------------------------------------------------------
-# 1) TEACHER SERVING CONFIG (local vLLM)
+# 1) TEACHER CONFIG
 # --------------------------------------------------------------------
-# Defaults match teacher_model/code/models/qwen_122b.env — the only
-# teacher whose weights are fully downloaded on this machine.
-# Override via env to use a different teacher (e.g. a smaller 7B/14B).
-LAUNCH_TEACHER="${LAUNCH_TEACHER:-true}"
+# The teacher is loaded inside OpenRLHF as a local model actor, giving the
+# reward path access to local teacher samples instead of remote API completions.
+LAUNCH_TEACHER="${LAUNCH_TEACHER:-false}"
 TEACHER_MODEL_PATH="${TEACHER_MODEL_PATH:-/mnt/data/models/qwen3.5-27b}"
 TEACHER_MODEL_NAME="${TEACHER_MODEL_NAME:-qwen3.5-27b}"
 TEACHER_BASE_PORT="${TEACHER_BASE_PORT:-8004}"
@@ -314,7 +312,7 @@ teacher_gpu_count="$(count_csv_items "$TEACHER_CUDA_VISIBLE_DEVICES")"
 student_gpu_count="$(count_csv_items "$STUDENT_CUDA_VISIBLE_DEVICES")"
 
 TEACHER_VLLM_BIN="${TEACHER_VLLM_BIN:-${TEACHER_VENV}/bin/vllm}"
-if [[ ! -x "${TEACHER_VLLM_BIN}" ]]; then
+if [[ "${LAUNCH_TEACHER}" == "true" && ! -x "${TEACHER_VLLM_BIN}" ]]; then
   echo "[ERROR] TEACHER_VLLM_BIN not executable: ${TEACHER_VLLM_BIN}"
   echo "        expected teacher env: ${TEACHER_VENV}"
   exit 1
@@ -342,17 +340,18 @@ if [[ "${RUN_TWO_ROUND_EVAL}" == "true" ]]; then
   fi
 fi
 
-if (( teacher_gpu_count < TEACHER_TP_SIZE )); then
+if [[ "${LAUNCH_TEACHER}" == "true" ]] && (( teacher_gpu_count < TEACHER_TP_SIZE )); then
   echo "[ERROR] teacher GPU count (${teacher_gpu_count}) < TEACHER_TP_SIZE (${TEACHER_TP_SIZE})"
   exit 1
 fi
-if (( teacher_gpu_count % TEACHER_TP_SIZE != 0 )); then
+if [[ "${LAUNCH_TEACHER}" == "true" ]] && (( teacher_gpu_count % TEACHER_TP_SIZE != 0 )); then
   echo "[ERROR] teacher GPU count (${teacher_gpu_count}) not divisible by TEACHER_TP_SIZE (${TEACHER_TP_SIZE})"
   exit 1
 fi
 
-if (( ACTOR_GPUS + CRITIC_GPUS > student_gpu_count )); then
-  echo "[ERROR] ACTOR_GPUS(${ACTOR_GPUS}) + CRITIC_GPUS(${CRITIC_GPUS}) > student GPU count(${student_gpu_count})"
+if (( ACTOR_GPUS * 2 + CRITIC_GPUS > student_gpu_count )); then
+  echo "[ERROR] local teacher uses ACTOR_GPUS more GPUs; require ACTOR_GPUS*2 + CRITIC_GPUS <= training GPU count"
+  echo "        got ${ACTOR_GPUS}*2 + ${CRITIC_GPUS} > ${student_gpu_count}"
   exit 1
 fi
 
@@ -396,19 +395,13 @@ if [[ "${EVAL_DATA}" == /* && ! -e "${EVAL_DATA}" ]]; then
   exit 1
 fi
 
-echo "========== AOPS online-teacher run =========="
+echo "========== AOPS local white-box teacher run =========="
 echo "RUN_DIR:                    ${RUN_DIR}"
-echo "Teacher GPUs:               ${TEACHER_CUDA_VISIBLE_DEVICES} (count=${teacher_gpu_count})"
-echo "Teacher workers:            ${TEACHER_WORKER_COUNT} x TP${TEACHER_TP_SIZE}"
-echo "Teacher max_model_len:      ${TEACHER_MAX_MODEL_LEN}"
-echo "Teacher max_num_seqs:       ${TEACHER_MAX_NUM_SEQS}"
-echo "Teacher max_batched_tokens: ${TEACHER_MAX_BATCHED_TOKENS}"
-echo "Teacher remote_batch_size:  ${TEACHER_REMOTE_BATCH_SIZE}"
-echo "Student GPUs:               ${STUDENT_CUDA_VISIBLE_DEVICES} (count=${student_gpu_count})"
+echo "Training GPUs:              ${STUDENT_CUDA_VISIBLE_DEVICES} (count=${student_gpu_count})"
 echo "Actor/Critic GPUs:          ${ACTOR_GPUS}/${CRITIC_GPUS}"
 echo "Ref/Reward GPUs (colocate): ${REF_GPUS}/${REWARD_GPUS}"
-echo "Teacher API:                ${TEACHER_API_BASE}"
-echo "Teacher model:              ${TEACHER_MODEL_NAME}"
+echo "Teacher backend:            local"
+echo "Teacher pretrain:           ${TEACHER_MODEL_PATH}"
 echo "Train data:                 ${TRAIN_DATA}"
 echo "Eval data:                  ${EVAL_DATA}"
 echo "target_steps:               ${TARGET_STEPS}"
@@ -562,7 +555,7 @@ cd "${REPO_ROOT}"
 CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
 "${STUDENT_PYTHON_BIN}" -m openrlhf.cli.train_ebft_ray \
   --bf16 --flash_attn --pretrain_mode --no_chat_template \
-  --disable_ds_ckpt --colocate_actor_ref --colocate_critic_reward \
+  --disable_ds_ckpt --colocate_critic_reward \
   --gradient_checkpointing --gradient_checkpointing_use_reentrant --use_kl_loss --use_whitening --enable_ema \
   --feature_adapter_enable \
   --feature_adapter_type residual_bottleneck \
@@ -574,21 +567,8 @@ CUDA_VISIBLE_DEVICES="${STUDENT_CUDA_VISIBLE_DEVICES}" \
   --cf_num_freqs 128 --cf_sigma 1.0 --cf_seed 43 --cf_alpha 0.5 --cf_beta 0.5 --cf_reward_scale 1.0 \
   --cf_target_mode teacher --cf_teacher_lambda "${CF_TEACHER_LAMBDA}" --cf_teacher_n_samples "${CF_TEACHER_N_SAMPLES}" \
   \
-  --teacher_backend remote \
-  --teacher_api_base "${TEACHER_API_BASE}" \
-  --teacher_api_key "${TEACHER_API_KEY}" \
-  --teacher_api_style completions \
-  --teacher_model_name "${TEACHER_MODEL_NAME}" \
-  --teacher_timeout "${TEACHER_TIMEOUT}" \
-  --teacher_max_retries "${TEACHER_MAX_RETRIES}" \
-  --teacher_remote_batch_size "${TEACHER_REMOTE_BATCH_SIZE}" \
-  --teacher_temperature "${TEACHER_TEMPERATURE}" \
-  --teacher_top_p "${TEACHER_TOP_P}" \
-  --teacher_max_new_tokens "${TEACHER_MAX_NEW_TOKENS}" \
-  --teacher_system_prompt_text "${TEACHER_SYSTEM_PROMPT_TEXT}" \
-  --teacher_system_prompt_id "${TEACHER_SYSTEM_PROMPT_ID}" \
-  --teacher_cache_enable --teacher_cache_dir "${TEACHER_CACHE_DIR}" \
-  "${PREFETCH_FLAGS[@]}" \
+  --teacher_backend local \
+  --teacher_pretrain "${TEACHER_MODEL_PATH}" \
   \
   --embed_method last_token --critic_sequence_level last_token \
   --critic_learning_rate "${CRITIC_LR}" \

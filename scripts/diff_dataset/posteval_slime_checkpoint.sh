@@ -20,7 +20,7 @@ if [[ "${CONVERT_TO_HF}" == "true" ]]; then
   HF_CHECKPOINT="${HF_CHECKPOINT}" \
   HF_OUTPUT="${HF_OUTPUT}" \
   CKPT_STEP="${CKPT_STEP}" \
-  bash "${SCRIPT_DIR}/convert_slime_qwen35_4b_checkpoint.sh" mcore_to_hf
+  bash "${SCRIPT_DIR}/convert_slime_checkpoint.sh" mcore_to_hf "${MCORE_CHECKPOINT}"
 fi
 
 if [[ ! -f "${HF_OUTPUT}/config.json" || ! -f "${HF_OUTPUT}/tokenizer_config.json" ]]; then
@@ -29,8 +29,14 @@ if [[ ! -f "${HF_OUTPUT}/config.json" || ! -f "${HF_OUTPUT}/tokenizer_config.jso
   exit 1
 fi
 
+if [[ "${EVAL_ONLY_SLIME:-false}" == "true" ]]; then
+  ONLY_MODEL_SPECS_VALUE="${SLIME_MODEL_LABEL}|${HF_OUTPUT}"
+else
+  ONLY_MODEL_SPECS_VALUE="${ONLY_MODEL_SPECS:-}"
+fi
+
 SLIME_MODEL_PATH="${HF_OUTPUT}" \
 SLIME_MODEL_LABEL="${SLIME_MODEL_LABEL}" \
-ONLY_MODEL_SPECS="${SLIME_MODEL_LABEL}|${HF_OUTPUT}" \
+ONLY_MODEL_SPECS="${ONLY_MODEL_SPECS_VALUE}" \
 RUN_DIR="${RUN_DIR}" \
 bash "${SCRIPT_DIR}/run_code_eval_pass16_once_baseline_g1_g2_g3.sh"

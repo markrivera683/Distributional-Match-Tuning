@@ -60,7 +60,8 @@ def train(args):
     # initialize ray if not initialized
     if not ray.is_initialized():
         ray_kwargs = {
-            "runtime_env": {"env_vars": {"TOKENIZERS_PARALLELISM": "true", "NCCL_DEBUG": "WARN"}}
+            "runtime_env": {"env_vars": {"TOKENIZERS_PARALLELISM": "true", "NCCL_DEBUG": "WARN"}},
+            "include_dashboard": os.environ.get("RAY_INCLUDE_DASHBOARD", "0").lower() in {"1", "true", "yes"},
         }
         object_store_memory = os.environ.get("OPENRLHF_RAY_OBJECT_STORE_MEMORY_BYTES")
         if object_store_memory:
