@@ -1,0 +1,261 @@
+[2026-05-17 09:43:21] [2026-05-17 09:43:20,920 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:43:21] [2026-05-17 09:43:20,920 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-17 09:43:26] [2026-05-17 09:43:25,942 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-17 09:43:51] [2026-05-17 09:43:51,100 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:43:54] [2026-05-17 09:43:53,160 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-17 09:44:16] [2026-05-17 09:44:16,171 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-17 09:44:22] [2026-05-17 09:44:21,241 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:44:22] [2026-05-17 09:44:21,241 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-17 09:44:52] [2026-05-17 09:44:51,409 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:44:54] [2026-05-17 09:44:53,195 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-17 09:44:58] [2026-05-17 09:44:57,315 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-17 09:45:22] [2026-05-17 09:45:21,543 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-05-17 09:45:22] | Category           |   Count | Percentage   | Pods                                                   |
+[2026-05-17 09:45:22] |--------------------|---------|--------------|--------------------------------------------------------|
+[2026-05-17 09:45:22] | Running            |       2 | 100.0%       | [dlc10wnytmieob7t-master-0, dlc10wnytmieob7t-worker-0] |
+[2026-05-17 09:45:22] | Pending            |       0 | 0.0%         |                                                        |
+[2026-05-17 09:45:22] | Succeeded          |       0 | 0.0%         |                                                        |
+[2026-05-17 09:45:22] | Failed             |       0 | 0.0%         |                                                        |
+[2026-05-17 09:45:22] | Terminating        |       0 | 0.0%         |                                                        |
+[2026-05-17 09:45:22] | Scheduler_evicting |       0 | 0.0%         |                                                        |
+[2026-05-17 09:45:22] | Aiph_node_error    |       0 | 0.0%         |                                                        |
+[2026-05-17 09:45:22] | Unknown            |       0 | 0.0%         |                                                        |
+[2026-05-17 09:45:22] 
+[2026-05-17 09:45:22] [2026-05-17 09:45:21,544 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:45:22] [2026-05-17 09:45:21,544 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-17 09:45:31]   [teacher] healthy: http://22.27.117.244:8004/v1
+[2026-05-17 09:45:31]   [teacher] healthy: http://22.27.117.244:8005/v1
+[2026-05-17 09:45:31]   [teacher] healthy: http://22.27.117.244:8006/v1
+[2026-05-17 09:45:31]   [teacher] healthy: http://22.27.117.244:8007/v1
+[2026-05-17 09:45:34]   [teacher] healthy: http://22.27.117.244:8008/v1
+[2026-05-17 09:45:34]   [teacher] healthy: http://22.27.117.244:8009/v1
+[2026-05-17 09:45:52] [2026-05-17 09:45:51,704 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:45:53] [2026-05-17 09:45:53,232 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-17 09:46:10]   [teacher] healthy: http://10.1.54.92:8004/v1
+[2026-05-17 09:46:10]   [teacher] healthy: http://10.1.54.92:8005/v1
+[2026-05-17 09:46:10]   [teacher] healthy: http://10.1.54.92:8006/v1
+[2026-05-17 09:46:10]   [teacher] healthy: http://10.1.54.92:8007/v1
+[2026-05-17 09:46:10]   [teacher] healthy: http://10.1.54.92:8008/v1
+[2026-05-17 09:46:10]   [teacher] healthy: http://10.1.54.92:8009/v1
+[2026-05-17 09:46:10] [5/5] starting ray cluster...
+[2026-05-17 09:46:13] [DLC worker] master ray head reachable after 180s (loop iterations; wall time may be longer)
+[2026-05-17 09:46:13] [DLC worker] joining ray cluster via 'ray start --address=dlc10wnytmieob7t-master-0:6379'...
+[2026-05-17 09:46:13] [DLC worker] ray join started (pid=9076); waiting until cluster shuts down...
+[2026-05-17 09:46:13] ================================================================
+[2026-05-17 09:46:13] 2026-05-17 09:46:13,308	INFO scripts.py:1094 -- Local node IP: 22.27.112.152
+[2026-05-17 09:46:13] [2026-05-17 09:46:13,434 W 9076 9076] global_state_accessor.cc:435: Retrying to get node with node ID c264f48294b2c9d2fb79b03b3e3135f9d5e92d24b4ed1709d6d8898e
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	SUCC scripts.py:1110 -- --------------------
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	SUCC scripts.py:1111 -- Ray runtime started.
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	SUCC scripts.py:1112 -- --------------------
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	INFO scripts.py:1114 -- To terminate the Ray runtime, run
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	INFO scripts.py:1115 --   ray stop
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	INFO scripts.py:1123 -- --block
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	INFO scripts.py:1124 -- This command will now block forever until terminated by a signal.
+[2026-05-17 09:46:14] 2026-05-17 09:46:14,436	INFO scripts.py:1127 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.
+[2026-05-17 09:46:16] [ray] DLC mode: worker pod will join via 'ray start --address=22.27.117.244:6379' on its own
+[2026-05-17 09:46:16] [train] submitting one Ray job...
+[2026-05-17 09:46:16] [train] the worker node does not run train_ebft_ray directly; it only hosts teacher/ray worker processes.
+[2026-05-17 09:46:17] 2026-05-17 09:46:17,138	INFO cli.py:41 -- Job submission server address: http://22.27.117.244:8265
+[2026-05-17 09:46:17] [2026-05-17 09:46:16,780 AIMaster] (aimaster_failover_controller.py 81) INFO: Detecting whether aimaster should be migrated.
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	SUCC cli.py:65 -- -------------------------------------------------------
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	SUCC cli.py:66 -- Job 'raysubmit_3jguYb8Q9xBwCGGs' submitted successfully
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	SUCC cli.py:67 -- -------------------------------------------------------
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	INFO cli.py:291 -- Next steps
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	INFO cli.py:292 -- Query the logs of the job:
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	INFO cli.py:294 -- ray job logs raysubmit_3jguYb8Q9xBwCGGs
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	INFO cli.py:296 -- Query the status of the job:
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	INFO cli.py:298 -- ray job status raysubmit_3jguYb8Q9xBwCGGs
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	INFO cli.py:300 -- Request the job to be stopped:
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,398	INFO cli.py:302 -- ray job stop raysubmit_3jguYb8Q9xBwCGGs
+[2026-05-17 09:46:18] 2026-05-17 09:46:18,400	INFO cli.py:312 -- Tailing logs until the job exits (disable with --no-wait):
+[2026-05-17 09:46:21] 2026-05-17 09:46:18,257	INFO job_manager.py:531 -- Runtime env is setting up.
+[2026-05-17 09:46:21] /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[2026-05-17 09:46:21]   import pynvml  # type: ignore[import]
+[2026-05-17 09:46:22] [2026-05-17 09:46:21,848 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:46:22] [2026-05-17 09:46:21,849 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-17 09:46:26] /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[2026-05-17 09:46:26]   import pynvml  # type: ignore[import]
+[2026-05-17 09:46:27] INFO 05-17 09:46:25 deepspeed.py:129] [grad-fn-patch] installed defensive wrapper around torch.autograd.graph._get_grad_fn_or_grad_acc (set OPENRLHF_DISABLE_GRAD_FN_PATCH=1 to disable).
+[2026-05-17 09:46:28] 2026-05-17 09:46:26,484	INFO worker.py:1606 -- Using address auto set in the environment variable RAY_ADDRESS
+[2026-05-17 09:46:28] 2026-05-17 09:46:26,499	INFO worker.py:1747 -- Connecting to existing Ray cluster at address: 22.27.117.244:6379...
+[2026-05-17 09:46:28] 2026-05-17 09:46:26,510	INFO worker.py:1918 -- Connected to Ray cluster. View the dashboard at http://22.27.117.244:8265 
+[+] [2026-05-17 09:46:28] Namespace(actor_num_nodes=1, actor_num_gpus_per_node=2, critic_num_nodes=1, critic_num_gpus_per_node=2, ref_num_nodes=1, ref_num_gpus_per_node=2, reward_num_nodes=1, reward_num_gpus_per_node=2, colocate_actor_ref=True, colocate_critic_reward=True, colocate_reward_models=False, colocate_all_models=False, async_train=False, ring_attn_size=1, ring_head_stride=1, vllm_num_engines=None, vllm_tensor_parallel_size=1, vllm_sync_backend='nccl', vllm_sync_with_ray=False, vllm_gpu_memory_utilization=0.95, vllm_enable_sleep=False, enable_prefix_caching=False, enforce_eager=False, local_rank=-1, zero_stage=3, bf16=True, zpg=1, adam_offload=False, overlap_comm=False, gradient_checkpointing=True, gradient_checkpointing_use_reentrant=True, grad_accum_dtype=None, deepcompile=False, deepspeed_enable_sleep=False, ds_tensor_parallel_size=1, packing_samples=False, use_dynamic_batch=False, rollout_max_tokens_per_gpu=None, train_max_tokens_per_gpu=16192, pretrain='/mnt/data/models/Qwen3.5-4B', critic_pretrain='/mnt/data/models/Qwen3.5-4B', reward_pretrain=None, remote_rm_url=None, agent_func_path=None, value_head_prefix='score', ref_reward_offload=False, flash_attn=True, use_liger_kernel=False, disable_fast_tokenizer=False, pretrain_mode=True, load_in_4bit=False, lora_rank=0, lora_alpha=16, lora_dropout=0, target_modules='all-linear', enable_ema=False, ema_beta=0.992, actor_learning_rate=1e-06, critic_learning_rate=0.0, critic_lr_head=0.0, lr_scheduler='cosine_with_min_lr', critic_lr_scheduler='cosine_with_min_lr', lr_warmup_ratio=0.03, actor_lr_warmup_ratio=None, critic_lr_warmup_ratio=0.0, adam_betas=(0.9, 0.95), max_norm=1.0, l2=0.0, save_value_network=False, num_episodes=1, max_epochs=1, rollout_batch_size=32, train_batch_size=128, micro_train_batch_size=4, micro_rollout_batch_size=4, micro_reward_batch_size=4, eval_batch_size=128, eval_down_batch_size=128, vllm_generate_batch_size=32, prompt_max_len=384, context_max_len=8, generate_max_len=8, stride=8, n_samples_per_prompt=4, top_p=1.0, temperature=0.6, seed=43, full_determinism=False, policy_loss_type='ppo', advantage_estimator='rloo', eps_clip=0.2, eps_clip_low_high=(0.2, 0.2), dual_clip=None, value_clip=0.5, lambd=1, gamma=1, normalize_reward=False, reward_clip_range=(-10, 10), init_kl_coef=0.0, use_kl_loss=True, kl_estimator='k2', kl_loss_coef=None, kl_loss_decay_steps=None, rl_loss_coef=None, rl_loss_warmup_start=None, rl_loss_warmup_steps=None, ce_loss_coef=0.0, ce_loss_decay_steps=None, entropy_loss_coef=None, no_advantage_std_norm=False, overlong_buffer_len=None, overlong_penalty_factor=1, aux_loss_coef=0, use_whitening=True, dynamic_filtering=False, dynamic_filtering_reward_range=(0, 1), feature_map_type='identity', rff_num_features=128, rff_sigma=1.0, rff_seed=43, feature_adapter_enable=False, feature_adapter_type='residual_bottleneck', feature_adapter_rank=64, feature_adapter_dropout=0.0, feature_adapter_unfreeze_layers=0, critic_direct_discrepancy_coef=0.0, critic_direct_discrepancy_target='ema_gt', distribution_reward_type='cf_l1oo', cf_num_freqs=128, cf_sigma=1.0, cf_seed=43, cf_alpha=0.5, cf_beta=0.5, cf_reward_scale=1.0, cf_target_mode='teacher', cf_target_num_refs=1, cf_target_std=0.05, cf_target_seed=43, teacher_pretrain=None, cf_teacher_lambda=1.0, cf_teacher_n_samples=4, teacher_backend='remote', teacher_api_base='http://22.27.117.244:8004/v1,http://22.27.117.244:8005/v1,http://22.27.117.244:8006/v1,http://22.27.117.244:8007/v1,http://22.27.117.244:8008/v1,http://22.27.117.244:8009/v1,http://10.1.54.92:8004/v1,http://10.1.54.92:8005/v1,http://10.1.54.92:8006/v1,http://10.1.54.92:8007/v1,http://10.1.54.92:8008/v1,http://10.1.54.92:8009/v1', teacher_api_key='teacher-local', teacher_api_style='completions', teacher_model_name='qwen3.5-27b', teacher_timeout=200, teacher_max_retries=3, teacher_remote_batch_size=64, teacher_temperature=0.7, teacher_top_p=0.95, teacher_max_new_tokens=1024, teacher_cache_enable=True, teacher_cache_dir='/mnt/workspace/teacher_cache_shared', teacher_dataset_path=None, teacher_system_prompt_text='You are a precise assistant. produce a correct and...
+[2026-05-17 09:46:29] [2026-05-17 09:46:28,826 AIMaster] (job_event_collector.py 135) WARNING: Failed to watch pods, exception: ("Connection broken: ConnectionResetError(104, 'Connection reset by peer')", ConnectionResetError(104, 'Connection reset by peer'))
+[2026-05-17 09:46:31] (pid=15730) /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[2026-05-17 09:46:31] (pid=15730)   import pynvml  # type: ignore[import]
+[2026-05-17 09:46:34] (pid=15730) /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[2026-05-17 09:46:34] (pid=15730)   import pynvml  # type: ignore[import]
+[2026-05-17 09:46:35] (pid=15730) INFO 05-17 09:46:33 deepspeed.py:129] [grad-fn-patch] installed defensive wrapper around torch.autograd.graph._get_grad_fn_or_grad_acc (set OPENRLHF_DISABLE_GRAD_FN_PATCH=1 to disable).
+[2026-05-17 09:46:35] [TEACHER-VERIFY] teacher_backend=remote — skipping local teacher model creation
+[2026-05-17 09:46:35] [TEACHER-VERIFY] remote API: http://22.27.117.244:8004/v1,http://22.27.117.244:8005/v1,http://22.27.117.244:8006/v1,http://22.27.117.244:8007/v1,http://22.27.117.244:8008/v1,http://22.27.117.244:8009/v1,http://10.1.54.92:8004/v1,http://10.1.54.92:8005/v1,http://10.1.54.92:8006/v1,http://10.1.54.92:8007/v1,http://10.1.54.92:8008/v1,http://10.1.54.92:8009/v1, model=qwen3.5-27b
+[2026-05-17 09:46:36] (pid=18163) /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[2026-05-17 09:46:36] (pid=18163)   import pynvml  # type: ignore[import]
+[2026-05-17 09:46:37] (pid=9337, ip=22.27.112.152) /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[2026-05-17 09:46:37] (pid=9337, ip=22.27.112.152)   import pynvml  # type: ignore[import]
+[2026-05-17 09:46:42] (pid=18163) INFO 05-17 09:46:39 deepspeed.py:129] [grad-fn-patch] installed defensive wrapper around torch.autograd.graph._get_grad_fn_or_grad_acc (set OPENRLHF_DISABLE_GRAD_FN_PATCH=1 to disable).
+[2026-05-17 09:46:42] (pid=9337, ip=22.27.112.152) INFO 05-17 09:46:40 deepspeed.py:129] [grad-fn-patch] installed defensive wrapper around torch.autograd.graph._get_grad_fn_or_grad_acc (set OPENRLHF_DISABLE_GRAD_FN_PATCH=1 to disable).
+[2026-05-17 09:46:45] (pid=9543, ip=22.27.112.152) /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you. [repeated 3x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/user-guides/configure-logging.html#log-deduplication for more options.)
+[2026-05-17 09:46:45] (pid=9543, ip=22.27.112.152)   import pynvml  # type: ignore[import] [repeated 3x across cluster]
+[2026-05-17 09:46:48] (pid=9543, ip=22.27.112.152) INFO 05-17 09:46:47 deepspeed.py:129] [grad-fn-patch] installed defensive wrapper around torch.autograd.graph._get_grad_fn_or_grad_acc (set OPENRLHF_DISABLE_GRAD_FN_PATCH=1 to disable).
+[2026-05-17 09:46:49] (pid=9544, ip=22.27.112.152) INFO 05-17 09:46:48 deepspeed.py:129] [grad-fn-patch] installed defensive wrapper around torch.autograd.graph._get_grad_fn_or_grad_acc (set OPENRLHF_DISABLE_GRAD_FN_PATCH=1 to disable).
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:49 teacher_provider.py:968] [TeacherProvider] Cache enabled, root dir: /mnt/workspace/teacher_cache_shared (12 worker sub-dirs)
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:49 teacher_provider.py:1000] [TeacherProvider] Multi-worker mode: 12 workers detected from --teacher_api_base (comma-separated)
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:49 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://22.27.117.244:8004/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:49 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://22.27.117.244:8005/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:49 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://22.27.117.244:8006/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:49 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://22.27.117.244:8007/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:49 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://22.27.117.244:8008/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://22.27.117.244:8009/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://10.1.54.92:8004/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://10.1.54.92:8005/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://10.1.54.92:8006/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://10.1.54.92:8007/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://10.1.54.92:8008/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:326] [RemoteTeacher] Init: api_base=http://10.1.54.92:8009/v1, model=qwen3.5-27b, style=completions, timeout=200s, retries=3, concurrency=5, cache=ON, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:733] [MultiWorkerTeacher] Init: 12 workers, total_concurrency=64, per_worker_concurrency=5, sys_id='v1-balanced'
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_provider.py:733]   workers: http://22.27.117.244:8004/v1, http://22.27.117.244:8005/v1, http://22.27.117.244:8006/v1, http://22.27.117.244:8007/v1, http://22.27.117.244:8008/v1, http://22.27.117.244:8009/v1, http://10.1.54.92:8004/v1, http://10.1.54.92:8005/v1, http://10.1.54.92:8006/v1, http://10.1.54.92:8007/v1, http://10.1.54.92:8008/v1, http://10.1.54.92:8009/v1
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_prefetch.py:479] [Prefetch] Wrapping teacher provider with PrefetchingTeacherProvider (depth=2 workers=6 backend=remote)
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 teacher_prefetch.py:283] [PrefetchingTeacherProvider] Init: depth=2 workers=6 cache=ON
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 ebft_trainer.py:839] [TEACHER-VERIFY] teacher_backend=remote, teacher_model_group=None, teacher_generator=None, teacher_provider=PRESENT
+[2026-05-17 09:46:51] (EBFTTrainer pid=9544, ip=22.27.112.152) INFO 05-17 09:46:50 ebft_trainer.py:860] [TEACHER-VERIFY] RemoteExperienceMaker: teacher_samples_generator=None, teacher_provider=PRESENT
+[2026-05-17 09:46:52] (EBFTTrainer pid=9544, ip=22.27.112.152) dataset: /mnt/data/ebft-distribution-new/outputs/diff_dataset_prepared/opencodeinstruct_qa_100k.jsonl
+[2026-05-17 09:46:52] [2026-05-17 09:46:52,012 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:46:54] [2026-05-17 09:46:53,296 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-17 09:46:55] (EBFTTrainer pid=9544, ip=22.27.112.152) loaded /mnt/data/ebft-distribution-new/outputs/diff_dataset_prepared/opencodeinstruct_qa_100k.jsonl with data_files=/mnt/data/ebft-distribution-new/outputs/diff_dataset_prepared/opencodeinstruct_qa_100k.jsonl
+[2026-05-17 09:46:59] Traceback (most recent call last):
+[2026-05-17 09:46:59]   File "<frozen runpy>", line 198, in _run_module_as_main
+[2026-05-17 09:46:59]   File "<frozen runpy>", line 88, in _run_code
+[2026-05-17 09:46:59]   File "/mnt/data/ebft-distribution-new/code/openrlhf/cli/train_ebft_ray.py", line 903, in <module>
+[2026-05-17 09:46:59]     train(args)
+[2026-05-17 09:46:59]   File "/mnt/data/ebft-distribution-new/code/openrlhf/cli/train_ebft_ray.py", line 261, in train
+[2026-05-17 09:46:59]     max_steps = ray.get(ebft_trainer.get_max_steps.remote())
+[2026-05-17 09:46:59]                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/workspace/venvs/.venv/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 22, in auto_init_wrapper
+[2026-05-17 09:46:59]     return fn(*args, **kwargs)
+[2026-05-17 09:46:59]            ^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/workspace/venvs/.venv/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 104, in wrapper
+[2026-05-17 09:46:59]     return func(*args, **kwargs)
+[2026-05-17 09:46:59]            ^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/workspace/venvs/.venv/lib/python3.12/site-packages/ray/_private/worker.py", line 2858, in get
+[2026-05-17 09:46:59]     values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+[2026-05-17 09:46:59]                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/workspace/venvs/.venv/lib/python3.12/site-packages/ray/_private/worker.py", line 960, in get_objects
+[2026-05-17 09:46:59]     raise value
+[2026-05-17 09:46:59] ray.exceptions.ActorDiedError: The actor died because of an error raised in its creation task, ray::EBFTTrainer.__init__() (pid=9544, ip=22.27.112.152, actor_id=68dfb1bc9c1318f25760f63502000000, repr=<openrlhf.trainer.ebft_trainer.EBFTTrainer object at 0x7f6818166a20>)
+[2026-05-17 09:46:59]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/data/ebft-distribution-new/code/openrlhf/trainer/ebft_trainer.py", line 866, in __init__
+[2026-05-17 09:46:59]     self.prepare_datasets()
+[2026-05-17 09:46:59]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/data/ebft-distribution-new/code/openrlhf/trainer/ebft_trainer.py", line 571, in prepare_datasets
+[2026-05-17 09:46:59]     prompts_dataset = QADataset(
+[2026-05-17 09:46:59]                       ^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/data/ebft-distribution-new/code/openrlhf/datasets/qa_dataset.py", line 187, in __init__
+[2026-05-17 09:46:59]     prompt, label = preprocess_data(data, input_key, label_key)
+[2026-05-17 09:46:59]                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59]   File "/mnt/data/ebft-distribution-new/code/openrlhf/datasets/qa_dataset.py", line 15, in preprocess_data
+[2026-05-17 09:46:59]     label = data[label_key]
+[2026-05-17 09:46:59]             ~~~~^^^^^^^^^^^
+[2026-05-17 09:46:59] KeyError: None
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152) 
+[2026-05-17 09:46:59] Preprocessing data:   0%|          | 0/16000 [00:00<?, ?it/s]
+[2026-05-17 09:46:59] Preprocessing data:   0%|          | 0/16000 [00:00<?, ?it/s]
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152) Exception raised in creation task: The actor died because of an error raised in its creation task, ray::EBFTTrainer.__init__() (pid=9544, ip=22.27.112.152, actor_id=68dfb1bc9c1318f25760f63502000000, repr=<openrlhf.trainer.ebft_trainer.EBFTTrainer object at 0x7f6818166a20>)
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)   File "/mnt/data/ebft-distribution-new/code/openrlhf/trainer/ebft_trainer.py", line 866, in __init__
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)     self.prepare_datasets()
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)   File "/mnt/data/ebft-distribution-new/code/openrlhf/trainer/ebft_trainer.py", line 571, in prepare_datasets
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)     prompts_dataset = QADataset(
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)                       ^^^^^^^^^^
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)   File "/mnt/data/ebft-distribution-new/code/openrlhf/datasets/qa_dataset.py", line 187, in __init__
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)     prompt, label = preprocess_data(data, input_key, label_key)
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)   File "/mnt/data/ebft-distribution-new/code/openrlhf/datasets/qa_dataset.py", line 15, in preprocess_data
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)     label = data[label_key]
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)             ~~~~^^^^^^^^^^^
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152) KeyError: None
+[2026-05-17 09:46:59] (pid=9544, ip=22.27.112.152) /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you. [repeated 3x across cluster]
+[2026-05-17 09:46:59] (pid=9544, ip=22.27.112.152)   import pynvml  # type: ignore[import] [repeated 3x across cluster]
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152) [Dataset({
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)     features: ['source_idx', 'id', 'question', 'answer', 'input', 'output', 'domain'],
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152)     num_rows: 100000
+[2026-05-17 09:46:59] (EBFTTrainer pid=9544, ip=22.27.112.152) })]
+[2026-05-17 09:47:00] (EBFTTrainer pid=9544, ip=22.27.112.152) [QADataset] Truncated dataset to 16000 samples before preprocessing
+[2026-05-17 09:47:03] 2026-05-17 09:47:03,460	ERR cli.py:73 -- ---------------------------------------
+[2026-05-17 09:47:03] 2026-05-17 09:47:03,460	ERR cli.py:74 -- Job 'raysubmit_3jguYb8Q9xBwCGGs' failed
+[2026-05-17 09:47:03] 2026-05-17 09:47:03,460	ERR cli.py:75 -- ---------------------------------------
+[2026-05-17 09:47:03] 2026-05-17 09:47:03,460	INFO cli.py:88 -- Status message: Job entrypoint command failed with exit code 1, last available logs (truncated to 20,000 chars):
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152)     label = data[label_key]
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152)             ~~~~^^^^^^^^^^^
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152) KeyError: None
+[2026-05-17 09:47:03] (pid=9544, ip=22.27.112.152) /mnt/workspace/venvs/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you. [repeated 3x across cluster]
+[2026-05-17 09:47:03] (pid=9544, ip=22.27.112.152)   import pynvml  # type: ignore[import] [repeated 3x across cluster]
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152) [Dataset({
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152)     features: ['source_idx', 'id', 'question', 'answer', 'input', 'output', 'domain'],
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152)     num_rows: 100000
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152) })]
+[2026-05-17 09:47:03] (EBFTTrainer pid=9544, ip=22.27.112.152) [QADataset] Truncated dataset to 16000 samples before preprocessing
+[2026-05-17 09:47:03] 
+[2026-05-17 09:47:03] [ERROR] training failed with exit code 1
+[2026-05-17 09:47:03] [post-run] stopping teacher/ray processes before eval/archive ...
+[2026-05-17 09:47:03] [cleanup] stopping local teacher workers...
+[2026-05-17 09:47:06] [cleanup] stopping local ray...
+[2026-05-17 09:47:09] [post-eval] skipped because training did not finish successfully.
+[2026-05-17 09:47:10] [archive] moving run outputs to: /mnt/data/ebft-teacher-distribution/outputs_diff_dataset_g2/diff_g2_distillpure_dlc10wnytmieob7t_0517_094709
+[2026-05-17 09:47:10] [archive] copy shared teacher cache to: /mnt/data/ebft-teacher-distribution/outputs_diff_dataset_g2/diff_g2_distillpure_dlc10wnytmieob7t_0517_094709/teacher_cache_shared
+[2026-05-17 09:47:10] [done] logs: /mnt/data/ebft-teacher-distribution/outputs_diff_dataset_g2/diff_g2_distillpure_dlc10wnytmieob7t_0517_094709
+[2026-05-17 09:47:17] [2026-05-17 09:47:17,122 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:47:17] [2026-05-17 09:47:17,122 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-17 09:47:22] [2026-05-17 09:47:22,214 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 2, failed: 0, pending: 0
+[2026-05-17 09:47:22] [2026-05-17 09:47:22,214 AIMaster] (ops_reported_error_detector.py 103) INFO: Detecting whether the job is affected by errors reported by ops platform.
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,332 AIMaster] (pod_manager.py 415) INFO: Pod Category Summary (Total pods: 2)
+[2026-05-17 09:47:38] | Category           |   Count | Percentage   | Pods                        |
+[2026-05-17 09:47:38] |--------------------|---------|--------------|-----------------------------|
+[2026-05-17 09:47:38] | Running            |       1 | 50.0%        | [dlc10wnytmieob7t-worker-0] |
+[2026-05-17 09:47:38] | Failed             |       1 | 50.0%        | [dlc10wnytmieob7t-master-0] |
+[2026-05-17 09:47:38] | Pending            |       0 | 0.0%         |                             |
+[2026-05-17 09:47:38] | Succeeded          |       0 | 0.0%         |                             |
+[2026-05-17 09:47:38] | Terminating        |       0 | 0.0%         |                             |
+[2026-05-17 09:47:38] | Scheduler_evicting |       0 | 0.0%         |                             |
+[2026-05-17 09:47:38] | Aiph_node_error    |       0 | 0.0%         |                             |
+[2026-05-17 09:47:38] | Unknown            |       0 | 0.0%         |                             |
+[2026-05-17 09:47:38] 
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,332 AIMaster] (job_monitor_controller_k8s.py 1099) INFO: All workers: 2, running: 1, failed: 1, pending: 0
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,332 AIMaster] (job_monitor_controller_k8s.py 1573) WARNING: Handle failed workers: {'master': ['0']}
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,359 AIMaster] (utils.py 153) INFO: Function parse_failed_worker run time is 0.0270s
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,359 AIMaster] (job_monitor_controller_k8s.py 1336) INFO: Detecting anomalous node from 2 workers.
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,359 AIMaster] (kubernetes_job_tracker.py 572) INFO: Fetching logs from 2 pods in namespace 't1245621648665098' using pre-created thread pool (15 workers). Total timeout: 300s, Pod timeout: 2s, Additional args: {'tail_lines': 200}
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,378 AIMaster] (kubernetes_job_tracker.py 663) INFO: Batch log fetching completed in 0.0182s with 2/2 pods successful
+[2026-05-17 09:47:38] 
+Detecting anomalous node from pods:   0%|          | 0/2 [00:00<?, ?it/s]
+Detecting anomalous node from pods: 100%|██████████| 2/2 [00:00<00:00, 178.47it/s]
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,389 AIMaster] (utils.py 153) INFO: Function AnomalousNodeDetector.detect run time is 0.0299s
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,391 AIMaster] (anomalous_nodes_manager.py 204) INFO: Job level blacklist node error history
+[2026-05-17 09:47:38] # History accumulation for node error information of job level blacklist, not indicate this round restarting!!!
+[2026-05-17 09:47:38] # Please check log(or others) like "Handle failed workers: xxx" for this round restarting.
+[2026-05-17 09:47:38] | NodeName                            | ErrorMessage   |   ErrorCount |   ErrorScore | IsBlacklisted   | UpdateTime           |
+[2026-05-17 09:47:38] |:------------------------------------|:---------------|-------------:|-------------:|:----------------|:---------------------|
+[2026-05-17 09:47:38] | lingjjzxfyht3hny-mgldvevd51o2qeh9-0 | Failed         |            3 |            0 | Yes             | 2026-05-16T15:43:16Z |
+[2026-05-17 09:47:38] | lingjjzxfyht3hny-mg1tqb9xm2ghkjw8-0 | Failed         |            3 |            0 | Yes             | 2026-05-17T00:00:55Z |
+[2026-05-17 09:47:38] | lingjjzxfyht3hny-mgldvevdpryo1dq8-0 | Failed         |            3 |            0 | Yes             | 2026-05-16T21:38:29Z |
+[2026-05-17 09:47:38] | lingjjzxfyht3hny-mgldvevd06nzawku-0 | Failed         |            2 |            0 | No              | 2026-05-17T01:47:37Z |
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,391 AIMaster] (job_monitor_controller_k8s.py 2108) WARNING: Restarting job.
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,391 AIMaster] (job_monitor_controller_k8s.py 1663) INFO: perftracker controller set job status: Restarting
+[2026-05-17 09:47:38] [2026-05-17 09:47:37.391 AIMaster] (perftracker_manager.cc 39) INFO: Set perftracker job status `Restarting`
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,391 AIMaster] (job_monitor_controller_k8s.py 2122) INFO: Hang retry info: {}
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,391 AIMaster] (job_monitor_controller_k8s.py 2123) INFO: Fail retry info: {"master#0": {"UnknownError#1": 11}}
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,392 AIMaster] (job_monitor_controller_k8s.py 2124) WARNING: Reach max job restart times 10, cannot tolerate, exit...
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,397 AIMaster] (manager.py 120) INFO: Add a new job message, version: 11, level: Warning, source: System
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,397 AIMaster] (job_status_manager.py 70) WARNING: Update job status to Failed, reason: Failed to handle failed workers, check aimaster tail log for more information.
+[2026-05-17 09:47:38] [2026-05-17 09:47:37,397 AIMaster] (manager.py 159) INFO: Waiting for job messages to be sent, size 1
+[2026-05-17 09:47:39] [2026-05-17 09:47:38,651 AIMaster] (kubernetes_job_tracker.py 184) INFO: New job patch: [{'op': 'replace', 'path': '/metadata/annotations/kubedl.io~1add-aimaster-message', 'value': '{"MessageContent": "", "MessageVersion": 11, "MessageLevel": "Warning", "MessageSource": "System", "MessageCreateTime": "2026-05-17T09:47:37.392121+08:00", "MessageEvent": "\\u4efb\\u52a1\\u6267\\u884c\\u5931\\u8d25", "Extended": "{}"}'}]
+[2026-05-17 09:47:54] [2026-05-17 09:47:53,330 AIMaster] (config.py 347) INFO: Try loading config from pai-aimaster-new configmap.
+[2026-05-17 09:47:58] [2026-05-17 09:47:57,417 AIMaster] (manager.py 164) INFO: All job messages have been sent.
+[2026-05-17 09:47:58] [2026-05-17 09:47:57,432 AIMaster] (kubernetes_job_tracker.py 184) INFO: New job patch: [{'op': 'replace', 'path': '/metadata/annotations/kubedl.io~1expected-job-status', 'value': '{"JobState": "Failed", "Message": "Failed to handle failed workers, check aimaster tail log for more information.", "Source": "System"}'}]
+[2026-05-17 09:48:03] [2026-05-17 09:48:02,495 AIMaster] (k8s_torch_job_controller.py 423) INFO: job completed, aimaster exit...
+[2026-05-17 09:48:08] 2026-05-17 09:48:08,450	ERR scripts.py:1157 -- Some Ray subprocesses exited unexpectedly:
+[2026-05-17 09:48:08] 2026-05-17 09:48:08,450	ERR scripts.py:1161 -- raylet [exit code=1]
+[2026-05-17 09:48:08] 2026-05-17 09:48:08,450	ERR scripts.py:1168 -- Remaining processes will be killed.
+[2026-05-17 09:48:08] [DLC worker] cleaning up local teacher / ray...

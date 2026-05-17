@@ -359,7 +359,7 @@ else
 fi
 
 REPO_ROOT="${REPO_ROOT:-/mnt/data/ebft-distribution-new/code}"
-MODEL_PATH="${MODEL_PATH:-/mnt/data/models/Qwen3.5-2B}"
+MODEL_PATH="${MODEL_PATH:-/mnt/data/models/Qwen3.5-4B}"
 PREPARED_DATA_DIR="${PREPARED_DATA_DIR:-/mnt/data/ebft-distribution-new/outputs/diff_dataset_prepared}"
 TRAIN_SAMPLE_POOL="${TRAIN_SAMPLE_POOL:-100000}"
 TRAIN_DATA="${TRAIN_DATA:-${PREPARED_DATA_DIR}/opencodeinstruct_qa_100k.jsonl}"
@@ -392,6 +392,12 @@ export TRITON_CACHE_DIR="${TRITON_CACHE_DIR:-/mnt/workspace/.triton_cache}"
 # allocator grow segments on demand and typically frees 1-2 GiB of
 # headroom on an 80GB A100. PyTorch suggests this in the OOM message.
 export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
+
+# Enable the semantics-preserving dense 4D strided-mask cache for this
+# distill-only run. The cache is automatically bypassed when document masking is
+# enabled; callers can still override either value before invoking the script.
+export EBFT_CACHE_STRIDED_MASKS="${EBFT_CACHE_STRIDED_MASKS:-1}"
+export EBFT_CACHE_STRIDED_MASKS_MAX_MB="${EBFT_CACHE_STRIDED_MASKS_MAX_MB:-1024}"
 TEACHER_VLLM_BIN="${TEACHER_VLLM_BIN:-${TEACHER_VENV}/bin/vllm}"
 STUDENT_PYTHON_BIN="${STUDENT_PYTHON_BIN:-${STUDENT_VENV}/bin/python}"
 
@@ -407,7 +413,7 @@ GENERATE_MAX_LEN="${GENERATE_MAX_LEN:-8}"
 STRIDE="${STRIDE:-8}"
 NUM_EPISODES="${NUM_EPISODES:-1}"
 MAX_EPOCHS="${MAX_EPOCHS:-1}"
-TARGET_STEPS="${TARGET_STEPS:-0}"
+TARGET_STEPS="${TARGET_STEPS:-500}"
 if [[ -z "${MAX_SAMPLES:-}" ]]; then
   if (( TARGET_STEPS > 0 )); then
     MAX_SAMPLES="$((TARGET_STEPS * TRAIN_BATCH_SIZE / N_SAMPLES_PER_PROMPT / NUM_EPISODES / MAX_EPOCHS))"
@@ -416,7 +422,7 @@ if [[ -z "${MAX_SAMPLES:-}" ]]; then
   fi
 fi
 
-CF_TEACHER_LAMBDA="${CF_TEACHER_LAMBDA:-0.6}"
+CF_TEACHER_LAMBDA="${CF_TEACHER_LAMBDA:-1.0}"
 CF_TEACHER_N_SAMPLES="${CF_TEACHER_N_SAMPLES:-4}"
 TEACHER_TEMPERATURE="${TEACHER_TEMPERATURE:-0.7}"
 TEACHER_TOP_P="${TEACHER_TOP_P:-0.95}"
@@ -528,6 +534,7 @@ ARCHIVE_SHARED_TEACHER_CACHE_DIR="${ARCHIVE_SHARED_TEACHER_CACHE_DIR:-${TEACHER_
 ACTOR_LR="${ACTOR_LR:-1e-6}"
 CRITIC_LR="${CRITIC_LR:-0}"
 CRITIC_LR_HEAD="${CRITIC_LR_HEAD:-0}"
+CE_LOSS_COEF="${CE_LOSS_COEF:-0}"
 
 RAY_PORT="${RAY_PORT:-6379}"
 RAY_DASHBOARD_PORT="${RAY_DASHBOARD_PORT:-8265}"
@@ -541,10 +548,10 @@ RAY_WAIT_SECONDS="${RAY_WAIT_SECONDS:-120}"
 if [[ "${DLC_MODE}" == "true" && -z "${RUN_NAME:-}" ]]; then
   _dlc_job_id="$(hostname | sed -E 's/^(dlc[a-z0-9]+)-(master|worker)-[0-9]+$/\1/' || true)"
   if [[ -n "${_dlc_job_id}" && "${_dlc_job_id}" != "$(hostname)" ]]; then
-    RUN_NAME="diff_g2_${_dlc_job_id}"
+    RUN_NAME="diff_g2_distillpure_${_dlc_job_id}"
   fi
 fi
-RUN_NAME="${RUN_NAME:-diff_g2_qwen35_2b_2node_$(date +%m%d_%H%M)}"
+RUN_NAME="${RUN_NAME:-diff_g2_distillpure_qwen35_4b_2node_$(date +%m%d_%H%M)}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-/mnt/data/ebft-distribution-new/outputs/diff_dataset}"
 RUN_DIR="${OUTPUT_ROOT}/${RUN_NAME}"
 SAVE_PATH="${RUN_DIR}/model"
@@ -732,7 +739,8 @@ write_run_metadata() {
     PROMPT_MAX_LEN CONTEXT_MAX_LEN GENERATE_MAX_LEN STRIDE NUM_EPISODES MAX_EPOCHS TARGET_STEPS MAX_SAMPLES
     CF_TEACHER_LAMBDA CF_TEACHER_N_SAMPLES TEACHER_TEMPERATURE TEACHER_TOP_P TEACHER_MAX_NEW_TOKENS
     TEACHER_TIMEOUT TEACHER_MAX_RETRIES TEACHER_REMOTE_BATCH_SIZE TEACHER_SYSTEM_PROMPT_ID
-    ACTOR_LR CRITIC_LR CRITIC_LR_HEAD
+    ACTOR_LR CRITIC_LR CRITIC_LR_HEAD CE_LOSS_COEF
+    EBFT_CACHE_STRIDED_MASKS EBFT_CACHE_STRIDED_MASKS_MAX_MB
     EVAL_STEPS EVAL_MAX_SAMPLES EVAL_GENERATE_MAX_LEN SAVE_STEPS SAVE_EVEN_COUNT
     EVAL_AFTER_TRAIN RUN_TWO_ROUND_EVAL
     MODEL_CUDA_VISIBLE_DEVICES VLLM_TP_SIZE
@@ -768,6 +776,9 @@ write_run_metadata() {
     echo "train_batch_size: ${TRAIN_BATCH_SIZE}"
     echo "target_steps: ${TARGET_STEPS}"
     echo "max_samples: ${MAX_SAMPLES}"
+    echo "cf_teacher_lambda: ${CF_TEACHER_LAMBDA} (1.0 means teacher-only target)"
+    echo "ce_loss_coef: ${CE_LOSS_COEF}"
+    echo "dense_4d_mask_cache: ${EBFT_CACHE_STRIDED_MASKS} (max_mb=${EBFT_CACHE_STRIDED_MASKS_MAX_MB})"
     echo "code_benchmark_script: ${CODE_BENCHMARK_SCRIPT}"
     echo "post_eval_max_samples: ${POST_EVAL_MAX_SAMPLES}"
     echo "code_benchmarks: ${CODE_BENCHMARKS}"
@@ -1458,6 +1469,8 @@ export RAY_DISABLE_DOCKER_CPU_WARNING=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export VLLM_WORKER_MULTIPROC_METHOD='${VLLM_WORKER_MULTIPROC_METHOD}'
 export PYTORCH_CUDA_ALLOC_CONF='${PYTORCH_CUDA_ALLOC_CONF}'
+export EBFT_CACHE_STRIDED_MASKS='${EBFT_CACHE_STRIDED_MASKS}'
+export EBFT_CACHE_STRIDED_MASKS_MAX_MB='${EBFT_CACHE_STRIDED_MASKS_MAX_MB}'
 export PYTHONUNBUFFERED=1
 export RAY_ADDRESS=auto
 # NCCL safety (mirror parent process; ensures Ray actors inherit even
@@ -1505,7 +1518,7 @@ fi
   --actor_learning_rate '${ACTOR_LR}' \
   --pretrain '${MODEL_PATH}' --critic_pretrain '${MODEL_PATH}' \
   --prompt_data '${TRAIN_DATA}' --eval_dataset '${EVAL_DATA}' \
-  --input_key question --label_key answer --output_key answer \
+  --input_key question --label_key answer \
   --prompt_split train --eval_split test \
   --prompt_max_len '${PROMPT_MAX_LEN}' \
   --context_max_len '${CONTEXT_MAX_LEN}' \
@@ -1526,7 +1539,7 @@ fi
   --reward_num_nodes '${REWARD_NUM_NODES}' --reward_num_gpus_per_node '${REWARD_GPUS}' \
   --advantage_estimator rloo --init_kl_coef 0.0 --kl_estimator k2 \
   --temperature 0.6 --top_p 1.0 \
-  --zero_stage 3 --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
+  --zero_stage 3 --ce_loss_coef '${CE_LOSS_COEF}' --lr_warmup_ratio 0.03 --critic_lr_warmup_ratio 0.0 \
   --seed 43 \
   --eval_steps '${EVAL_STEPS}' \
   --eval_max_samples '${EVAL_MAX_SAMPLES}' \
